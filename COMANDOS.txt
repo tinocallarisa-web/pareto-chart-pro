@@ -1,0 +1,64 @@
+=========================================================
+COMANDOS — PARETO CHART PRO
+=========================================================
+
+── SETUP INICIAL ────────────────────────────────────────
+
+cd pareto-chart-pro
+npm install --legacy-peer-deps
+pbiviz package
+
+── BUILD ────────────────────────────────────────────────
+
+pbiviz package
+# El .pbiviz generado queda en dist/
+
+── MODO DESARROLLO (live preview) ──────────────────────
+
+pbiviz start
+# Luego activar "Enable developer visual" en Power BI Service
+
+── PUBLICAR NUEVA VERSIÓN ───────────────────────────────
+
+# 1. Subir versión en pbiviz.json Y package.json
+#    (1.0.0.0 → 1.0.0.1 → 1.0.0.2, etc.)
+
+# 2. Commit y push a main
+git add .
+git commit -m "Fix: descripción del cambio v1.0.0.X"
+git push origin main
+
+# 3. Actualizar rama certification
+git checkout certification
+git merge main
+git push origin certification
+git checkout main
+
+# 4. Build final
+pbiviz package
+
+# 5. En Partner Center:
+#    - Subir el nuevo .pbiviz
+#    - COPIAR las notas de NOTAS_CERTIFICACION.txt antes de Submit
+#    - Verificar que privacy/terms/support URLs responden
+
+── GITHUB PAGES ────────────────────────────────────────
+
+Activar en: Settings → Pages → Deploy from branch → main → /docs
+URLs:
+  https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
+  https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
+  https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+
+── DEV MODE (sin restricciones de licencia) ─────────────
+
+En src/visual.ts, línea ~50, cambiar:
+  private isPro: boolean = false;
+  private async checkLicense() { ... }
+Por:
+  private isPro: boolean = true;  // DEV MODE
+  private async checkLicense() { this.isPro = true; }  // DEV MODE
+
+REVERTIR ANTES DE PUBLICAR.
+
+=========================================================

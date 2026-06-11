@@ -1,0 +1,25 @@
+{
+  "visual": {
+    "name": "ParetoChartPro",
+    "displayName": "Pareto Chart Pro",
+    "guid": "ParetoChartPro1A2B3C4D5E6F7A8B9C0D",
+    "visualClassName": "Visual",
+    "version": "1.0.0.2",
+    "description": "Professional Pareto Chart with cumulative line, 80% reference, and Free/Pro tiers.",
+    "supportUrl": "https://tinocallarisa-web.github.io/pareto-chart-pro/support.html",
+    "gitHubUrl": "https://github.com/tinocallarisa-web/pareto-chart-pro"
+  },
+  "apiVersion": "5.10.0",
+  "author": {
+    "name": "TCViz",
+    "email": "tinocallarisa@gmail.com"
+  },
+  "assets": {
+    "icon": "assets/icon.png"
+  },
+  "capabilities": "capabilities.json",
+  "defaultLocale": "en-US",
+  "privacyTerms": {
+    "link": "https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html"
+  }
+}

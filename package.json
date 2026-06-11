@@ -1,0 +1,24 @@
+{
+  "name": "pareto-chart-pro",
+  "description": "Pareto Chart Pro — TCViz",
+  "version": "1.0.0.2",
+  "licenses": "MIT",
+  "scripts": {
+    "pbiviz": "pbiviz",
+    "start": "pbiviz start",
+    "package": "pbiviz package",
+    "lint": "eslint . --ext ts"
+  },
+  "dependencies": {
+    "@types/d3": "^7.4.3",
+    "d3": "^7.9.0",
+    "powerbi-visuals-api": "~5.10.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^8.0.0",
+    "powerbi-visuals-tools": "^5.4.2",
+    "typescript": "~5.3.3"
+  }
+}

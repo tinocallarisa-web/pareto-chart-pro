@@ -1,0 +1,63 @@
+/** Pareto Chart Pro — TCViz */
+
+.pareto-visual {
+  font-family: "Segoe UI", sans-serif;
+
+  .landing-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #555;
+
+    h2 {
+      font-size: 16px;
+      margin: 8px 0 4px;
+    }
+
+    p {
+      font-size: 12px;
+      color: #888;
+    }
+  }
+
+  .bar {
+    cursor: pointer;
+    transition: opacity 0.15s;
+
+    &:hover {
+      opacity: 0.85 !important;
+    }
+  }
+
+  .cumulative-line {
+    fill: none;
+    stroke-width: 2;
+  }
+
+  .reference-line {
+    stroke-dasharray: 6 3;
+    stroke-width: 1.5;
+  }
+
+  .axis text {
+    font-size: 11px;
+    fill: #444;
+  }
+
+  .axis line,
+  .axis path {
+    stroke: #ccc;
+  }
+
+  .tooltip-label {
+    font-size: 11px;
+    fill: #333;
+  }
+
+  .pro-badge {
+    font-size: 10px;
+    fill: #888;
+  }
+}
