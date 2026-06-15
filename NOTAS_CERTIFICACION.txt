@@ -53,7 +53,9 @@ Testing instructions:
 9. Reference lines: default 80% horizontal + vertical crosshair mark crossing point
    Enable line 2, set to 60% → second crosshair appears in different color
 
-Test license key: [FILL IN FROM PARTNER CENTER BEFORE SUBMITTING]
+Test license key: Not applicable.
+License testing: Use the 30-day free trial available in AppSource
+to verify Pro functionality during certification review.
 
 =========================================================
 VERSIÓN ACTUAL: 1.0.0.3
