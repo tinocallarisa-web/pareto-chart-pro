@@ -56,6 +56,6 @@ Testing instructions:
 Test license key: [FILL IN FROM PARTNER CENTER BEFORE SUBMITTING]
 
 =========================================================
-VERSIÓN ACTUAL: 1.0.0.2
+VERSIÓN ACTUAL: 1.0.0.3
 Subir en pbiviz.json Y package.json en cada reenvío
 =========================================================

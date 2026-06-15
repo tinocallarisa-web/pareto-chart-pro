@@ -1,7 +1,7 @@
 {
   "name": "pareto-chart-pro",
   "description": "Pareto Chart Pro — TCViz",
-  "version": "1.0.0.2",
+  "version": "1.0.0.3",
   "licenses": "MIT",
   "scripts": {
     "pbiviz": "pbiviz",
