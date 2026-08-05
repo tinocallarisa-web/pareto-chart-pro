@@ -10,15 +10,16 @@ import ISelectionId               = powerbi.visuals.ISelectionId;
 import DataView                   = powerbi.DataView;
 import ServicePlanState           = powerbi.ServicePlanState;
 import IVisualEventService        = powerbi.extensibility.IVisualEventService;
-import VisualObjectInstanceEnumeration = powerbi.VisualObjectInstanceEnumeration;
-import EnumerateVisualObjectInstancesOptions = powerbi.EnumerateVisualObjectInstancesOptions;
 import DataViewCategoryColumn     = powerbi.DataViewCategoryColumn;
 
 import * as d3 from "d3";
 
+import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import { ParetoFormattingSettings } from "./settings";
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PLAN_ID           = "pareto-chart-pro-tcviz";
-const FREE_BIN_SIZE_PCT = 10;
+const FREE_BIN_SIZE_PCT = 20;
 const MARGIN            = { top: 28, right: 64, bottom: 68, left: 64 };
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
@@ -136,10 +137,15 @@ export class Visual implements IVisual {
 
     private settings:      Settings;
     private bins:          BinDatum[] = [];
-    private selectedBins:  Set<string> = new Set();  // tracks selected bin labels for toggle
+    private selectedBins:  Set<string> = new Set();
 
     private isPro:           boolean = false;
     private readonly DEV_MODE        = false;
+
+    // ── Formatting Model API ──────────────────────────────────────────────────
+    private formattingSettingsService: FormattingSettingsService;
+    private lastDataView: DataView | undefined;
+
     // ─────────────────────────────────────────────────────────────────────────
 
     constructor(options: VisualConstructorOptions) {
@@ -147,6 +153,8 @@ export class Visual implements IVisual {
         this.events           = options.host.eventService;
         this.selectionManager = options.host.createSelectionManager();
         this.settings         = readSettings(undefined);
+
+        this.formattingSettingsService = new FormattingSettingsService();
 
         this.container = d3.select(options.element)
             .append("div").classed("pareto-visual", true)
@@ -161,7 +169,6 @@ export class Visual implements IVisual {
             this.selectionManager.clear().then(() => this.applyOpacity([]));
         });
 
-        // Attach contextmenu on the root element so Power BI can intercept it
         options.element.addEventListener("contextmenu", (event: MouseEvent) => {
             const target = event.target as Element;
             const datum  = d3.select<Element, BinDatum>(target).datum();
@@ -181,6 +188,7 @@ export class Visual implements IVisual {
         this.events.renderingStarted(options);
         try {
             const dv = options.dataViews?.[0];
+            this.lastDataView = dv;
             this.settings = readSettings(dv);
 
             if (!dv?.categorical?.categories?.[0]?.values?.length) {
@@ -226,7 +234,6 @@ export class Visual implements IVisual {
         const hlVals  = valCol.highlights as number[];
         const hasHL   = hlVals != null;
 
-        // 1. Build rows
         let rows: { value: number; selId: ISelectionId; hlValue: number | null }[] =
             rawVals.map((v, i) => ({
                 value:   Math.max(0, Number(v) || 0),
@@ -236,13 +243,11 @@ export class Visual implements IVisual {
                              .createSelectionId(),
             }));
 
-        // 2. Sort best → worst
         rows.sort((a, b) => b.value - a.value);
 
         const n = rows.length;
         if (n === 0) { this.bins = []; return; }
 
-        // 3. Outlier trim (Pro only)
         let trimmedRows = rows;
         if (this.isPro) {
             const skipTop    = Math.max(0, Math.floor(n * Math.min(s.trimUpper, 99) / 100));
@@ -252,15 +257,11 @@ export class Visual implements IVisual {
         const tn = trimmedRows.length;
         if (tn === 0) { this.bins = []; return; }
 
-        // 4. Bin size
         const binSizePct = this.isPro
             ? Math.min(20, Math.max(1, s.binSizePct))
             : FREE_BIN_SIZE_PCT;
         const nBins = Math.ceil(100 / binSizePct);
 
-        // 5. Assign to bins using uniform ceil-based distribution
-        //    → all bins get the same number of entities (last bin may get fewer)
-        //    → guarantees bars are monotonically non-increasing
         const entitiesPerBin = Math.ceil(tn / nBins);
         const rawBins: typeof trimmedRows[] = Array.from({ length: nBins }, () => []);
         trimmedRows.forEach((r, i) => {
@@ -268,7 +269,6 @@ export class Visual implements IVisual {
             rawBins[binIdx].push(r);
         });
 
-        // 6. Build BinDatum
         const total = trimmedRows.reduce((s, r) => s + r.value, 0);
         if (total === 0) { this.bins = []; return; }
 
@@ -285,14 +285,19 @@ export class Visual implements IVisual {
                 const highlighted = hasHL ? b.some(r => r.hlValue != null && r.hlValue > 0) : false;
 
                 return {
-                    label:       `${Math.round(binStart)}–${Math.round(binEnd)}%`,
+                    label:     `${Math.round(binStart)}–${Math.round(binEnd)}%`,
                     pctShare,
                     cumPct,
-                    selIds:      b.map(r => r.selId),
-                    nEntities:   b.length,
+                    selIds:    b.map(r => r.selId),
+                    nEntities: b.length,
                     highlighted,
                 };
             });
+    }
+
+    // ── Resolve color (high contrast aware) ───────────────────────────────────
+    private resolveColor(userColor: string, hcColor: string, isHighContrast: boolean): string {
+        return isHighContrast ? hcColor : userColor;
     }
 
     // ── Render chart ──────────────────────────────────────────────────────────
@@ -301,6 +306,21 @@ export class Visual implements IVisual {
         const W  = viewport.width  - MARGIN.left - MARGIN.right;
         const H  = viewport.height - MARGIN.top  - MARGIN.bottom;
         if (W <= 0 || H <= 0 || !this.bins.length) return;
+
+        // ── High contrast support ──────────────────────────────────────────────
+        const palette     = this.host.colorPalette as any;
+        const isHC        = palette.isHighContrast === true;
+        const hcFg        = isHC ? (palette.foreground?.value        ?? "#FFFFFF") : "";
+        const hcBg        = isHC ? (palette.background?.value        ?? "#000000") : "";
+        const hcFgNeutral = isHC ? (palette.foregroundNeutralSecondary?.value ?? "#808080") : "";
+
+        const barColor  = this.resolveColor(s.barColor,  hcFg,        isHC);
+        const lineColor = this.resolveColor(s.lineColor, hcFg,        isHC);
+        const axisColor = this.resolveColor(s.axisColor, hcFg,        isHC);
+        const gridColor = this.resolveColor(s.gridColor, hcFgNeutral, isHC);
+        const dotColor  = lineColor;
+
+        // ──────────────────────────────────────────────────────────────────────
 
         const hasHL    = this.bins.some(b => b.highlighted);
         const padding  = Math.max(0.05, Math.min(0.4, s.barGap / 100));
@@ -328,8 +348,8 @@ export class Visual implements IVisual {
             .classed("grid-line", true)
             .attr("x1", 0).attr("x2", W)
             .attr("y1", d => yL(d)).attr("y2", d => yL(d))
-            .attr("stroke", s.gridColor)
-            .attr("stroke-width", 0.5);
+            .attr("stroke", gridColor)
+            .attr("stroke-width", isHC ? 1 : 0.5);
 
         // Axes
         const xAxis = g.append("g").classed("axis", true)
@@ -339,19 +359,19 @@ export class Visual implements IVisual {
             .attr("transform", "rotate(-40)")
             .style("text-anchor", "end")
             .style("font-size", s.axisFontSize + "px")
-            .style("fill", s.axisColor);
-        xAxis.selectAll("line, path").style("stroke", s.axisColor);
+            .style("fill", axisColor);
+        xAxis.selectAll("line, path").style("stroke", axisColor);
 
         const yAxisL = g.append("g").classed("axis", true)
             .call(d3.axisLeft(yL).ticks(6).tickFormat(d => `${d}%`));
-        yAxisL.selectAll("text").style("fill", s.axisColor).style("font-size", s.axisFontSize + "px");
-        yAxisL.selectAll("line, path").style("stroke", s.axisColor);
+        yAxisL.selectAll("text").style("fill", axisColor).style("font-size", s.axisFontSize + "px");
+        yAxisL.selectAll("line, path").style("stroke", axisColor);
 
         const yAxisR = g.append("g").classed("axis", true)
             .attr("transform", `translate(${W},0)`)
             .call(d3.axisRight(yR).ticks(5).tickFormat(d => `${d}%`));
-        yAxisR.selectAll("text").style("fill", s.axisColor).style("font-size", s.axisFontSize + "px");
-        yAxisR.selectAll("line, path").style("stroke", s.axisColor);
+        yAxisR.selectAll("text").style("fill", axisColor).style("font-size", s.axisFontSize + "px");
+        yAxisR.selectAll("line, path").style("stroke", axisColor);
 
         // Axis labels
         if (s.showYLabel) {
@@ -359,19 +379,20 @@ export class Visual implements IVisual {
                 .attr("transform", `rotate(-90)`)
                 .attr("x", -H / 2).attr("y", -50)
                 .attr("text-anchor", "middle")
-                .style("font-size", s.axisFontSize + "px").style("fill", s.axisColor)
+                .style("font-size", s.axisFontSize + "px").style("fill", axisColor)
                 .text("% of total value");
         }
         if (s.showXLabel) {
             g.append("text")
                 .attr("x", W / 2).attr("y", H + 58)
                 .attr("text-anchor", "middle")
-                .style("font-size", s.axisFontSize + "px").style("fill", s.axisColor)
+                .style("font-size", s.axisFontSize + "px").style("fill", axisColor)
                 .text("% of entities (best → worst)");
         }
 
         // Bars
         const bw = s.borderWidth > 0 ? s.borderWidth : 0;
+        const borderStroke = this.resolveColor(s.borderColor, hcFg, isHC);
 
         g.selectAll(".bar")
             .data(this.bins)
@@ -381,22 +402,20 @@ export class Visual implements IVisual {
             .attr("y",      b => yL(b.pctShare))
             .attr("width",  xScale.bandwidth())
             .attr("height", b => Math.max(0, H - yL(b.pctShare)))
-            .attr("fill",   s.barColor)
+            .attr("fill",   barColor)
             .attr("opacity", b => hasHL ? (b.highlighted ? s.barOpacity : s.barOpacity * 0.25) : s.barOpacity)
-            .attr("stroke",       bw > 0 ? s.borderColor : "none")
-            .attr("stroke-width", bw)
+            .attr("stroke",       (bw > 0 || isHC) ? borderStroke : "none")
+            .attr("stroke-width", isHC ? 2 : bw)
             .style("cursor", "pointer")
             .on("click", (event: MouseEvent, b: BinDatum) => {
                 event.stopPropagation();
                 if (event.ctrlKey) {
-                    // Multi-select: toggle this bin in/out
                     if (this.selectedBins.has(b.label)) {
                         this.selectedBins.delete(b.label);
                     } else {
                         this.selectedBins.add(b.label);
                     }
                 } else {
-                    // Single-select: toggle if already the only selection, else select
                     if (this.selectedBins.size === 1 && this.selectedBins.has(b.label)) {
                         this.selectedBins.clear();
                     } else {
@@ -410,7 +429,7 @@ export class Visual implements IVisual {
                 } else {
                     const allIds = this.bins
                         .filter(bin => this.selectedBins.has(bin.label))
-                        .flatMap(bin => bin.selIds);
+                        .reduce((acc, bin) => acc.concat(bin.selIds), [] as ISelectionId[]);
                     this.selectionManager.select(allIds, false)
                         .then((ids: ISelectionId[]) => this.applyOpacity(ids));
                 }
@@ -444,8 +463,9 @@ export class Visual implements IVisual {
                 this.host.tooltipService?.hide({ immediately: false, isTouchEvent: false })
             );
 
-        // Value labels
+        // Value labels (Pro)
         if (s.showLabels && this.isPro) {
+            const labelColor = this.resolveColor(s.labelColor, hcFg, isHC);
             g.selectAll(".bar-label")
                 .data(this.bins)
                 .enter().append("text")
@@ -454,7 +474,7 @@ export class Visual implements IVisual {
                 .attr("y", b => yL(b.pctShare) - 4)
                 .attr("text-anchor", "middle")
                 .style("font-size", Math.max(7, Math.min(s.labelFontSize, xScale.bandwidth() * 0.4)) + "px")
-                .style("fill", s.labelColor)
+                .style("fill", labelColor)
                 .text(b => s.showPercent ? `${b.pctShare.toFixed(1)}%` : b.pctShare.toFixed(1));
         }
 
@@ -467,8 +487,8 @@ export class Visual implements IVisual {
         g.append("path")
             .datum(this.bins)
             .attr("fill", "none")
-            .attr("stroke", s.lineColor)
-            .attr("stroke-width", s.lineWidth)
+            .attr("stroke", lineColor)
+            .attr("stroke-width", isHC ? Math.max(s.lineWidth, 2) : s.lineWidth)
             .attr("d", lineGen);
 
         if (s.showDots) {
@@ -477,13 +497,41 @@ export class Visual implements IVisual {
                 .enter().append("circle")
                 .attr("cx", b => xScale(b.label) + xScale.bandwidth() / 2)
                 .attr("cy", b => yR(b.cumPct))
-                .attr("r", s.dotRadius)
-                .attr("fill", s.lineColor)
-                .attr("stroke", "#fff")
-                .attr("stroke-width", 1.5);
+                .attr("r", isHC ? Math.max(s.dotRadius, 5) : s.dotRadius)
+                .attr("fill", dotColor)
+                .attr("stroke", isHC ? hcBg : "#fff")
+                .attr("stroke-width", 1.5)
+                .style("cursor", "crosshair")
+                .on("mouseover", (event: MouseEvent, b: BinDatum) => {
+                    this.host.tooltipService?.show({
+                        dataItems: [
+                            { displayName: "Entities",   value: b.label },
+                            { displayName: "Cumulative", value: `${b.cumPct.toFixed(2)}%` },
+                            { displayName: "Bin share",  value: `${b.pctShare.toFixed(2)}%` },
+                        ],
+                        identities: b.selIds.length ? [b.selIds[0]] : [],
+                        coordinates: [event.clientX, event.clientY],
+                        isTouchEvent: false,
+                    });
+                })
+                .on("mousemove", (event: MouseEvent, b: BinDatum) => {
+                    this.host.tooltipService?.move({
+                        dataItems: [
+                            { displayName: "Entities",   value: b.label },
+                            { displayName: "Cumulative", value: `${b.cumPct.toFixed(2)}%` },
+                            { displayName: "Bin share",  value: `${b.pctShare.toFixed(2)}%` },
+                        ],
+                        identities: b.selIds.length ? [b.selIds[0]] : [],
+                        coordinates: [event.clientX, event.clientY],
+                        isTouchEvent: false,
+                    });
+                })
+                .on("mouseout", () =>
+                    this.host.tooltipService?.hide({ immediately: false, isTouchEvent: false })
+                );
         }
 
-        // Reference lines (horizontal + vertical crosshair)
+        // Reference lines
         const refLines = [
             { show: s.showRef1, value: s.ref1Value, color: s.ref1Color, label: s.ref1Label },
             { show: s.showRef2, value: s.ref2Value, color: s.ref2Color, label: s.ref2Label },
@@ -493,28 +541,26 @@ export class Visual implements IVisual {
         refLines.forEach(ref => {
             if (!ref.show || ref.value <= 0 || ref.value >= 100) return;
 
+            const refColor = this.resolveColor(ref.color, hcFg, isHC);
             const yH = yR(ref.value);
-            // Horizontal dashed line
-            this.drawDashedLine(g, 0, W, yH, yH, ref.color, 1.5);
 
-            // Label on left axis
+            this.drawDashedLine(g, 0, W, yH, yH, refColor, 1.5);
+
             g.append("text")
                 .attr("x", -4).attr("y", yH + 4)
                 .attr("text-anchor", "end")
-                .style("font-size", "10px").style("fill", ref.color)
+                .style("font-size", "10px").style("fill", refColor)
                 .text(ref.label || `${ref.value}%`);
 
-            // Vertical dashed line at the bin where cumulative crosses ref.value
             const crossBin = this.bins.find(b => b.cumPct >= ref.value);
             if (crossBin) {
                 const xV = xScale(crossBin.label) + xScale.bandwidth() / 2;
-                this.drawDashedLine(g, xV, xV, 0, H, ref.color, 1.5, true);
+                this.drawDashedLine(g, xV, xV, 0, H, refColor, 1.5, true);
 
-                // Label below x-axis (only if not overlapping the tick)
                 g.append("text")
-                    .attr("x", xV).attr("y", H + 14)
+                    .attr("x", xV).attr("y", -4)
                     .attr("text-anchor", "middle")
-                    .style("font-size", "10px").style("fill", ref.color)
+                    .style("font-size", "10px").style("fill", refColor)
                     .text(crossBin.label);
             }
         });
@@ -524,7 +570,7 @@ export class Visual implements IVisual {
             g.append("text")
                 .attr("x", W).attr("y", -10)
                 .attr("text-anchor", "end")
-                .style("font-size", "10px").style("fill", "#aaa")
+                .style("font-size", "10px").style("fill", isHC ? hcFgNeutral : "#aaa")
                 .text(`Free: ${FREE_BIN_SIZE_PCT}% bins — upgrade to Pro for custom bin size, outlier filter & labels`);
         }
     }
@@ -568,103 +614,63 @@ export class Visual implements IVisual {
     private renderLandingPage(): void {
         this.svg.selectAll("*").remove();
         this.container.selectAll(".landing-page").remove();
-        this.container
+
+        const landing = this.container
             .append("div").classed("landing-page", true)
             .style("position", "absolute").style("top", "0").style("left", "0")
             .style("width", "100%").style("height", "100%")
             .style("display", "flex").style("align-items", "center")
-            .style("justify-content", "center")
-            .html(`
-                <div style="text-align:center;">
-                    <div style="font-size:40px;margin-bottom:8px;">📊</div>
-                    <div style="font-size:15px;font-weight:600;color:#555;margin-bottom:6px;">Pareto Chart Pro</div>
-                    <div style="font-size:12px;color:#aaa;">
-                        Add an <b>Entity</b> (customer/product) and a <b>Value</b> (sales/revenue)
-                    </div>
-                </div>
-            `);
+            .style("justify-content", "center");
+
+        const wrapper = landing.append("div")
+            .style("text-align", "center");
+
+        wrapper.append("div")
+            .style("font-size", "40px")
+            .style("margin-bottom", "8px")
+            .text("📊");
+
+        wrapper.append("div")
+            .style("font-size", "15px")
+            .style("font-weight", "600")
+            .style("color", "#555")
+            .style("margin-bottom", "6px")
+            .text("Pareto Chart Pro");
+
+        const hint = wrapper.append("div")
+            .style("font-size", "12px")
+            .style("color", "#aaa");
+
+        hint.append("span").text("Add an ");
+        hint.append("b").text("Entity");
+        hint.append("span").text(" (customer/product) and a ");
+        hint.append("b").text("Value");
+        hint.append("span").text(" (sales/revenue)");
     }
 
-    // ── Format pane (enumerateObjectInstances) ────────────────────────────────
-    public enumerateObjectInstances(
-        options: EnumerateVisualObjectInstancesOptions
-    ): VisualObjectInstanceEnumeration {
-        const s = this.settings;
-        switch (options.objectName) {
-            case "pareto":
-                return [{
-                    objectName: "pareto",
-                    properties: {
-                        ...(this.isPro ? { binSizePct: s.binSizePct } : {}),
-                        ...(this.isPro ? { trimLower:  s.trimLower  } : {}),
-                        ...(this.isPro ? { trimUpper:  s.trimUpper  } : {}),
-                        barColor:    { solid: { color: s.barColor    } },
-                        barOpacity:  s.barOpacity * 100,
-                        ...(this.isPro ? { borderColor: { solid: { color: s.borderColor } } } : {}),
-                        ...(this.isPro ? { borderWidth: s.borderWidth } : {}),
-                        ...(this.isPro ? { barGap:      s.barGap      } : {}),
-                    },
-                    selector: null,
-                }];
-            case "axes":
-                return [{
-                    objectName: "axes",
-                    properties: {
-                        axisColor:  { solid: { color: s.axisColor } },
-                        gridColor:  { solid: { color: s.gridColor } },
-                        fontSize:   s.axisFontSize,
-                        showXLabel: s.showXLabel,
-                        showYLabel: s.showYLabel,
-                    },
-                    selector: null,
-                }];
-            case "cumulativeLine":
-                return [{
-                    objectName: "cumulativeLine",
-                    properties: {
-                        lineColor: { solid: { color: s.lineColor } },
-                        lineWidth: s.lineWidth,
-                        showDots:  s.showDots,
-                        dotRadius: s.dotRadius,
-                    },
-                    selector: null,
-                }];
-            case "referenceLines":
-                return [{
-                    objectName: "referenceLines",
-                    properties: {
-                        showRef1:  s.showRef1,
-                        ref1Value: s.ref1Value,
-                        ref1Color: { solid: { color: s.ref1Color } },
-                        ref1Label: s.ref1Label,
-                        showRef2:  s.showRef2,
-                        ref2Value: s.ref2Value,
-                        ref2Color: { solid: { color: s.ref2Color } },
-                        ref2Label: s.ref2Label,
-                        ...(this.isPro ? {
-                            showRef3:  s.showRef3,
-                            ref3Value: s.ref3Value,
-                            ref3Color: { solid: { color: s.ref3Color } },
-                            ref3Label: s.ref3Label,
-                        } : {}),
-                    },
-                    selector: null,
-                }];
-            case "valueLabels":
-                if (!this.isPro) return [];
-                return [{
-                    objectName: "valueLabels",
-                    properties: {
-                        show:        s.showLabels,
-                        fontSize:    s.labelFontSize,
-                        color:       { solid: { color: s.labelColor } },
-                        showPercent: s.showPercent,
-                    },
-                    selector: null,
-                }];
-            default:
-                return [];
-        }
+    // ── Format Pane (new Formatting Model API) ────────────────────────────────
+    public getFormattingModel(): powerbi.visuals.FormattingModel {
+        const model = this.formattingSettingsService.populateFormattingSettingsModel(
+            ParetoFormattingSettings,
+            this.lastDataView
+        );
+
+        // Pro-only slices visibility
+        model.pareto.binSizePct.visible  = this.isPro;
+        model.pareto.trimLower.visible   = this.isPro;
+        model.pareto.trimUpper.visible   = this.isPro;
+        model.pareto.borderColor.visible = this.isPro;
+        model.pareto.borderWidth.visible = this.isPro;
+        model.pareto.barGap.visible      = this.isPro;
+
+        model.referenceLines.showRef3.visible  = this.isPro;
+        model.referenceLines.ref3Value.visible = this.isPro;
+        model.referenceLines.ref3Color.visible = this.isPro;
+        model.referenceLines.ref3Label.visible = this.isPro;
+
+        model.valueLabels.visible = this.isPro;
+
+        return this.formattingSettingsService.buildFormattingModel(model);
     }
 
     public destroy(): void { this.container.remove(); }

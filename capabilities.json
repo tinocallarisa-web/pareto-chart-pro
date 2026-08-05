@@ -35,7 +35,7 @@
             "properties": {
                 "binSizePct": {
                     "displayName": "Bin size % of entities (Pro)",
-                    "description": "Each bar represents this % of entities. Free tier fixed at 5%. Pro: 1–20%.",
+                    "description": "Each bar represents this % of entities. Free tier fixed at 20% (5 bins). Pro: 1–20%.",
                     "type": { "numeric": true }
                 },
                 "trimLower": {
@@ -197,6 +197,14 @@
     "supportsLandingPage": true,
     "supportsKeyboardFocus": true,
     "supportsMultiVisualSelection": true,
+    "tooltips": {
+        "supportedTypes": { "default": true, "canvas": true },
+        "roles": ["category"],
+        "supportEnhancedTooltips": true
+    },
+    "drilldown": {
+        "roles": ["category"]
+    },
     "sorting": { "default": {} },
     "privileges": []
 }

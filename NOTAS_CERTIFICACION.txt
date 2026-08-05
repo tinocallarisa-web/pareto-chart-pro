@@ -1,5 +1,5 @@
 =========================================================
-NOTAS DE CERTIFICACIÓN — PARETO CHART PRO
+NOTAS DE CERTIFICACIÓN — PARETO CHART PRO v1.1.0.0
 Copiar SIEMPRE antes de hacer Submit en Partner Center
 (Microsoft borra este campo en cada reenvío)
 =========================================================
@@ -16,20 +16,28 @@ https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
 Support:
 https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 
+Video walkthrough:
+https://www.youtube.com/watch?v=1YmpeyACe2o
+
 License validation:
 Uses official Microsoft IVisualLicenseManager API. No external server.
 Plan ID: pareto-chart-pro-tcviz
+Resolution is async and does not block initial render.
 
 Free tier (no license required):
-- Fixed 10% bins (10 bars showing top → bottom entities)
-- Full Pareto chart with cumulative % line
+- Fixed 20% bins (5 bars showing top to bottom entities)
+- Full Pareto chart with cumulative % line + interactive dots with tooltips
 - Up to 2 configurable reference lines (default: 80%)
-- Bar color, opacity, cumulative line color settings
+- Drilldown / hierarchical view (via standard Power BI drill buttons)
+- Bar color, opacity, axis and cumulative line styling
 - Cross-filtering (filter-out via click, filter-in via highlights)
-- Tooltips and context menu
+- Tooltips on bars and cumulative dots
+- Report/canvas tooltips support
+- High contrast mode support
+- Context menu on right-click
 
 Pro tier (requires active AppSource license):
-- Custom bin size: 1%–20% (default 5%)
+- Custom bin size: 1-20% (default 5% = 20 bars)
 - Outlier filter: exclude top/bottom % of entities
 - Bar border color and width
 - Bar gap control
@@ -37,27 +45,45 @@ Pro tier (requires active AppSource license):
 - Third reference line
 - All Free features included
 
-Testing instructions:
-1. Import the .pbiviz file from the submission package
-2. Add an Entity field (e.g. customer_id) and a Value field (e.g. sales)
-3. WITHOUT Pro license: verify 10 bars appear (10% bins);
-   badge shows "Free: 10% bins — upgrade to Pro for custom bin size..."
-   Pro-only settings (bin size, trim, value labels) do NOT appear in Format Pane
-4. WITH Pro license key below: verify Format Pane shows Pro settings
-   (Bins section, Outlier Filter, Value Labels)
-   Change bin size to 5% → 20 bars appear, correctly decreasing
-5. Cross-filtering: click a bar → other visuals on page filter
-6. Filter-in: click another slicer → unselected bins dim to 25% opacity
-7. Right-click a bar → Power BI context menu appears (Include/Exclude/Drill)
-8. Hover a bar → tooltip shows: Entity range, Count, % of total, Cumulative %
-9. Reference lines: default 80% horizontal + vertical crosshair mark crossing point
-   Enable line 2, set to 60% → second crosshair appears in different color
+Network access:
+- IVisualLicenseManager: standard Microsoft licensing API call only
+- No other external network requests
+- No data leaves the Power BI report
 
-Test license key: Not applicable.
-License testing: Use the 30-day free trial available in AppSource
-to verify Pro functionality during certification review.
+Formatting Pane:
+- Migrated to getFormattingModel() using powerbi-visuals-utils-formattingmodel
+- Pro-only slices hidden via slice.visible = false when Free tier
 
 =========================================================
-VERSIÓN ACTUAL: 1.0.0.3
-Subir en pbiviz.json Y package.json en cada reenvío
+TESTING INSTRUCTIONS
+=========================================================
+
+1. Import the .pbiviz from the submission package
+2. Add an Entity field (e.g. customer_id) and a Value field (e.g. sales)
+
+FREE TIER TESTS (no license):
+3. Verify 5 bars appear (20% bins)
+   Badge shows "Free: 20% bins - upgrade to Pro for custom bin size..."
+   Pro-only settings do NOT appear in Format Pane
+4. Hover a bar: tooltip shows Entity range, Count, % of total, Cumulative %
+5. Hover a cumulative dot: tooltip shows Entity range, Cumulative %, Bin share %
+6. Click a bar: cross-filter applied to other visuals
+7. Ctrl+click multiple bars: multi-select works
+8. Filter-in from slicer: unselected bins dim to 25% opacity
+9. Right-click a bar: Power BI context menu appears
+10. Add hierarchy to Entity field: drill buttons appear in visual header
+    Drill down one level: Pareto recalculates for drilled data
+11. Reference line at 80% (default): horizontal + vertical dashed crosshair,
+    label "80%" on left Y-axis, bin label shown at top of vertical line
+
+PRO TIER TESTS (use 30-day AppSource trial):
+12. Format Pane shows: Bin size %, Exclude bottom/top %, Border, Bar gap, Value Labels
+13. Change bin size to 5%: 20 bars appear, correctly decreasing
+14. Enable Value Labels: percentage shown above each bar
+15. Enable line 3 (Pro): third reference line appears
+16. Set Exclude top % to 10: top 10% of entities removed before binning
+
+HIGH CONTRAST:
+17. Enable high contrast in Windows/Power BI: all colors use system palette
+
 =========================================================

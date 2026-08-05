@@ -1,24 +1,37 @@
 {
-  "name": "pareto-chart-pro",
-  "description": "Pareto Chart Pro — TCViz",
-  "version": "1.0.0.3",
-  "licenses": "MIT",
-  "scripts": {
-    "pbiviz": "pbiviz",
-    "start": "pbiviz start",
-    "package": "pbiviz package",
-    "lint": "eslint . --ext ts"
-  },
-  "dependencies": {
-    "@types/d3": "^7.4.3",
-    "d3": "^7.9.0",
-    "powerbi-visuals-api": "~5.10.0"
-  },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
-    "eslint": "^8.0.0",
-    "powerbi-visuals-tools": "^5.4.2",
-    "typescript": "~5.3.3"
-  }
+		"version": "1.0.0.3",
+		"author": {
+				"name": "TCViz",
+				"email": "tinocallarisa@gmail.com"
+		},
+		"resources": [
+				{
+						"resourceId": "rId0",
+						"sourceType": 5,
+						"file": "resources/ParetoChartPro1A2B3C4D5E6F7A8B9C0D.pbiviz.json"
+				}
+		],
+		"visual": {
+				"name": "ParetoChartPro",
+				"displayName": "Pareto Chart Pro",
+				"guid": "ParetoChartPro1A2B3C4D5E6F7A8B9C0D",
+				"visualClassName": "Visual",
+				"version": "1.0.0.3",
+				"description": "Professional Pareto Chart with cumulative line, 80% reference, and Free/Pro tiers.",
+				"supportUrl": "https://tinocallarisa-web.github.io/pareto-chart-pro/support.html",
+				"gitHubUrl": "https://github.com/tinocallarisa-web/pareto-chart-pro"
+		},
+		"metadata": {
+				"pbivizjson": {
+						"resourceId": "rId0"
+				}
+		},
+		"devDependencies": {
+				"powerbi-visuals-utils-formattingmodel": "^7.1.0"
+		},
+		"dependencies": {
+				"@types/d3": "^7.4.3",
+				"d3": "^7.9.0",
+				"powerbi-visuals-api": "~5.10.0"
+		}
 }

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pareto Chart Pro — Infographic</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:#FAF9F5; --bg2:#EDE9DE; --bd:#F0EEE8; --line:#DAD9D4;
+  --t1:#3D3929; --t2:#535146; --t3:#83827D;
+  --acc:#C96442; --accd:#B05730; --acc2:#9C87F5;
+}
+
+body {
+  background: #555;
+  display: flex; flex-direction: column;
+  align-items: center; padding: 20px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+#dl {
+  margin-bottom: 12px;
+  background: var(--acc); color: #fff; border: none; border-radius: 6px;
+  padding: 9px 22px; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+#dl:disabled { opacity:.5; cursor:default; }
+
+/*
+  ROWS: 108 + 136 + 224 + 88 + 148 + 64 = 768
+*/
+#ig {
+  width: 1366px; height: 768px;
+  background: var(--bg);
+  display: grid;
+  grid-template-rows: 108px 136px 224px 88px 148px 64px;
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+
+/* ─── HEADER (116px) ─── */
+.h {
+  background: var(--t1);
+  display: grid; grid-template-columns: 156px 1fr auto;
+  align-items: center; padding: 0 48px; gap: 28px;
+}
+.h h1 { font-size: 30px; font-weight: 700; color: #fff; line-height: 1.1; }
+.h h1 span { color: var(--acc); }
+.h p  { font-size: 13px; color: #a0a09a; margin-top: 5px; }
+.mini { display: flex; gap: 4px; align-items: flex-end; height: 72px; }
+.mini .col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.mini .dot { width: 8px; height: 8px; border-radius: 50%; border: 2px solid #fff; }
+.mini .bar { width: 26px; border-radius: 3px 3px 0 0; background: var(--acc); }
+
+/* ─── USE CASES (140px) ─── */
+.uc {
+  background: var(--bg2); border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; padding: 0 44px; gap: 20px;
+}
+.ucl {
+  writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg);
+  font-size: 10px; font-weight: 700; letter-spacing: 3px;
+  color: var(--acc); text-transform: uppercase; flex-shrink: 0;
+}
+.ucc { display: flex; gap: 10px; flex: 1; }
+.ucc .c {
+  flex: 1; background: #fff; border-radius: 9px;
+  border: 1px solid var(--line);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 6px; padding: 10px 6px;
+}
+.ucc .c svg { width: 26px; height: 26px; flex-shrink: 0; }
+.ucc .c span { font-size: 10.5px; font-weight: 600; color: var(--t1); text-align: center; line-height: 1.3; }
+.ucq {
+  background: var(--acc); color: #fff; border-radius: 9px;
+  padding: 10px 14px; font-size: 11.5px; font-weight: 700; line-height: 1.5;
+  flex-shrink: 0; width: 132px; text-align: center;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ─── BODY — FREE vs PRO (228px) ─── */
+.bd {
+  display: grid; grid-template-columns: 1fr 190px 1fr;
+  padding: 12px 44px; align-items: stretch; background: var(--bg);
+}
+.tc {
+  background: #fff; border-radius: 11px;
+  padding: 12px 16px; border: 2px solid var(--line);
+  overflow: hidden;
+}
+.tc.free { border-color: var(--acc); }
+.tc.pro  { border-color: var(--acc2); }
+.tc h3 {
+  font-size: 12px; font-weight: 700; margin-bottom: 7px;
+  display: flex; align-items: center; gap: 6px;
+}
+.tc.free h3 { color: var(--acc); }
+.tc.pro  h3 { color: var(--acc2); }
+.tc ul { list-style: none; }
+.tc ul li {
+  padding: 2px 0; border-bottom: 1px solid var(--bd);
+  display: flex; gap: 6px;
+  font-size: 10.5px; color: var(--t2); line-height: 1.4;
+}
+.tc ul li:last-child { border-bottom: none; }
+.tc ul li::before { content: '✓'; font-weight: 700; flex-shrink: 0; }
+.tc.free ul li::before { color: var(--acc); }
+.tc.pro  ul li::before { color: var(--acc2); }
+
+.cc {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 9px; padding: 4px 12px 0;
+}
+.bc {
+  width: 90px; height: 90px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accd), var(--acc2));
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; color: #fff; flex-shrink: 0;
+}
+.bc .p { font-size: 26px; font-weight: 700; line-height: 1; }
+.bc .l { font-size: 10px; opacity: .85; margin-top: 2px; }
+.sp {
+  background: var(--bg2); border: 1px solid var(--line); border-radius: 18px;
+  padding: 4px 10px; font-size: 10.5px; font-weight: 600; color: var(--t1);
+  text-align: center; width: 100%;
+}
+.sp span { color: var(--acc); }
+
+/* ─── WORKFLOW (92px) ─── */
+.wf {
+  background: var(--t1);
+  display: flex; align-items: center; padding: 0 44px;
+}
+.ws {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 4px; position: relative;
+}
+.ws:not(:last-child)::after {
+  content: '›'; position: absolute; right: -4px; top: 7px;
+  font-size: 20px; color: var(--acc); font-weight: 700;
+}
+.wn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--acc); color: #fff;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.wt { font-size: 9.5px; color: #b5b3aa; text-align: center; line-height: 1.3; }
+.wq {
+  font-size: 10.5px; font-style: italic; color: #6b6966;
+  margin-left: 16px; flex-shrink: 0; max-width: 156px;
+  line-height: 1.4; text-align: center;
+  border-left: 2px solid var(--acc); padding-left: 10px;
+}
+
+/* ─── BOTTOM GRID (124px) ─── */
+.bo {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px; padding: 10px 44px; background: var(--bg2); align-items: start;
+}
+.bc2 {
+  background: #fff; border-radius: 8px;
+  padding: 9px 12px; border: 1px solid var(--line); overflow: hidden;
+}
+.bc2 h4 {
+  font-size: 10px; font-weight: 700; color: var(--acc);
+  text-transform: uppercase; letter-spacing: .6px; margin-bottom: 5px;
+}
+.bc2 ul { list-style: none; }
+.bc2 ul li {
+  padding: 1px 0; font-size: 10px; color: var(--t2);
+  display: flex; gap: 5px; line-height: 1.35;
+}
+.bc2 ul li::before { content: '·'; color: var(--acc); font-weight: 700; }
+
+/* ─── FOOTER (68px) ─── */
+.ft {
+  background: var(--t1);
+  display: flex; align-items: center;
+  justify-content: space-between; padding: 0 48px;
+}
+.ft a {
+  font-size: 11px; color: #7a7875; text-decoration: none;
+  font-weight: 600; margin-right: 18px;
+}
+.ftv { font-size: 11px; color: #5a5855; }
+</style>
+</head>
+<body>
+
+<button id="dl" onclick="go()">⬇ Download PNG</button>
+
+<div id="ig">
+
+  <!-- HEADER -->
+  <div class="h">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="144" height="63">
+      <defs><linearGradient id="lg" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#B05730"/>
+        <stop offset=".55" stop-color="#C96442"/>
+        <stop offset="1" stop-color="#9C87F5"/>
+      </linearGradient></defs>
+      <g transform="translate(40,46)">
+        <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#lg)" stroke-width="11"/>
+        <rect x="42" y="110" width="20" height="58" rx="5" fill="url(#lg)"/>
+        <rect x="70" y="86"  width="20" height="82" rx="5" fill="url(#lg)"/>
+        <rect x="98" y="62"  width="20" height="106" rx="5" fill="url(#lg)"/>
+        <rect x="126" y="38" width="20" height="130" rx="5" fill="url(#lg)"/>
+      </g>
+      <text x="258" y="246" font-family="Segoe UI,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+        <tspan fill="url(#lg)">tc</tspan><tspan fill="#fff">viz</tspan>
+      </text>
+      <text x="264" y="306" font-family="Segoe UI,sans-serif" font-weight="500" font-size="28" letter-spacing="6" fill="#83827D">VISUALS TO POWER BI</text>
+    </svg>
+    <div>
+      <h1>Pareto Chart <span>Pro</span></h1>
+      <p>80/20 concentration analysis for Power BI — ranked bars, cumulative line, drilldown &amp; tooltips</p>
+    </div>
+    <div class="mini">
+      <div class="col"><div class="dot" style="background:var(--acc)"></div><div class="bar" style="height:64px"></div></div>
+      <div class="col"><div class="dot" style="background:var(--acc2)"></div><div class="bar" style="height:46px"></div></div>
+      <div class="col"><div class="dot" style="background:var(--acc2)"></div><div class="bar" style="height:30px"></div></div>
+      <div class="col"><div class="dot" style="background:var(--acc2)"></div><div class="bar" style="height:18px"></div></div>
+      <div class="col"><div class="dot" style="background:var(--acc2)"></div><div class="bar" style="height:9px"></div></div>
+    </div>
+  </div>
+
+  <!-- USE CASES -->
+  <div class="uc">
+    <div class="ucl">Use Cases</div>
+    <div class="ucc">
+      <div class="c">
+        <svg fill="none" stroke="var(--acc)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.87"/></svg>
+        <span>Customer Revenue</span>
+      </div>
+      <div class="c">
+        <svg fill="none" stroke="var(--acc)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>SKU Portfolio</span>
+      </div>
+      <div class="c">
+        <svg fill="none" stroke="var(--acc)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+        <span>Supplier Dependency</span>
+      </div>
+      <div class="c">
+        <svg fill="none" stroke="var(--acc)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Defect Priorities</span>
+      </div>
+      <div class="c">
+        <svg fill="none" stroke="var(--acc)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>Cost &amp; Margin</span>
+      </div>
+      <div class="c">
+        <svg fill="none" stroke="var(--acc)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>Channel &amp; Region</span>
+      </div>
+    </div>
+    <div class="ucq">Identify the 20% driving 80% of results</div>
+  </div>
+
+  <!-- BODY -->
+  <div class="bd">
+    <div class="tc free">
+      <h3>★ Free — Always available</h3>
+      <ul>
+        <li>Pareto chart with cumulative % line</li>
+        <li>5 bins fixed (20% bin size)</li>
+        <li>Up to 2 reference lines (default 80%)</li>
+        <li>Drilldown / hierarchical view</li>
+        <li>Cross-filtering &amp; multi-select</li>
+        <li>Tooltips on bars &amp; cumulative dots</li>
+        <li>High contrast mode support</li>
+      </ul>
+    </div>
+    <div class="cc">
+      <div class="bc">
+        <span class="p">80/20</span>
+        <span class="l">Rule</span>
+      </div>
+      <div class="sp">Up to <span>30,000</span> rows</div>
+      <div class="sp">Bins <span>1–20%</span> (Pro)</div>
+      <div class="sp">API v<span>5.10</span></div>
+    </div>
+    <div class="tc pro">
+      <h3>◆ Pro — Full analysis power</h3>
+      <ul>
+        <li>Custom bin size 1–20% (up to 100 bars)</li>
+        <li>Outlier exclusion top &amp; bottom %</li>
+        <li>Value labels on bars</li>
+        <li>3rd reference line</li>
+        <li>Bar border color &amp; width</li>
+        <li>Bar gap control</li>
+        <li>30-day free trial on AppSource</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- WORKFLOW -->
+  <div class="wf">
+    <div class="ws"><div class="wn">1</div><div class="wt">Add Entity<br>field</div></div>
+    <div class="ws"><div class="wn">2</div><div class="wt">Add Value<br>measure</div></div>
+    <div class="ws"><div class="wn">3</div><div class="wt">Chart sorts<br>automatically</div></div>
+    <div class="ws"><div class="wn">4</div><div class="wt">Set reference<br>threshold</div></div>
+    <div class="ws"><div class="wn">5</div><div class="wt">Click bars to<br>cross-filter</div></div>
+    <div class="ws"><div class="wn">6</div><div class="wt">Drill down<br>hierarchy</div></div>
+    <div class="wq">"Which 20% of customers drive 80% of revenue?"</div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bo">
+    <div class="bc2">
+      <h4>Key Benefits</h4>
+      <ul>
+        <li>No DAX needed — automatic ranking</li>
+        <li>Drilldown without extra pages</li>
+        <li>Reference crosshairs at exact bins</li>
+        <li>Bar color conditional formatting</li>
+        <li>Works with any numeric measure</li>
+      </ul>
+    </div>
+    <div class="bc2">
+      <h4>Pro Tips</h4>
+      <ul>
+        <li>Use 5% bins for analyst detail views</li>
+        <li>Outlier filter for skewed distributions</li>
+        <li>Hover dots for exact cumulative %</li>
+        <li>ABC: 3 lines at 70% / 90% / 100%</li>
+        <li>Ctrl+click bars for multi-select</li>
+      </ul>
+    </div>
+    <div class="bc2">
+      <h4>Format Pane</h4>
+      <ul>
+        <li>Pareto: bin size, trim, bar style</li>
+        <li>Axes: colors, font size, labels</li>
+        <li>Cumulative Line: color, width, dots</li>
+        <li>Reference Lines: up to 3 thresholds</li>
+        <li>Value Labels: size, color, % sign (Pro)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="ft">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="68" height="30">
+      <defs><linearGradient id="lgf" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0" stop-color="#B05730"/>
+        <stop offset=".55" stop-color="#C96442"/>
+        <stop offset="1" stop-color="#9C87F5"/>
+      </linearGradient></defs>
+      <g transform="translate(40,46)">
+        <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#lgf)" stroke-width="11"/>
+        <rect x="42" y="110" width="20" height="58" rx="5" fill="url(#lgf)"/>
+        <rect x="70" y="86"  width="20" height="82" rx="5" fill="url(#lgf)"/>
+        <rect x="98" y="62"  width="20" height="106" rx="5" fill="url(#lgf)"/>
+        <rect x="126" y="38" width="20" height="130" rx="5" fill="url(#lgf)"/>
+      </g>
+      <text x="258" y="246" font-family="Segoe UI,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+        <tspan fill="url(#lgf)">tc</tspan><tspan fill="#fff">viz</tspan>
+      </text>
+    </svg>
+    <div>
+      <a href="https://www.youtube.com/watch?v=1YmpeyACe2o" target="_blank">▶ Video walkthrough</a>
+      <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/support.html" target="_blank">Support &amp; FAQ</a>
+      <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html" target="_blank">Privacy</a>
+      <a href="https://github.com/tinocallarisa-web/pareto-chart-pro" target="_blank">GitHub</a>
+    </div>
+    <div class="ftv">v1.1.0.0 &nbsp;·&nbsp; AppSource &nbsp;·&nbsp; © 2026 TCViz</div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+function go() {
+  var btn = document.getElementById('dl');
+  btn.textContent = 'Rendering…'; btn.disabled = true;
+  html2canvas(document.getElementById('ig'), {
+    scale: 2, useCORS: true, backgroundColor: '#FAF9F5',
+    width: 1366, height: 768, logging: false
+  }).then(function(c) {
+    var a = document.createElement('a');
+    a.download = 'pareto-chart-pro-infographic.png';
+    a.href = c.toDataURL('image/png');
+    a.click();
+    btn.textContent = '⬇ Download PNG'; btn.disabled = false;
+  });
+}
+</script>
+</body>
+</html>

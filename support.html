@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pareto Chart Pro – Support | TCViz</title>
+<style>
+  :root {
+    --bg: #FAF9F5; --bg2: #EDE9DE; --bd: #F5F3ED; --line: #DAD9D4;
+    --t1: #3D3929; --t2: #535146; --t3: #83827D;
+    --acc: #C96442; --accd: #B05730; --acc2: #9C87F5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--t1); line-height: 1.65; }
+
+  /* ── Header ── */
+  header { background: var(--t1); color: #fff; padding: 28px 48px; display: flex; align-items: center; gap: 20px; }
+  header svg { flex-shrink: 0; }
+  header .title { font-size: 22px; font-weight: 700; }
+  header .sub   { font-size: 13px; color: #b5b3aa; margin-top: 2px; }
+
+  /* ── Nav ── */
+  nav { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 0 48px; display: flex; gap: 0; }
+  nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 600; color: var(--t2);
+          text-decoration: none; border-bottom: 3px solid transparent; transition: color .2s, border-color .2s; }
+  nav a:hover, nav a.active { color: var(--acc); border-bottom-color: var(--acc); }
+
+  /* ── Layout ── */
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  h2 { font-size: 17px; font-weight: 700; color: var(--t1); margin: 40px 0 12px; padding-bottom: 8px;
+       border-bottom: 2px solid var(--acc); display: inline-block; }
+  h3 { font-size: 14px; font-weight: 700; color: var(--t1); margin: 18px 0 6px; }
+  p  { font-size: 14px; color: var(--t2); margin-bottom: 10px; }
+  ul { font-size: 14px; color: var(--t2); padding-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 5px; }
+  code { font-family: monospace; background: var(--bg2); padding: 1px 6px; border-radius: 4px;
+         font-size: 12px; color: var(--acc); }
+
+  /* ── Cards ── */
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 24px 28px; margin-bottom: 16px; }
+
+  /* ── Badges ── */
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+           text-transform: uppercase; letter-spacing: .5px; vertical-align: middle; margin-left: 6px; }
+  .badge-pro  { background: var(--acc2); color: #fff; }
+  .badge-free { background: var(--acc);  color: #fff; }
+
+  /* ── Field wells table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  th { background: var(--bg2); color: var(--t1); font-weight: 700; padding: 10px 14px; text-align: left;
+       border-bottom: 2px solid var(--line); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--bd); color: var(--t2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── FAQ ── */
+  details { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; background: #fff; }
+  summary { padding: 14px 18px; font-size: 14px; font-weight: 600; cursor: pointer; list-style: none;
+            display: flex; align-items: center; justify-content: space-between; color: var(--t1); }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; font-size: 18px; font-weight: 300; color: var(--acc); transition: transform .2s; }
+  details[open] summary::after { content: '−'; }
+  details[open] summary { border-bottom: 1px solid var(--line); }
+  .faq-body { padding: 14px 18px; font-size: 14px; color: var(--t2); }
+  .faq-body p { margin-bottom: 6px; }
+  .faq-body ul { margin-top: 6px; }
+
+  /* ── Contact box ── */
+  .contact-box { background: var(--acc); color: #fff; border-radius: 10px; padding: 24px 28px;
+                  display: flex; align-items: center; gap: 20px; }
+  .contact-box .icon { font-size: 36px; flex-shrink: 0; }
+  .contact-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #fff; }
+  .contact-box p  { font-size: 13px; color: rgba(255,255,255,.85); margin: 0; }
+  .contact-box a  { color: #fff; font-weight: 700; text-decoration: underline; }
+
+  /* ── Video embed ── */
+  .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 10px; overflow: hidden;
+                border: 1px solid var(--line); margin-bottom: 20px; }
+  .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+  /* ── CTA strip ── */
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+  .btn { display: inline-block; padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 700;
+          text-decoration: none; transition: background .2s; }
+  .btn-primary { background: var(--acc); color: #fff; }
+  .btn-primary:hover { background: var(--accd); }
+  .btn-outline { background: transparent; color: var(--acc); border: 2px solid var(--acc); }
+  .btn-outline:hover { background: var(--acc); color: #fff; }
+
+  /* ── Footer ── */
+  footer { background: var(--t1); color: var(--t3); text-align: center; padding: 24px 48px; font-size: 12px; }
+  footer a { color: #b5b3aa; text-decoration: none; margin: 0 8px; }
+  footer a:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="90" height="40">
+    <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#B05730"/>
+      <stop offset=".55" stop-color="#C96442"/>
+      <stop offset="1" stop-color="#9C87F5"/>
+    </linearGradient></defs>
+    <g transform="translate(40,46)">
+      <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
+      <g fill="url(#g)">
+        <rect x="42" y="110" width="20" height="58" rx="5"/>
+        <rect x="70" y="86" width="20" height="82" rx="5"/>
+        <rect x="98" y="62" width="20" height="106" rx="5"/>
+        <rect x="126" y="38" width="20" height="130" rx="5"/>
+      </g>
+    </g>
+    <text x="258" y="246" font-family="Poppins,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+      <tspan fill="url(#g)">tc</tspan><tspan fill="#fff">viz</tspan>
+    </text>
+    <text x="264" y="306" font-family="Poppins,sans-serif" font-weight="500" font-size="31" letter-spacing="6.5" fill="#83827D">VISUALS TO POWER BI</text>
+  </svg>
+  <div>
+    <div class="title">Pareto Chart Pro</div>
+    <div class="sub">Support &amp; Documentation</div>
+  </div>
+</header>
+
+<!-- Nav -->
+<nav>
+  <a href="#quickstart" class="active">Quick Start</a>
+  <a href="#fields">Field Wells</a>
+  <a href="#format">Format Pane</a>
+  <a href="#free-pro">Free vs Pro</a>
+  <a href="#faq">FAQ</a>
+  <a href="#contact">Contact</a>
+</nav>
+
+<div class="wrap">
+
+  <!-- Quick Start -->
+  <h2 id="quickstart">Quick Start</h2>
+  <div class="card">
+    <h3>1. Add the visual to your report</h3>
+    <p>In Power BI Desktop, go to the Visualizations pane → click the three dots → <strong>Get more visuals</strong> → search for <em>Pareto Chart Pro</em>.</p>
+
+    <h3>2. Bind your data</h3>
+    <p>Drag a category field (e.g. Customer, Product, SKU) into <code>Entity</code> and a numeric measure (e.g. Revenue, Quantity) into <code>Value</code>. The chart renders automatically with bars sorted from highest to lowest contribution and a cumulative line.</p>
+
+    <h3>3. Interpret the chart</h3>
+    <p>The <strong>left Y-axis</strong> shows each bin's share of the total. The <strong>right Y-axis</strong> shows the cumulative percentage. The default reference line marks the 80% threshold — the point where the top entities collectively reach 80% of the total value.</p>
+
+    <h3>4. Use drilldown</h3>
+    <p>Add a hierarchy field (e.g. Category &gt; Subcategory &gt; SKU) to the <code>Entity</code> well. Use the drill buttons in the visual header to navigate levels.</p>
+  </div>
+
+  <!-- Video -->
+  <h2>Video Walkthrough</h2>
+  <div class="video-wrap">
+    <iframe src="https://www.youtube.com/embed/1YmpeyACe2o" allowfullscreen loading="lazy" title="Pareto Chart Pro walkthrough"></iframe>
+  </div>
+  <div class="cta">
+    <a class="btn btn-primary" href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">Get it on AppSource</a>
+    <a class="btn btn-outline" href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" target="_blank">Report an Issue</a>
+    <a class="btn btn-outline" href="https://github.com/tinocallarisa-web/pareto-chart-pro/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+  </div>
+
+  <!-- Field Wells -->
+  <h2 id="fields">Field Wells</h2>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+    <tr>
+      <td><strong>Entity</strong></td>
+      <td>Categorical / Hierarchy</td>
+      <td>The dimension to rank — e.g. Customer, Product, SKU, Supplier. Accepts a single field or a hierarchy for drilldown.</td>
+    </tr>
+    <tr>
+      <td><strong>Value</strong></td>
+      <td>Numeric measure</td>
+      <td>The metric to concentrate — e.g. Revenue, Units sold, Defect count. Must be a numeric aggregated measure.</td>
+    </tr>
+  </table>
+
+  <!-- Format Pane -->
+  <h2 id="format">Format Pane Reference</h2>
+
+  <h3>Pareto</h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Bin size % <span class="badge badge-pro">Pro</span></td><td>10%</td><td>Each bar represents this percentage of ranked entities. Range: 1–20%. Free tier is fixed at 10%.</td></tr>
+    <tr><td>Exclude bottom % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the lowest-value N% of entities before binning (outlier filter).</td></tr>
+    <tr><td>Exclude top % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the highest-value N% of entities before binning.</td></tr>
+    <tr><td>Bar color</td><td>#4472C4</td><td>Fill color for all bars. Supports conditional formatting rules.</td></tr>
+    <tr><td>Bar opacity %</td><td>85</td><td>Opacity of bars (0–100).</td></tr>
+    <tr><td>Border color <span class="badge badge-pro">Pro</span></td><td>#2E5BA8</td><td>Stroke color for bar borders.</td></tr>
+    <tr><td>Border width <span class="badge badge-pro">Pro</span></td><td>0</td><td>Stroke width in pixels (0 = no border).</td></tr>
+    <tr><td>Bar gap px <span class="badge badge-pro">Pro</span></td><td>2</td><td>Padding between bars in pixels.</td></tr>
+  </table>
+
+  <h3>Axes</h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Axis text color</td><td>#444444</td><td>Color of axis tick labels.</td></tr>
+    <tr><td>Grid color</td><td>#e0e0e0</td><td>Color of horizontal grid lines.</td></tr>
+    <tr><td>Font size</td><td>11</td><td>Axis label font size in points.</td></tr>
+    <tr><td>Show X axis label</td><td>On</td><td>Toggle the "% of entities (best → worst)" label.</td></tr>
+    <tr><td>Show Y axis label</td><td>On</td><td>Toggle the "% of total value" label.</td></tr>
+  </table>
+
+  <h3>Cumulative Line</h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Line color</td><td>#ED7D31</td><td>Color of the cumulative percentage line.</td></tr>
+    <tr><td>Line width</td><td>2</td><td>Stroke width of the cumulative line in pixels.</td></tr>
+    <tr><td>Show dots</td><td>On</td><td>Show a dot at each bin's cumulative point.</td></tr>
+    <tr><td>Dot radius</td><td>4</td><td>Radius of the cumulative dots in pixels.</td></tr>
+  </table>
+
+  <h3>Reference Lines</h3>
+  <p>Up to 3 reference lines, each configurable independently. Line 3 is <span class="badge badge-pro">Pro</span> only.</p>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Show line 1</td><td>On</td><td>Display the first horizontal + vertical reference crosshair.</td></tr>
+    <tr><td>Line 1 threshold</td><td>80</td><td>Cumulative % value where the line is drawn (0–100).</td></tr>
+    <tr><td>Line 1 color</td><td>#E84444</td><td>Color of the reference line and labels.</td></tr>
+    <tr><td>Line 1 label</td><td>"80%"</td><td>Text label shown on the left Y-axis at the line.</td></tr>
+    <tr><td>Show line 2 / 3</td><td>Off</td><td>Same settings as line 1, for additional thresholds.</td></tr>
+  </table>
+
+  <h3>Value Labels <span class="badge badge-pro">Pro</span></h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Show</td><td>On</td><td>Display the percentage value above each bar.</td></tr>
+    <tr><td>Font size</td><td>10</td><td>Label font size in points.</td></tr>
+    <tr><td>Color</td><td>#444444</td><td>Label text color.</td></tr>
+    <tr><td>Show % sign</td><td>On</td><td>Append "%" to the label value.</td></tr>
+  </table>
+
+  <!-- Free vs Pro -->
+  <h2 id="free-pro">Free vs Pro</h2>
+  <table>
+    <tr><th>Feature</th><th>Free</th><th>Pro</th></tr>
+    <tr><td>Pareto chart with cumulative line</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Reference lines (up to 2)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Bar color, opacity</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Axis &amp; grid styling</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Cumulative line styling</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Cross-filtering &amp; multi-select</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Drilldown / hierarchy</td><td>✅</td><td>✅</td></tr>
+    <tr><td>High contrast mode</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Bin size % (1–20%)</td><td>Fixed at 10%</td><td>✅ Configurable</td></tr>
+    <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Bar border &amp; gap styling</td><td>❌</td><td>✅</td></tr>
+    <tr><td>3rd reference line</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Value labels on bars</td><td>❌</td><td>✅</td></tr>
+  </table>
+  <p>To activate Pro features, purchase a license from <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" style="color:var(--acc);font-weight:600;">AppSource</a>. License validation happens automatically inside Power BI — no configuration needed.</p>
+
+  <!-- FAQ -->
+  <h2 id="faq">FAQ</h2>
+
+  <details>
+    <summary>Why are my bars not sorted from highest to lowest?</summary>
+    <div class="faq-body">
+      <p>The visual always sorts automatically — you do not need to sort your data beforehand. If bars seem unsorted, check that:</p>
+      <ul>
+        <li>The <code>Value</code> field contains a numeric measure (not a text field or a calculated column).</li>
+        <li>The measure resolves to a positive number for each row. Rows with null or zero values may be ignored.</li>
+        <li>You are not applying a report-level sort that conflicts with the visual's internal sort.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>How do I set the 80/20 threshold?</summary>
+    <div class="faq-body">
+      <p>Line 1 is pre-configured to 80% by default. You can change it in <strong>Format Pane → Reference Lines → Line 1 threshold</strong>. Set the value to any cumulative percentage between 1 and 99. You can add a second line (e.g. 60%) and a third line at any value (Pro only).</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why does the visual show "Free: 10% bins" even after buying Pro?</summary>
+    <div class="faq-body">
+      <p>License validation happens asynchronously after the visual first renders. Wait a moment after opening the report — the badge should disappear automatically once the license is confirmed. If it persists:</p>
+      <ul>
+        <li>Make sure you are signed into Power BI with the Microsoft account that purchased the license.</li>
+        <li>Check that the license is active in <strong>My Account → Licenses</strong> in the Microsoft 365 admin center.</li>
+        <li>Try closing and reopening the report.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>How does drilldown work?</summary>
+    <div class="faq-body">
+      <p>Add a hierarchy to the <code>Entity</code> field well (e.g. Product Category → Product Subcategory → SKU). The drill buttons appear in the visual header. Click the single arrow to drill down one level across all bins, or click a specific bar and use the fork arrow to drill into that selection. The Pareto recalculates automatically at each level.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Can I use conditional formatting on bar colors?</summary>
+    <div class="faq-body">
+      <p>Yes. In the <strong>Format Pane → Pareto → Bar color</strong>, click the <em>fx</em> button to open the conditional formatting dialog. You can apply rules based on field values, percentile ranges, or gradient scales — the same as any native Power BI visual.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>The chart looks correct in Power BI Desktop but shows Free behavior in the Service</summary>
+    <div class="faq-body">
+      <p>This is usually a license assignment issue. Make sure the Pro license is assigned to the user account that is viewing the report in Power BI Service, not only to the account that published it. License assignment is managed in the Microsoft 365 admin center.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>What is the maximum number of data rows the visual supports?</summary>
+    <div class="faq-body">
+      <p>The visual requests up to 30,000 rows from the data model. Because the visual groups entities into bins, even large datasets render cleanly — a dataset with 10,000 SKUs at 10% bin size produces only 10 bars. For datasets larger than 30,000 rows, pre-filter with slicers or report filters before connecting to the visual.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Does the visual support high contrast mode?</summary>
+    <div class="faq-body">
+      <p>Yes. When Windows or Power BI high contrast mode is active, the visual automatically uses system foreground and background colors for all chart elements — bars, lines, axes, dots, and reference lines — to meet accessibility requirements.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Does the visual send my data anywhere?</summary>
+    <div class="faq-body">
+      <p>No. All data processing happens locally inside Power BI. The only external network request is the license validation call to the Microsoft licensing API (<code>IVisualLicenseManager</code>) — this is the standard Power BI mechanism and shares no report data. See the <a href="privacy.html" style="color:var(--acc);">Privacy Policy</a> for full details.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How do I report a bug or request a feature?</summary>
+    <div class="faq-body">
+      <p>Open an issue on <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" style="color:var(--acc);" target="_blank">GitHub</a>. For billing questions or private inquiries, email us directly (see the contact section below). Please include your Power BI Desktop version, visual version, and a screenshot or sample .pbix if possible.</p>
+    </div>
+  </details>
+
+  <!-- Contact -->
+  <h2 id="contact">Contact &amp; Support</h2>
+  <div class="contact-box">
+    <div class="icon">✉️</div>
+    <div>
+      <h3>Need help? We reply within 1 business day.</h3>
+      <p>For bug reports, feature requests, and licensing questions:<br>
+      <a href="mailto:tinocallarisa@gmail.com">tinocallarisa@gmail.com</a></p>
+    </div>
+  </div>
+
+  <p style="margin-top:24px;font-size:13px;color:var(--t3);">
+    You can also open an issue directly on
+    <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" style="color:var(--acc);" target="_blank">GitHub</a>
+    for bug reports and feature requests, or browse the
+    <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/blob/main/CHANGELOG.md" style="color:var(--acc);" target="_blank">Changelog</a>
+    to see what's new.
+  </p>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div style="margin-bottom:10px;">
+    <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html">Privacy Policy</a>
+    <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html">Terms of Service</a>
+    <a href="https://github.com/tinocallarisa-web/pareto-chart-pro" target="_blank">GitHub</a>
+    <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">AppSource</a>
+  </div>
+  <p>© 2025 TCViz · Pareto Chart Pro · <a href="mailto:tinocallarisa@gmail.com">tinocallarisa@gmail.com</a></p>
+</footer>
+
+<script>
+  // Smooth scroll + nav highlight
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', e => {
+      document.querySelectorAll('nav a').forEach(x => x.classList.remove('active'));
+      a.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
