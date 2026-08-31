@@ -18,7 +18,8 @@ import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel
 import { ParetoFormattingSettings } from "./settings";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const PLAN_ID           = "pareto-chart-pro-tcviz";
+const PLAN_ID               = "pareto-chart-pro-tcviz";
+const MAX_SEL_IDS_PER_BIN   = 100;   // cap per bin — ensures fast, fluid click response without DAX query lockup
 const FREE_BIN_SIZE_PCT = 20;
 const MARGIN            = { top: 28, right: 64, bottom: 68, left: 64 };
 
@@ -33,6 +34,7 @@ interface Settings {
     borderColor:  string;
     borderWidth:  number;
     barGap:       number;
+    ibcsMode:     boolean;
     // axes group
     axisColor:    string;
     gridColor:    string;
@@ -84,6 +86,7 @@ function readSettings(dv: DataView): Settings {
         borderColor:  col("pareto", "borderColor",    "#2E5BA8"),
         borderWidth:  num("pareto", "borderWidth",    0),
         barGap:       num("pareto", "barGap",         2),
+        ibcsMode:     boo("pareto", "ibcsMode",       false),
 
         axisColor:    col("axes", "axisColor",        "#444444"),
         gridColor:    col("axes", "gridColor",        "#e0e0e0"),
@@ -116,14 +119,19 @@ function readSettings(dv: DataView): Settings {
     };
 }
 
-// ─── Data model ───────────────────────────────────────────────────────────────
+interface TooltipSummaryItem {
+    displayName: string;
+    value: string;
+}
+
 interface BinDatum {
-    label:       string;
-    pctShare:    number;
-    cumPct:      number;
-    selIds:      ISelectionId[];
-    nEntities:   number;
-    highlighted: boolean;
+    label:          string;
+    pctShare:       number;
+    cumPct:         number;
+    indices:        number[];      // raw row indices — selIds created on demand
+    nEntities:      number;
+    highlighted:    boolean;
+    customTooltips: TooltipSummaryItem[];
 }
 
 // ─── Visual ───────────────────────────────────────────────────────────────────
@@ -139,12 +147,17 @@ export class Visual implements IVisual {
     private bins:          BinDatum[] = [];
     private selectedBins:  Set<string> = new Set();
 
-    private isPro:           boolean = false;
+    private isPro:           boolean = false; // ISPRO_MARKER
+    private isProChecked:    boolean = false;
     private readonly DEV_MODE        = false;
+    private renderGeneration: number = 0;   // guards stale async renders
+    // Power BI Desktop runs inside Electron; fetchMoreData only works in Service
+    private readonly isDesktop: boolean = navigator.userAgent.indexOf('Electron') !== -1;
 
     // ── Formatting Model API ──────────────────────────────────────────────────
     private formattingSettingsService: FormattingSettingsService;
     private lastDataView: DataView | undefined;
+    private lastCatCol:  DataViewCategoryColumn | undefined;
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -172,8 +185,8 @@ export class Visual implements IVisual {
         options.element.addEventListener("contextmenu", (event: MouseEvent) => {
             const target = event.target as Element;
             const datum  = d3.select<Element, BinDatum>(target).datum();
-            const selId  = datum && datum.selIds && datum.selIds.length
-                ? datum.selIds[0]
+            const selId  = datum?.indices?.length && this.lastCatCol
+                ? (this.getSelIds(datum.indices, 1)[0] ?? null)
                 : null;
             this.selectionManager.showContextMenu(selId, {
                 x: event.clientX,
@@ -192,18 +205,33 @@ export class Visual implements IVisual {
             this.settings = readSettings(dv);
 
             if (!dv?.categorical?.categories?.[0]?.values?.length) {
+                this.container.selectAll(".loading-indicator").remove();
                 this.renderLandingPage();
                 this.events.renderingFinished(options);
                 return;
             }
 
+            // Fetch more data segments if available (trigger only when chunk capacity of 30,000 is reached)
+            const loadedCount = dv.categorical.categories[0].values.length;
+            if (dv.metadata?.segment && loadedCount >= 30000) {
+                this.renderLoadingIndicator(loadedCount);
+                if (this.host.fetchMoreData(true)) {
+                    // aggregateSegments=true: Power BI combines chunks and calls update() again.
+                    this.events.renderingFinished(options);
+                    return;
+                }
+            }
+
+            this.container.selectAll(".loading-indicator").remove();
             this.svg.selectAll("*").remove();
             this.container.selectAll(".landing-page").remove();
             this.selectedBins.clear();
 
+            const gen = ++this.renderGeneration;
             this.checkLicense().then(() => {
+                if (gen !== this.renderGeneration) return; // stale update, skip
                 this.buildBins(dv);
-                this.renderChart(options.viewport);
+                this.renderChart(options.viewport, false);
                 this.events.renderingFinished(options);
             });
         } catch (e) {
@@ -214,33 +242,38 @@ export class Visual implements IVisual {
 
     // ── License ───────────────────────────────────────────────────────────────
     private async checkLicense(): Promise<void> {
-        if (this.DEV_MODE) return;
+        if (this.DEV_MODE || this.isPro) { this.isPro = true; return; }
+        if (this.isProChecked) return;
         try {
             const lm = this.host.licenseManager;
-            if (!lm) { this.isPro = false; return; }
+            if (!lm) { this.isPro = false; this.isProChecked = true; return; }
             const r = await lm.getAvailableServicePlans();
             this.isPro = r?.plans?.some(
                 p => p.spIdentifier === PLAN_ID && p.state === ServicePlanState.Active
             ) ?? false;
-        } catch { this.isPro = false; }
+            this.isProChecked = true;
+        } catch {
+            this.isPro = false;
+            this.isProChecked = true;
+        }
     }
 
     // ── Build bins ────────────────────────────────────────────────────────────
     private buildBins(dv: DataView): void {
         const s       = this.settings;
         const catCol  = dv.categorical.categories[0] as DataViewCategoryColumn;
-        const valCol  = dv.categorical.values[0];
+        const valCol  = (dv.categorical.values || []).find(v => v.source?.roles?.["measure"])
+                     ?? dv.categorical.values[0];
         const rawVals = valCol.values  as number[];
         const hlVals  = valCol.highlights as number[];
         const hasHL   = hlVals != null;
 
-        let rows: { value: number; selId: ISelectionId; hlValue: number | null }[] =
+        this.lastCatCol = catCol;
+        let rows: { value: number; index: number; hlValue: number | null }[] =
             rawVals.map((v, i) => ({
                 value:   Math.max(0, Number(v) || 0),
                 hlValue: hasHL ? (hlVals[i] != null ? Number(hlVals[i]) : null) : null,
-                selId:   this.host.createSelectionIdBuilder()
-                             .withCategory(catCol, i)
-                             .createSelectionId(),
+                index:   i,
             }));
 
         rows.sort((a, b) => b.value - a.value);
@@ -260,37 +293,64 @@ export class Visual implements IVisual {
         const binSizePct = this.isPro
             ? Math.min(20, Math.max(1, s.binSizePct))
             : FREE_BIN_SIZE_PCT;
-        const nBins = Math.ceil(100 / binSizePct);
+        const requestedNBins = Math.ceil(100 / binSizePct);
+        const nBins = Math.min(requestedNBins, tn);
 
-        const entitiesPerBin = Math.ceil(tn / nBins);
+        const baseEntities = Math.floor(tn / nBins);
+        const remainder    = tn % nBins;
+        const binStartIndices = new Array<number>(nBins);
+        let curr = 0;
+        for (let k = 0; k < nBins; k++) {
+            binStartIndices[k] = curr;
+            curr += baseEntities + (k < remainder ? 1 : 0);
+        }
+
         const rawBins: typeof trimmedRows[] = Array.from({ length: nBins }, () => []);
-        trimmedRows.forEach((r, i) => {
-            const binIdx = Math.min(Math.floor(i / entitiesPerBin), nBins - 1);
-            rawBins[binIdx].push(r);
-        });
+        for (let k = 0; k < nBins; k++) {
+            const start = binStartIndices[k];
+            const end   = k < nBins - 1 ? binStartIndices[k + 1] : tn;
+            rawBins[k]  = trimmedRows.slice(start, end);
+        }
 
         const total = trimmedRows.reduce((s, r) => s + r.value, 0);
         if (total === 0) { this.bins = []; return; }
 
+        const tooltipCols = (dv.categorical.values || []).filter(
+            vCol => vCol.source?.roles?.["tooltips"]
+        );
+
         let cumPct = 0;
+        const stepPct = 100 / nBins;
         this.bins = rawBins
             .filter(b => b.length > 0)
             .map((b, idx) => {
-                const binStart = (idx * entitiesPerBin / tn) * 100;
-                const binEnd   = Math.min(((idx * entitiesPerBin + b.length) / tn) * 100, 100);
+                const binStart = idx * stepPct;
+                const binEnd   = Math.min((idx + 1) * stepPct, 100);
                 const binValue = b.reduce((s, r) => s + r.value, 0);
                 const pctShare = (binValue / total) * 100;
                 cumPct += pctShare;
 
                 const highlighted = hasHL ? b.some(r => r.hlValue != null && r.hlValue > 0) : false;
 
+                const customTooltips: TooltipSummaryItem[] = tooltipCols.map(col => {
+                    const sum = b.reduce((acc, r) => acc + (Number(col.values[r.index]) || 0), 0);
+                    const formatted = typeof sum === "number" && !isNaN(sum)
+                        ? (Number.isInteger(sum) ? sum.toLocaleString() : sum.toLocaleString(undefined, { maximumFractionDigits: 2 }))
+                        : String(sum);
+                    return {
+                        displayName: col.source.displayName,
+                        value: formatted,
+                    };
+                });
+
                 return {
-                    label:     `${Math.round(binStart)}–${Math.round(binEnd)}%`,
+                    label:          `${Math.round(binStart)}–${Math.round(binEnd)}%`,
                     pctShare,
                     cumPct,
-                    selIds:    b.map(r => r.selId),
-                    nEntities: b.length,
+                    indices:        b.map(r => r.index),
+                    nEntities:      b.length,
                     highlighted,
+                    customTooltips,
                 };
             });
     }
@@ -301,7 +361,7 @@ export class Visual implements IVisual {
     }
 
     // ── Render chart ──────────────────────────────────────────────────────────
-    private renderChart(viewport: powerbi.IViewport): void {
+    private renderChart(viewport: powerbi.IViewport, isTruncated = false): void {
         const s  = this.settings;
         const W  = viewport.width  - MARGIN.left - MARGIN.right;
         const H  = viewport.height - MARGIN.top  - MARGIN.bottom;
@@ -314,11 +374,19 @@ export class Visual implements IVisual {
         const hcBg        = isHC ? (palette.background?.value        ?? "#000000") : "";
         const hcFgNeutral = isHC ? (palette.foregroundNeutralSecondary?.value ?? "#808080") : "";
 
-        const barColor  = this.resolveColor(s.barColor,  hcFg,        isHC);
-        const lineColor = this.resolveColor(s.lineColor, hcFg,        isHC);
-        const axisColor = this.resolveColor(s.axisColor, hcFg,        isHC);
-        const gridColor = this.resolveColor(s.gridColor, hcFgNeutral, isHC);
-        const dotColor  = lineColor;
+        let barColor  = this.resolveColor(s.barColor,  hcFg,        isHC);
+        let lineColor = this.resolveColor(s.lineColor, hcFg,        isHC);
+        let axisColor = this.resolveColor(s.axisColor, hcFg,        isHC);
+        let gridColor = this.resolveColor(s.gridColor, hcFgNeutral, isHC);
+        let dotColor  = lineColor;
+
+        if (s.ibcsMode && !isHC) {
+            barColor  = "#404040"; // IBCS Neutral Charcoal
+            lineColor = "#262626"; // IBCS Solid Dark Line
+            dotColor  = "#262626";
+            axisColor = "#000000"; // IBCS Black Axis Typography & Lines
+            gridColor = "#E5E5E5";
+        }
 
         // ──────────────────────────────────────────────────────────────────────
 
@@ -429,7 +497,7 @@ export class Visual implements IVisual {
                 } else {
                     const allIds = this.bins
                         .filter(bin => this.selectedBins.has(bin.label))
-                        .reduce((acc, bin) => acc.concat(bin.selIds), [] as ISelectionId[]);
+                        .reduce((acc, bin) => acc.concat(this.getSelIds(bin.indices)), [] as ISelectionId[]);
                     this.selectionManager.select(allIds, false)
                         .then((ids: ISelectionId[]) => this.applyOpacity(ids));
                 }
@@ -441,8 +509,9 @@ export class Visual implements IVisual {
                         { displayName: "Count",             value: String(b.nEntities) },
                         { displayName: "% of total value",  value: `${b.pctShare.toFixed(2)}%` },
                         { displayName: "Cumulative",        value: `${b.cumPct.toFixed(2)}%` },
+                        ...(b.customTooltips || [])
                     ],
-                    identities: b.selIds.length ? [b.selIds[0]] : [],
+                    identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
                     coordinates: [event.clientX, event.clientY],
                     isTouchEvent: false,
                 });
@@ -453,8 +522,9 @@ export class Visual implements IVisual {
                         { displayName: "Entities",         value: b.label },
                         { displayName: "% of total value", value: `${b.pctShare.toFixed(2)}%` },
                         { displayName: "Cumulative",       value: `${b.cumPct.toFixed(2)}%` },
+                        ...(b.customTooltips || [])
                     ],
-                    identities: b.selIds.length ? [b.selIds[0]] : [],
+                    identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
                     coordinates: [event.clientX, event.clientY],
                     isTouchEvent: false,
                 });
@@ -508,8 +578,9 @@ export class Visual implements IVisual {
                             { displayName: "Entities",   value: b.label },
                             { displayName: "Cumulative", value: `${b.cumPct.toFixed(2)}%` },
                             { displayName: "Bin share",  value: `${b.pctShare.toFixed(2)}%` },
+                            ...(b.customTooltips || [])
                         ],
-                        identities: b.selIds.length ? [b.selIds[0]] : [],
+                        identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
                         coordinates: [event.clientX, event.clientY],
                         isTouchEvent: false,
                     });
@@ -520,8 +591,9 @@ export class Visual implements IVisual {
                             { displayName: "Entities",   value: b.label },
                             { displayName: "Cumulative", value: `${b.cumPct.toFixed(2)}%` },
                             { displayName: "Bin share",  value: `${b.pctShare.toFixed(2)}%` },
+                            ...(b.customTooltips || [])
                         ],
-                        identities: b.selIds.length ? [b.selIds[0]] : [],
+                        identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
                         coordinates: [event.clientX, event.clientY],
                         isTouchEvent: false,
                     });
@@ -573,6 +645,15 @@ export class Visual implements IVisual {
                 .style("font-size", "10px").style("fill", isHC ? hcFgNeutral : "#aaa")
                 .text(`Free: ${FREE_BIN_SIZE_PCT}% bins — upgrade to Pro for custom bin size, outlier filter & labels`);
         }
+
+        // Truncation notice (Desktop only, when ≥30k rows)
+        if (isTruncated) {
+            g.append("text")
+                .attr("x", 0).attr("y", -10)
+                .attr("text-anchor", "start")
+                .style("font-size", "10px").style("fill", isHC ? hcFgNeutral : "#E8A020")
+                .text("⚠ Data limited to 30,000 rows. Use Power BI Service for full dataset.");
+        }
     }
 
     // ── Draw dashed line ──────────────────────────────────────────────────────
@@ -596,18 +677,49 @@ export class Visual implements IVisual {
     }
 
     // ── Filter-in opacity ─────────────────────────────────────────────────────
-    private applyOpacity(selectedIds: ISelectionId[]): void {
+
+    // ── On-demand selId factory (1 SelectionId per category selection action to prevent DS0 query errors) ──
+    private getSelIds(indices: number[], max: number = 1): ISelectionId[] {
+        if (!this.lastCatCol || !indices.length) return [];
+        const cat = this.lastCatCol;
+        const builder = this.host.createSelectionIdBuilder();
+        const selId = builder.withCategory(cat, indices[0]).createSelectionId();
+        return [selId];
+    }
+
+    private applyOpacity(_selectedIds?: ISelectionId[]): void {
         const opacity = this.settings.barOpacity;
-        if (!selectedIds.length) {
-            this.svg.selectAll<SVGRectElement, BinDatum>(".bar").attr("opacity", opacity);
-            return;
-        }
-        const keySet = new Set(selectedIds.map((id: any) => JSON.stringify(id.key)));
         this.svg.selectAll<SVGRectElement, BinDatum>(".bar")
             .attr("opacity", b => {
-                const hit = b.selIds.some((id: any) => keySet.has(JSON.stringify(id.key)));
-                return hit ? opacity : opacity * 0.25;
+                if (!this.selectedBins.size) return opacity;
+                return this.selectedBins.has(b.label) ? opacity : opacity * 0.25;
             });
+    }
+
+
+    // ── Loading indicator (shown while fetchMoreData segments arrive) ──────────
+    private renderLoadingIndicator(loadedCount: number): void {
+        this.container.selectAll(".landing-page").remove();
+
+        let indicator = this.container.select<HTMLDivElement>(".loading-indicator");
+        if (indicator.empty()) {
+            indicator = this.container
+                .append("div").classed("loading-indicator", true)
+                .style("position", "absolute").style("top", "0").style("left", "0")
+                .style("width", "100%").style("height", "100%")
+                .style("display", "flex").style("align-items", "center")
+                .style("justify-content", "center");
+
+            const wrapper = indicator.append("div").style("text-align", "center");
+            wrapper.append("div").style("font-size", "28px").style("margin-bottom", "8px").text("⏳");
+            wrapper.append("div")
+                .classed("loading-text", true)
+                .style("font-size", "13px")
+                .style("color", "#888");
+        }
+
+        indicator.select<HTMLDivElement>(".loading-text")
+            .text(`Loading data… ${loadedCount.toLocaleString()} rows`);
     }
 
     // ── Landing page ──────────────────────────────────────────────────────────

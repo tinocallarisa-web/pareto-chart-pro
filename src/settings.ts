@@ -23,11 +23,13 @@ export class ParetoCard extends SimpleCard {
     borderColor = new ColorPicker({ name: "borderColor", displayName: "Border color (Pro)", value: { value: "#2E5BA8" } });
     borderWidth = new NumUpDown({ name: "borderWidth", displayName: "Border width (Pro)", value: 0 });
     barGap      = new NumUpDown({ name: "barGap",      displayName: "Bar gap px (Pro)",   value: 2 });
+    ibcsMode    = new ToggleSwitch({ name: "ibcsMode",  displayName: "IBCS Mode (Standardized)", value: false });
 
     slices = [
         this.binSizePct, this.trimLower, this.trimUpper,
         this.barColor, this.barOpacity,
         this.borderColor, this.borderWidth, this.barGap,
+        this.ibcsMode,
     ];
 }
 

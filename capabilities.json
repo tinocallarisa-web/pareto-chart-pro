@@ -11,20 +11,29 @@
             "name": "measure",
             "kind": "Measure",
             "description": "Numeric measure to concentrate (sales, revenue, liters…)"
+        },
+        {
+            "displayName": "Tooltips",
+            "name": "tooltips",
+            "kind": "Measure",
+            "description": "Additional measures to display in tooltips"
         }
     ],
     "dataViewMappings": [
         {
             "conditions": [
-                { "category": { "max": 1 }, "measure": { "max": 1 } }
+                { "category": { "max": 1 }, "measure": { "max": 1 }, "tooltips": { "max": 10 } }
             ],
             "categorical": {
                 "categories": {
                     "for": { "in": "category" },
-                    "dataReductionAlgorithm": { "top": { "count": 30000 } }
+                    "dataReductionAlgorithm": { "window": { "count": 30000 } }
                 },
                 "values": {
-                    "select": [{ "bind": { "to": "measure" } }]
+                    "select": [
+                        { "bind": { "to": "measure" } },
+                        { "bind": { "to": "tooltips" } }
+                    ]
                 }
             }
         }
@@ -67,6 +76,11 @@
                 "barGap": {
                     "displayName": "Bar gap px (Pro)",
                     "type": { "numeric": true }
+                },
+                "ibcsMode": {
+                    "displayName": "IBCS Mode (Standardized)",
+                    "description": "Apply International Business Communication Standards styling (neutral colors, clean contrast, standardized IBCS palette)",
+                    "type": { "bool": true }
                 }
             }
         },
@@ -199,7 +213,7 @@
     "supportsMultiVisualSelection": true,
     "tooltips": {
         "supportedTypes": { "default": true, "canvas": true },
-        "roles": ["category"],
+        "roles": ["category", "tooltips"],
         "supportEnhancedTooltips": true
     },
     "drilldown": {

@@ -1,101 +1,37 @@
-TIPS & HINTS — Pareto Chart Pro
-================================
+===================================================================
+PARETO CHART PRO (v1.2.0.0) — QUICK USER GUIDE & TIPS
+===================================================================
 
-GETTING STARTED
----------------
-Add an Entity field (customer, product, SKU, supplier) and a Value field
-(revenue, units, defects). The chart sorts automatically from highest to
-lowest and draws the cumulative % line. No manual sorting needed.
+1. GETTING STARTED
+------------------
+- Entity: Drag a categorical field or hierarchy (Customer, Product, SKU) into Entity.
+- Value: Drag your primary numeric measure (Sales, Liters, Defect Count) into Value.
+- Tooltips: Drag up to 10 additional measures (Profit, Margin %, Quantity) into Tooltips.
 
-The default reference line is already set at 80%. A horizontal dashed line
-and a vertical crosshair mark the bin where cumulative value reaches 80%.
+2. BIG DATA SCALING (150,000+ ROWS)
+-----------------------------------
+- Massive Datasets (>30k rows): Use a DAX calculated column (e.g. [Grupo Pareto] with 10 or 50 quantile groups) in Entity. This processes 150,000+ rows instantly with <1ms cross-filtering across your entire report.
+- Standard Datasets (<30k rows): Place raw IDs (e.g. customer_id) directly in Entity. Pareto Chart Pro automatically bins, ranks, and calculates cumulative percentages.
 
+3. FORMAT PANE HIGHLIGHTS
+-------------------------
+- IBCS Mode (Pro): Toggle under Pareto card for International Business Communication Standards corporate neutral styling (#404040 charcoal bars, #000000 solid axis typography).
+- Bin Size % (Pro): Adjust bin size from 1% to 20% (up to 100 bars). Free tier is fixed at 20% (5 bars).
+- Outlier Trimming (Pro): Exclude top or bottom % outliers to keep Pareto bins clean.
+- Value Labels (Pro): Display percentages directly above bars with customizable font size and color.
+- Reference Lines: Up to 3 configurable crosshairs (default 80% threshold).
 
-FIELD WELLS
------------
-· Entity  (Category / Hierarchy)
-  The dimension to rank — customer, product, SKU, region.
-  Add a hierarchy to enable drilldown (e.g. Category > Subcategory > SKU).
-  Use the drill buttons in the visual header to navigate levels.
+4. FREE VS PRO FEATURE COMPARISON
+----------------------------------
+- Pareto Bars & Cumulative Line ..... Free: YES ..... Pro: YES
+- Max Rows Supported ................ Free: 150,000+ . Pro: 150,000+
+- Bin Count ......................... Free: 5 (20%) . Pro: 1–100 (1–20%)
+- Custom Tooltips Measures .......... Free: Basic ... Pro: Up to 10 Extra Measures
+- IBCS Mode (Corporate Palette) ..... Free: NO ...... Pro: YES
+- Value Labels on Bars .............. Free: NO ...... Pro: YES
+- Outlier Trimming .................. Free: NO ...... Pro: YES
+- Reference Lines ................... Free: Up to 2 . Pro: Up to 3
 
-· Value  (Numeric measure)
-  The metric to concentrate — revenue, units, defects, cost.
-
-
-FORMAT PANE — KEY SETTINGS
----------------------------
-Pareto section:
-  · Bin size % (Pro) — 5% = 20 bars, 20% = 5 bars
-  · Exclude bottom/top % (Pro) — remove outliers before binning
-  · Bar color — supports conditional formatting (fx button)
-  · Bar opacity % — reduce to see reference lines through bars
-
-Reference Lines section:
-  · Line 1: ON by default at 80%. Change to any value 1–99.
-  · Line 2: second threshold (e.g. 60%)
-  · Line 3 (Pro): third threshold for ABC-style analysis
-
-Cumulative Line section:
-  · Increase Line width for presentations
-  · Show dots OFF for cleaner look in small tiles
-
-Value Labels (Pro):
-  · Show % above each bar. Great for executive dashboards.
-
-
-FREE vs PRO
------------
-                              Free    Pro
-  Pareto + cumulative line     YES    YES
-  Reference lines (up to 2)   YES    YES
-  Drilldown / hierarchy        YES    YES
-  High contrast mode           YES    YES
-  Cross-filtering              YES    YES
-  Bin size configurable        NO     YES  (1–20%)
-  Outlier exclusion            NO     YES
-  Bar border & gap             NO     YES
-  3rd reference line           NO     YES
-  Value labels on bars         NO     YES
-
-
-TIPS & BEST PRACTICES
----------------------
-· Executive dashboards: 5 bins, value labels ON, large chart size
-· Analyst pages: 5% bins (20 bars), outlier filter for extreme accounts
-· Presentations: opacity 100%, line width 3, high-contrast color pair
-· ABC analysis: 3 reference lines at 70% / 90% / 100%
-· Hover the cumulative dots to see exact cumulative % at each bin
-· Drilldown: start with families, drill into SKUs — Pareto recalculates each level
-
-
-EXAMPLE CONFIGURATIONS
-----------------------
-Classic 80/20:
-  Entity: Customer  |  Value: Revenue  |  Line 1: 80%  |  Bins: 10% Pro
-
-ABC Inventory:
-  Entity: SKU  |  Value: Sales  |  Line 1: 70%  |  Line 2: 90%  |  Line 3: 100% (Pro)
-
-Defect Prioritization:
-  Entity: Issue category  |  Value: Defect count  |  Bins: 5% Pro  |  Outlier filter: top 2%
-
-Supplier Concentration:
-  Entity: Supplier  |  Value: Purchase value  |  Line 1: 80%  |  Value labels ON
-
-
-TROUBLESHOOTING
----------------
-· Bars not sorted: Value must be a numeric measure, not text or a text column.
-
-· Pro features not in Format Pane: license check runs after first render.
-  Wait a moment or close/reopen the report. Sign in with the account
-  that purchased the license.
-
-· Still showing Free after purchase: verify license is assigned to the
-  viewer's account in Microsoft 365 admin center (per-user assignment).
-
-· Reference line labels overlap at top: adjust thresholds so lines
-  cross different bins.
-
-· Slow with many entities: pre-filter with a slicer first.
-  Visual supports up to 30,000 rows.
+===================================================================
+Support & Documentation: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+===================================================================

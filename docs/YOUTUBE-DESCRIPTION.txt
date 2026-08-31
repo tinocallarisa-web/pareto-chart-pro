@@ -1,0 +1,29 @@
+PARETO CHART PRO v1.2.0.0 FOR POWER BI — BIG DATA (150K+ ROWS), IBCS MODE & TOOLTIPS FIELD WELL
+
+Unlock true 80/20 ABC concentration analysis in Power BI with Pareto Chart Pro v1.2.0.0. Analyze over 150,000+ rows instantly, apply executive-ready IBCS corporate styling with one click, and display custom tooltip metrics across your dashboards.
+
+Get it on Microsoft AppSource: https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro
+Full Documentation & Quick Start: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+
+CHAPTERS:
+0:00 - Introduction & What's New in v1.2.0.0
+0:45 - High-Performance 150,000+ Row Streaming
+1:30 - Setting up the Tooltips Field Well
+2:15 - Enabling IBCS Mode (Corporate Standard)
+3:00 - Cross-Filtering & Zero DS0 Query Errors
+3:45 - Free vs Pro Tier Comparison
+
+WHAT'S NEW IN VERSION 1.2.0.0:
+- Tooltips Field Well: Bind up to 10 additional measures (Profit, Margin %, Quantity).
+- IBCS Mode: One-click International Business Communication Standards compliance.
+- 150,000+ Row Support: Stream massive datasets with window data reduction.
+- Monotonic Pareto Math: Strictly descending bars and clean 10% interval labels.
+- Instant Cross-Filtering: Category deduplication eliminates DS0 errors.
+
+LINKS & RESOURCES:
+- Website: https://tcviz.com
+- Support & FAQ: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+- Privacy Policy: https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
+- Terms of Use: https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
+
+#PowerBI #ParetoChart #BusinessIntelligence #PowerBIDesktop #IBCS #DataVisualization #TCViz #AppSource

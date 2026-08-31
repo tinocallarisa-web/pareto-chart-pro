@@ -1,86 +1,78 @@
 /**
- * build-test.js
- * Genera un .pbiviz con isPro=true y guid_test para grabar vídeos y demos.
- * Uso: node build-test.js
+ * build-test.js — Pareto Chart Pro
  *
- * Qué hace:
- *   1. Guarda copia de visual.ts y pbiviz.json
- *   2. Parchea isPro = true y DEV_MODE = true en visual.ts
- *   3. Añade _test al guid en pbiviz.json
- *   4. Ejecuta pbiviz package
- *   5. Restaura ambos ficheros al estado original
+ * Genera un .pbiviz de TEST que convive con la versión de AppSource:
+ *   - GUID: ParetoChartPro1A2B3C4D5E6F7A8B9C0D_test
+ *   - isPro = true (para probar funciones Pro sin licencia)
+ *
+ * Uso:  node build-test.js
+ *
+ * El fuente queda SIEMPRE en estado producción (el script restaura al final).
  */
 
-const fs    = require("fs");
-const path  = require("path");
-const { execSync } = require("child_process");
+const fs            = require('fs');
+const path          = require('path');
+const { execSync }  = require('child_process');
 
-const ROOT        = __dirname;
-const VISUAL_PATH = path.join(ROOT, "src", "visual.ts");
-const PBIVIZ_PATH = path.join(ROOT, "pbiviz.json");
+const ROOT          = __dirname;
+const PBIVIZ_JSON   = path.join(ROOT, 'pbiviz.json');
+const VISUAL_TS     = path.join(ROOT, 'src', 'visual.ts');
 
-// ── Backups ───────────────────────────────────────────────────────────────────
-const visualOrig = fs.readFileSync(VISUAL_PATH, "utf8");
-const pbivizOrig = fs.readFileSync(PBIVIZ_PATH, "utf8");
+const ORIGINAL_GUID = 'ParetoChartPro1A2B3C4D5E6F7A8B9C0D';
+const TEST_GUID     = 'ParetoChartPro1A2B3C4D5E6F7A8B9C0D_test';
+const MARKER        = '// ISPRO_MARKER';
 
-let restored = false;
+// ── Backup ────────────────────────────────────────────────────────────────────
+const pbivizOrig = fs.readFileSync(PBIVIZ_JSON, 'utf8');
+const visualOrig = fs.readFileSync(VISUAL_TS,   'utf8');
+
 function restore() {
-    if (restored) return;
-    restored = true;
-    fs.writeFileSync(VISUAL_PATH, visualOrig, "utf8");
-    fs.writeFileSync(PBIVIZ_PATH, pbivizOrig, "utf8");
-    console.log("✅  Ficheros restaurados.");
-}
-process.on("exit",    restore);
-process.on("SIGINT",  () => { restore(); process.exit(1); });
-process.on("SIGTERM", () => { restore(); process.exit(1); });
-
-// ── Patch visual.ts ───────────────────────────────────────────────────────────
-const ISPRO_FROM   = "    private isPro:           boolean = false;";
-const ISPRO_TO     = "    private isPro:           boolean = true;";
-const DEVMODE_FROM = "    private readonly DEV_MODE        = false;";
-const DEVMODE_TO   = "    private readonly DEV_MODE        = true;";
-
-let visualPatched = visualOrig;
-
-if (!visualOrig.includes(ISPRO_FROM)) {
-    console.error("❌  No se encontró el bloque isPro en visual.ts.");
-    console.error("    Actualiza ISPRO_FROM en build-test.js para que coincida.");
-    process.exit(1);
-}
-if (!visualOrig.includes(DEVMODE_FROM)) {
-    console.error("❌  No se encontró el bloque DEV_MODE en visual.ts.");
-    console.error("    Actualiza DEVMODE_FROM en build-test.js para que coincida.");
-    process.exit(1);
+    fs.writeFileSync(PBIVIZ_JSON, pbivizOrig, 'utf8');
+    fs.writeFileSync(VISUAL_TS,   visualOrig,  'utf8');
+    console.log('✅  Ficheros restaurados al estado de producción.');
 }
 
-visualPatched = visualPatched.replace(ISPRO_FROM, ISPRO_TO);
-visualPatched = visualPatched.replace(DEVMODE_FROM, DEVMODE_TO);
-fs.writeFileSync(VISUAL_PATH, visualPatched, "utf8");
-console.log("🔧  visual.ts parcheado → isPro=true, DEV_MODE=true");
-
-// ── Patch pbiviz.json ─────────────────────────────────────────────────────────
-const pbiviz = JSON.parse(pbivizOrig);
-const realGuid = pbiviz.visual.guid;
-
-if (realGuid.endsWith("_test")) {
-    console.error("❌  El guid ya tiene sufijo _test. Restaura pbiviz.json primero.");
-    restore();
-    process.exit(1);
-}
-
-pbiviz.visual.guid = realGuid + "_test";
-fs.writeFileSync(PBIVIZ_PATH, JSON.stringify(pbiviz, null, "\t"), "utf8");
-console.log(`🔧  pbiviz.json parcheado → guid: ${pbiviz.visual.guid}`);
-
-// ── Build ─────────────────────────────────────────────────────────────────────
-console.log("\n🚀  Ejecutando pbiviz package...\n");
 try {
-    execSync("pbiviz package", { cwd: ROOT, stdio: "inherit" });
-    console.log("\n✅  Build de test completado.");
-    console.log("    Fichero: dist/" + pbiviz.visual.guid + "." + pbiviz.visual.version + ".pbiviz");
-} catch (e) {
-    console.error("\n❌  Error en pbiviz package.");
-}
+    // ── Patch pbiviz.json ─────────────────────────────────────────────────────
+    const pbiviz = JSON.parse(pbivizOrig);
+    if (pbiviz.visual.guid !== ORIGINAL_GUID) {
+        throw new Error(
+            `GUID inesperado en pbiviz.json: "${pbiviz.visual.guid}"\n` +
+            `Se esperaba:                     "${ORIGINAL_GUID}"`
+        );
+    }
+    pbiviz.visual.guid        = TEST_GUID;
+    pbiviz.visual.displayName = "Pareto Chart Pro (TEST)";
+    fs.writeFileSync(PBIVIZ_JSON, JSON.stringify(pbiviz, null, 4), 'utf8');
+    console.log(`📝  GUID         →  ${TEST_GUID}`);
+    console.log(`📝  displayName  →  Pareto Chart Pro (TEST)`);
 
-// restore() se llama automáticamente en process.on("exit")
+    // ── Patch visual.ts (ISPRO_MARKER) ────────────────────────────────────────
+    const isProFalse = `private isPro:           boolean = false; ${MARKER}`;
+    const isProTrue  = `private isPro:           boolean = true;  ${MARKER}`;
+
+    if (!visualOrig.includes(isProFalse)) {
+        throw new Error(
+            `No se encontró la línea ${MARKER} en src/visual.ts.\n` +
+            `Busco: "${isProFalse}"\n` +
+            `Actualiza este script para que coincida con el fuente actual.`
+        );
+    }
+    fs.writeFileSync(VISUAL_TS, visualOrig.replace(isProFalse, isProTrue), 'utf8');
+    console.log('📝  isPro →  true');
+
+    // ── Build ─────────────────────────────────────────────────────────────────
+    console.log('\n🔨  Ejecutando pbiviz package...\n');
+    execSync('npx pbiviz package', { stdio: 'inherit', cwd: ROOT, shell: true });
+
+    console.log('\n✅  Build de TEST completado.');
+    console.log(`    GUID del test: ${TEST_GUID}`);
+    console.log('    Importa el .pbiviz de /dist/ en Power BI Desktop.');
+    console.log('    Power BI lo verá como visual distinto al de AppSource.\n');
+
+} catch (err) {
+    console.error('\n❌  Error durante el build de test:');
+    console.error('   ', err.message || err);
+} finally {
+    restore();
+}

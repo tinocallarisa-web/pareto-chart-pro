@@ -1,5 +1,23 @@
 # Changelog — Pareto Chart Pro
 
+## [1.2.0.0] — 2026-08-31
+
+### Added
+- **Tooltips Field Well (`tooltips` role)** — add up to 10 additional measures (Profit, Quantity, Margin %, Customer Count) to display in visual tooltips for bars and cumulative line dots
+- **IBCS Mode (`IBCS Mode (Standardized)`)** — one-click toggle in Pareto Format card to apply International Business Communication Standards styling (neutral charcoal `#404040` bars, `#000000` solid axis typography, clean grid contrast)
+- **High-Performance 150,000+ Row Support** — optimized window data reduction streaming and zero-GC selection ID generation supporting datasets up to 150,000+ rows
+- **Strict Monotonic Pareto Binning Algorithm** — remainder items (`tn % nBins`) are prioritized in top bins, guaranteeing strictly descending bar heights and clean 10% interval labels (`0–10%`, `10–20%`... `90–100%`)
+
+### Changed
+- **Dynamic Bin Adaptation for Filtered Datasets** — automatically adjusts bin count (`Math.min(requestedNBins, tn)`) when slicers or filters reduce rows below requested bin count, preventing empty bars or broken X-axis labels
+- **Explicit Measure Role Resolution** — visual strictly isolates primary measure from tooltip columns, guaranteeing correct Pareto sorting even when multiple tooltip measures are bound
+
+### Fixed
+- **Selection ID Deduplication (0 `DS0` query errors)** — category SelectionId deduplication eliminates `The DataSet 'DS0' contains a filter with duplicate columns` errors and locks up, returning instant <1ms cross-filtering response
+- **Segment Loading Lockup Fix** — `fetchMoreData(true)` checks chunk capacity (>= 30,000) before rendering loading state, preventing visual freeze on smaller queries
+
+---
+
 ## [1.1.0.0] — 2026-08-05
 
 ### Added

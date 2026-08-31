@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SEO -->
+<title>Pareto Chart in Power BI: 80/20 Analysis Made Easy</title>
+<meta name="description" content="Learn what a Pareto chart is, how it works, and how to run 80/20 analysis in Power BI in seconds — no DAX required. Free custom visual on AppSource.">
+<meta name="keywords" content="pareto chart power bi, 80/20 rule power bi, pareto analysis power bi, abc analysis power bi, power bi custom visual pareto, cumulative percentage chart power bi">
+
+<!-- OG -->
+<meta property="og:title" content="What Is a Pareto Chart — and How to Use One in Power BI">
+<meta property="og:description" content="Rank contributors, draw the cumulative line, and find your critical 20% in seconds. Free Pareto Chart visual for Power BI on AppSource.">
+<meta property="og:type" content="article">
+
+<!-- Schema -->
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org",
+  "@type":"BlogPosting",
+  "headline":"What Is a Pareto Chart — and How to Use One in Power BI",
+  "description":"Learn what a Pareto chart is, how it works, and how to run 80/20 analysis in Power BI in seconds.",
+  "author":{"@type":"Person","name":"Tino Callarisa","email":"support@tcviz.com"},
+  "publisher":{"@type":"Organization","name":"TCViz"},
+  "keywords":"pareto chart power bi, 80/20 rule, abc analysis power bi, pareto analysis, power bi custom visual",
+  "about":{"@type":"SoftwareApplication","name":"Pareto Chart Pro","applicationCategory":"BusinessApplication","operatingSystem":"Power BI","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+}
+</script>
+
+<style>
+  :root {
+    --acc: #C96442; --acc2: #9C87F5; --dark: #3D3929;
+    --mid: #535146; --light: #83827D; --bg: #FAF9F5; --bg2: #EDE9DE; --line: #DAD9D4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--dark); line-height: 1.75; font-size: 16px; }
+
+  /* Layout */
+  .container { max-width: 780px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* Header */
+  .hero { background: var(--dark); color: #fff; padding: 56px 24px 48px; text-align: center; }
+  .hero .eyebrow { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #b5b3aa; margin-bottom: 16px; }
+  .hero h1 { font-size: clamp(24px, 4vw, 38px); font-weight: 800; line-height: 1.25; max-width: 680px; margin: 0 auto 20px; }
+  .hero .meta { font-size: 13px; color: #b5b3aa; }
+  .hero .meta span { color: var(--acc); font-weight: 600; }
+
+  /* Typography */
+  h2 { font-size: 24px; font-weight: 800; color: var(--dark); margin: 56px 0 16px; padding-bottom: 12px; border-bottom: 3px solid var(--acc); }
+  h3 { font-size: 17px; font-weight: 700; color: var(--dark); margin: 32px 0 10px; }
+  p  { color: var(--mid); margin-bottom: 18px; }
+  ul, ol { color: var(--mid); padding-left: 24px; margin-bottom: 18px; }
+  li { margin-bottom: 8px; }
+  strong { color: var(--dark); }
+  a  { color: var(--acc); font-weight: 600; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Intro lead */
+  .lead { font-size: 18px; color: var(--mid); line-height: 1.8; border-left: 4px solid var(--acc); padding-left: 20px; margin: 32px 0; }
+
+  /* Infographic wrapper */
+  .infographic { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin: 32px 0; overflow-x: auto; }
+  .infographic figcaption { font-size: 12px; color: var(--light); text-align: center; margin-top: 12px; font-style: italic; }
+
+  /* Use case grid */
+  .use-cases { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 28px 0; }
+  .use-case-card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
+  .use-case-card .icon { font-size: 28px; margin-bottom: 10px; }
+  .use-case-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--dark); }
+  .use-case-card p  { font-size: 13px; color: var(--light); margin: 0; }
+
+  /* Feature table */
+  table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: 14px; }
+  th { background: var(--bg2); padding: 11px 16px; text-align: left; font-weight: 700; color: var(--dark); border-bottom: 2px solid var(--line); }
+  td { padding: 10px 16px; border-bottom: 1px solid var(--bg2); color: var(--mid); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* Steps */
+  .steps { counter-reset: step; margin: 24px 0; }
+  .step  { display: flex; gap: 18px; margin-bottom: 24px; align-items: flex-start; }
+  .step-num { flex-shrink: 0; width: 36px; height: 36px; background: var(--acc); color: #fff;
+              border-radius: 50%; font-weight: 800; font-size: 16px;
+              display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+  .step-body h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--dark); }
+  .step-body p  { font-size: 14px; color: var(--mid); margin: 0; }
+
+  /* CTA */
+  .cta-box { background: var(--acc); border-radius: 14px; padding: 36px 32px; text-align: center; margin: 48px 0 0; }
+  .cta-box h3 { color: #fff; font-size: 22px; margin-bottom: 10px; }
+  .cta-box p  { color: rgba(255,255,255,.85); margin-bottom: 24px; }
+  .btn-white { display: inline-block; background: #fff; color: var(--acc); font-weight: 800;
+               padding: 13px 32px; border-radius: 8px; font-size: 15px; text-decoration: none; }
+  .btn-white:hover { background: var(--bg2); text-decoration: none; }
+
+  /* Tags */
+  .tags { margin-top: 40px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag  { background: var(--bg2); color: var(--mid); font-size: 12px; padding: 4px 12px; border-radius: 20px; }
+
+  /* Badge */
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+           text-transform: uppercase; letter-spacing: .5px; vertical-align: middle; margin-left: 6px; }
+  .pro  { background: var(--acc2); color: #fff; }
+  .free { background: var(--acc);  color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="eyebrow">TCViz · Power BI Custom Visuals</div>
+  <h1>What Is a Pareto Chart — and How to Use One in Power BI</h1>
+  <div class="meta">80/20 Analysis · ABC Classification · <span>Free on AppSource</span></div>
+</div>
+
+<div class="container">
+
+  <p class="lead">If you've ever been told to "focus on what matters most," a Pareto chart is the analytical tool that shows you exactly which 20% of inputs drives 80% of your results — without any manual sorting or complex formulas.</p>
+
+  <!-- ─────────────────────────────────────────
+       SECTION 1 — WHAT IS A PARETO CHART
+  ───────────────────────────────────────── -->
+  <h2>What Is a Pareto Chart?</h2>
+
+  <p>A Pareto chart visualizes <strong>concentration</strong>: it ranks contributors from the most impactful to the least, and overlays a cumulative line that shows how quickly the total accumulates as you move down the list.</p>
+
+  <p>It's named after the Italian economist <strong>Vilfredo Pareto</strong>, who observed in the 1800s that roughly 80% of Italy's land was owned by 20% of the population. That same 80/20 pattern appears across business and nature:</p>
+
+  <!-- INFOGRAPHIC 1 — The 80/20 Principle -->
+  <figure class="infographic">
+    <svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:720px;display:block;margin:0 auto;">
+      <defs>
+        <linearGradient id="gAcc" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#C96442"/>
+          <stop offset="1" stop-color="#E8845A"/>
+        </linearGradient>
+        <linearGradient id="gGray" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#D0CEC8"/>
+          <stop offset="1" stop-color="#E8E6E0"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Title -->
+      <text x="360" y="30" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="800" font-size="15" fill="#3D3929">The Pareto Principle (80/20 Rule)</text>
+
+      <!-- Left block — 20% Causes -->
+      <rect x="60" y="50" width="240" height="180" rx="12" fill="url(#gAcc)"/>
+      <text x="180" y="108" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="800" font-size="52" fill="#fff">20%</text>
+      <text x="180" y="145" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="600" font-size="14" fill="rgba(255,255,255,.9)">of causes / inputs</text>
+      <text x="180" y="205" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" fill="rgba(255,255,255,.75)">customers · SKUs · defect types</text>
+
+      <!-- Arrow -->
+      <text x="360" y="148" text-anchor="middle" font-size="36" fill="#3D3929">→</text>
+      <text x="360" y="168" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" fill="#83827D">drives</text>
+
+      <!-- Right block — 80% Results -->
+      <rect x="420" y="50" width="240" height="180" rx="12" fill="url(#gGray)"/>
+      <text x="540" y="108" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="800" font-size="52" fill="#3D3929">80%</text>
+      <text x="540" y="145" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="600" font-size="14" fill="#535146">of results / value</text>
+      <text x="540" y="205" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" fill="#83827D">revenue · volume · defects</text>
+    </svg>
+    <figcaption>The Pareto principle: a small minority of inputs consistently explains the majority of outcomes.</figcaption>
+  </figure>
+
+  <ul>
+    <li>80% of revenue comes from 20% of customers</li>
+    <li>80% of inventory movement is driven by 20% of SKUs</li>
+    <li>80% of defects originate from 20% of root causes</li>
+    <li>80% of support tickets come from 20% of product issues</li>
+  </ul>
+
+  <p>The exact ratios vary — it's not always precisely 80/20 — but the pattern of <em>concentration</em> appears everywhere. A Pareto chart makes that concentration visible and measurable.</p>
+
+
+  <!-- ─────────────────────────────────────────
+       SECTION 2 — ANATOMY
+  ───────────────────────────────────────── -->
+  <h2>Anatomy of a Pareto Chart</h2>
+
+  <p>A Pareto chart has three visual components working together:</p>
+
+  <!-- INFOGRAPHIC 2 — Anatomy of a Pareto Chart -->
+  <figure class="infographic">
+    <svg viewBox="0 0 720 340" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:720px;display:block;margin:0 auto;">
+      <defs>
+        <linearGradient id="gBar" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#4472C4"/>
+          <stop offset="1" stop-color="#2E5BA8"/>
+        </linearGradient>
+      </defs>
+
+      <!-- Chart background -->
+      <rect x="70" y="20" width="480" height="260" rx="8" fill="#fff" stroke="#DAD9D4" stroke-width="1"/>
+
+      <!-- Grid lines -->
+      <line x1="70" y1="80" x2="550" y2="80" stroke="#f0eeea" stroke-width="1"/>
+      <line x1="70" y1="140" x2="550" y2="140" stroke="#f0eeea" stroke-width="1"/>
+      <line x1="70" y1="200" x2="550" y2="200" stroke="#f0eeea" stroke-width="1"/>
+
+      <!-- Bars (sorted high → low) -->
+      <rect x="90"  y="40"  width="64" height="220" rx="4" fill="url(#gBar)" opacity=".9"/>
+      <rect x="168" y="90"  width="64" height="170" rx="4" fill="url(#gBar)" opacity=".9"/>
+      <rect x="246" y="130" width="64" height="130" rx="4" fill="url(#gBar)" opacity=".9"/>
+      <rect x="324" y="170" width="64" height="90"  rx="4" fill="url(#gBar)" opacity=".9"/>
+      <rect x="402" y="210" width="64" height="50"  rx="4" fill="url(#gBar)" opacity=".9"/>
+      <rect x="480" y="240" width="64" height="20"  rx="4" fill="url(#gBar)" opacity=".9"/>
+
+      <!-- X axis -->
+      <line x1="70" y1="260" x2="550" y2="260" stroke="#DAD9D4" stroke-width="1.5"/>
+      <!-- Y axis left -->
+      <line x1="70" y1="20"  x2="70"  y2="260" stroke="#DAD9D4" stroke-width="1.5"/>
+      <!-- Y axis right -->
+      <line x1="550" y1="20" x2="550" y2="260" stroke="#DAD9D4" stroke-width="1.5"/>
+
+      <!-- Cumulative line -->
+      <polyline points="122,120 200,162 278,196 356,222 434,244 512,254" fill="none" stroke="#ED7D31" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Dots on cumulative line -->
+      <circle cx="122" cy="120" r="5" fill="#ED7D31"/>
+      <circle cx="200" cy="162" r="5" fill="#ED7D31"/>
+      <circle cx="278" cy="196" r="5" fill="#ED7D31"/>
+      <circle cx="356" cy="222" r="5" fill="#ED7D31"/>
+      <circle cx="434" cy="244" r="5" fill="#ED7D31"/>
+      <circle cx="512" cy="254" r="5" fill="#ED7D31"/>
+
+      <!-- 80% Reference line -->
+      <line x1="70" y1="196" x2="550" y2="196" stroke="#E84444" stroke-width="1.5" stroke-dasharray="6,4"/>
+      <text x="56" y="200" text-anchor="end" font-family="Segoe UI,sans-serif" font-weight="700" font-size="11" fill="#E84444">80%</text>
+      <!-- vertical crosshair at intersection with cumulative -->
+      <line x1="278" y1="196" x2="278" y2="260" stroke="#E84444" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+      <!-- Annotations -->
+      <!-- Arrow + label: Sorted bars -->
+      <line x1="660" y1="90" x2="565" y2="60" stroke="#3D3929" stroke-width="1.2" marker-end="url(#arr)"/>
+      <text x="665" y="85" font-family="Segoe UI,sans-serif" font-weight="700" font-size="12" fill="#3D3929">① Sorted bars</text>
+      <text x="665" y="100" font-family="Segoe UI,sans-serif" font-size="11" fill="#83827D">High → Low</text>
+
+      <!-- Arrow + label: Cumulative line -->
+      <line x1="660" y1="165" x2="590" y2="178" stroke="#ED7D31" stroke-width="1.2"/>
+      <text x="665" y="160" font-family="Segoe UI,sans-serif" font-weight="700" font-size="12" fill="#ED7D31">② Cumulative line</text>
+      <text x="665" y="175" font-family="Segoe UI,sans-serif" font-size="11" fill="#83827D">Running % of total</text>
+
+      <!-- Arrow + label: Reference line -->
+      <line x1="660" y1="220" x2="565" y2="198" stroke="#E84444" stroke-width="1.2"/>
+      <text x="665" y="215" font-family="Segoe UI,sans-serif" font-weight="700" font-size="12" fill="#E84444">③ Reference line</text>
+      <text x="665" y="230" font-family="Segoe UI,sans-serif" font-size="11" fill="#83827D">80% threshold</text>
+
+      <!-- X axis label -->
+      <text x="310" y="320" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" fill="#83827D">Entities ranked from highest to lowest contributor →</text>
+      <!-- Left Y label -->
+      <text x="20" y="150" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D" transform="rotate(-90,20,150)">% of total value</text>
+      <!-- Right Y label -->
+      <text x="700" y="150" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D" transform="rotate(90,700,150)">cumulative %</text>
+    </svg>
+    <figcaption>The three components of a Pareto chart: sorted bars, cumulative line, and a reference line at the threshold (80% default).</figcaption>
+  </figure>
+
+  <p><strong>① Sorted bars</strong> — entities ranked from the highest contributor on the left to the lowest on the right. Each bar shows that entity's share of the total.</p>
+  <p><strong>② Cumulative line</strong> — a line that shows the running total as a percentage of the whole. It starts low on the left and climbs toward 100% as you move right.</p>
+  <p><strong>③ Reference line</strong> — a horizontal marker (usually at 80%) with a vertical crosshair showing exactly which group of entities reaches that threshold. Everything to the left of the crosshair is your <em>critical group</em>.</p>
+
+
+  <!-- ─────────────────────────────────────────
+       SECTION 3 — USE CASES
+  ───────────────────────────────────────── -->
+  <h2>Where Pareto Charts Are Used</h2>
+
+  <p>Pareto analysis is a standard tool across multiple domains wherever <strong>prioritization based on impact</strong> matters:</p>
+
+  <!-- INFOGRAPHIC 3 — Use Cases -->
+  <figure class="infographic">
+    <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:720px;display:block;margin:0 auto;">
+      <!-- Card backgrounds -->
+      <rect x="10"  y="10" width="130" height="180" rx="10" fill="#FFF8F5" stroke="#F0C9B8" stroke-width="1.5"/>
+      <rect x="150" y="10" width="130" height="180" rx="10" fill="#F5F3FF" stroke="#C5BAF0" stroke-width="1.5"/>
+      <rect x="290" y="10" width="130" height="180" rx="10" fill="#F0FFF4" stroke="#A8D9B8" stroke-width="1.5"/>
+      <rect x="430" y="10" width="130" height="180" rx="10" fill="#FFF5F0" stroke="#F0C0A0" stroke-width="1.5"/>
+      <rect x="570" y="10" width="140" height="180" rx="10" fill="#F0F7FF" stroke="#A8C8F0" stroke-width="1.5"/>
+
+      <!-- Icons (emoji text) -->
+      <text x="75"  y="60" text-anchor="middle" font-size="28">💰</text>
+      <text x="215" y="60" text-anchor="middle" font-size="28">📦</text>
+      <text x="355" y="60" text-anchor="middle" font-size="28">🔧</text>
+      <text x="495" y="60" text-anchor="middle" font-size="28">🚚</text>
+      <text x="640" y="60" text-anchor="middle" font-size="28">🎫</text>
+
+      <!-- Titles -->
+      <text x="75"  y="90" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="700" font-size="11" fill="#3D3929">Sales</text>
+      <text x="215" y="90" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="700" font-size="11" fill="#3D3929">Inventory</text>
+      <text x="355" y="90" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="700" font-size="11" fill="#3D3929">Quality</text>
+      <text x="495" y="90" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="700" font-size="11" fill="#3D3929">Procurement</text>
+      <text x="640" y="90" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="700" font-size="11" fill="#3D3929">Support</text>
+
+      <!-- Subtitles line 1 -->
+      <text x="75"  y="115" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">Key account</text>
+      <text x="215" y="115" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">ABC</text>
+      <text x="355" y="115" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">Defect root</text>
+      <text x="495" y="115" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">Supplier</text>
+      <text x="640" y="115" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">Ticket</text>
+
+      <!-- Subtitles line 2 -->
+      <text x="75"  y="132" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">identification</text>
+      <text x="215" y="132" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">classification</text>
+      <text x="355" y="132" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">cause analysis</text>
+      <text x="495" y="132" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">concentration</text>
+      <text x="640" y="132" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">prioritization</text>
+
+      <!-- Metric examples -->
+      <text x="75"  y="165" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#C96442" font-weight="600">Revenue by customer</text>
+      <text x="215" y="165" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#9C87F5" font-weight="600">Sales vol. by SKU</text>
+      <text x="355" y="165" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#4CAF50" font-weight="600">Defects by category</text>
+      <text x="495" y="165" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#FF7043" font-weight="600">Spend by supplier</text>
+      <text x="640" y="165" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="9" fill="#2196F3" font-weight="600">Tickets by product</text>
+    </svg>
+    <figcaption>Pareto analysis applies across Sales, Inventory, Quality, Procurement, and Support — anywhere prioritization by impact matters.</figcaption>
+  </figure>
+
+  <ul>
+    <li><strong>Sales & revenue</strong> — Which customers to treat as key accounts? Which ones drive the majority of your revenue?</li>
+    <li><strong>ABC inventory</strong> — Group products into A (top 70%), B (70–90%), C (90–100%) for differentiated stock policies.</li>
+    <li><strong>Quality / Lean / Six Sigma</strong> — Which defect categories to tackle first? Fix the vital few, eliminate most of the defects.</li>
+    <li><strong>Procurement</strong> — How concentrated is supplier spend? Visible supply chain risk at a glance.</li>
+    <li><strong>Product portfolio</strong> — Which SKUs are long-tail items consuming resources for negligible volume?</li>
+  </ul>
+
+
+  <!-- ─────────────────────────────────────────
+       SECTION 4 — THE VISUAL
+  ───────────────────────────────────────── -->
+  <h2>Pareto Chart Pro for Power BI</h2>
+
+  <p>Power BI doesn't include a native Pareto chart. You can approximate one by combining a sorted column chart with custom DAX rank and cumulative measures — but it's a 5-step setup that breaks whenever the data model changes, and doesn't support binning without additional calculated columns.</p>
+
+  <p><strong>Pareto Chart Pro</strong> is a Microsoft-certified custom visual on AppSource that does all of this automatically. You add two fields and the chart renders:</p>
+
+  <!-- INFOGRAPHIC 4 — How the visual works -->
+  <figure class="infographic">
+    <svg viewBox="0 0 720 160" xmlns="http://www.w3.org/2000/svg" width="100%" style="max-width:720px;display:block;margin:0 auto;">
+      <!-- Step 1 -->
+      <rect x="10" y="20" width="190" height="120" rx="10" fill="#FFF8F5" stroke="#F0C9B8" stroke-width="1.5"/>
+      <text x="105" y="55" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="800" font-size="13" fill="#C96442">① Entity field</text>
+      <text x="105" y="78" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" fill="#535146">Customer / SKU</text>
+      <text x="105" y="96" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" fill="#535146">Supplier / Defect</text>
+      <text x="105" y="118" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">(any category)</text>
+
+      <!-- + -->
+      <text x="215" y="90" text-anchor="middle" font-size="28" fill="#DAD9D4">+</text>
+
+      <!-- Step 2 -->
+      <rect x="240" y="20" width="190" height="120" rx="10" fill="#F5F3FF" stroke="#C5BAF0" stroke-width="1.5"/>
+      <text x="335" y="55" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="800" font-size="13" fill="#9C87F5">② Value field</text>
+      <text x="335" y="78" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" fill="#535146">Revenue / Units</text>
+      <text x="335" y="96" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="12" fill="#535146">Defect count</text>
+      <text x="335" y="118" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="10" fill="#83827D">(any numeric measure)</text>
+
+      <!-- → -->
+      <text x="447" y="94" text-anchor="middle" font-size="32" fill="#DAD9D4">→</text>
+
+      <!-- Result -->
+      <rect x="470" y="20" width="240" height="120" rx="10" fill="#3D3929"/>
+      <text x="590" y="52" text-anchor="middle" font-family="Segoe UI,sans-serif" font-weight="800" font-size="13" fill="#fff">Pareto chart rendered</text>
+      <text x="590" y="74" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" fill="#b5b3aa">✓ Sorted automatically</text>
+      <text x="590" y="93" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" fill="#b5b3aa">✓ Binned &amp; cumulative line drawn</text>
+      <text x="590" y="112" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" fill="#b5b3aa">✓ 80% reference line set</text>
+      <text x="590" y="131" text-anchor="middle" font-family="Segoe UI,sans-serif" font-size="11" fill="#b5b3aa">✓ No DAX required</text>
+    </svg>
+    <figcaption>Two fields. One visual. The chart handles ranking, binning, and cumulative calculation automatically.</figcaption>
+  </figure>
+
+  <h3>Key Features</h3>
+
+  <p><strong>Automatic ranking & binning</strong> — entities are always sorted highest to lowest. By default each bar represents 10% of entities (10 bars total). With Pro you can set bin size from 1% to 20% — from a 100-bar granular view to a 5-bar executive summary.</p>
+
+  <p><strong>Up to 3 reference lines</strong> — Line 1 is on at 80% by default. Change it to any threshold, add a second line, and a third <span class="badge pro">Pro</span> for ABC-style three-zone analysis. Each line has its own color and label.</p>
+
+  <p><strong>Drilldown on hierarchies</strong> — add Category → Subcategory → SKU to the Entity field and the Pareto recalculates automatically at each drill level. No separate charts needed per level.</p>
+
+  <p><strong>Cross-filtering</strong> — click a bin to filter all other visuals on the page. Pareto Chart Pro participates fully in Power BI's standard cross-filter model.</p>
+
+  <p><strong>Outlier exclusion</strong> <span class="badge pro">Pro</span> — exclude the top or bottom N% of entities before binning. Useful when one dominant account distorts the distribution shape.</p>
+
+  <p><strong>Value labels on bars</strong> <span class="badge pro">Pro</span> — show the % contribution above each bar. Essential for executive dashboards and exported screenshots.</p>
+
+  <p><strong>Conditional formatting</strong> — apply standard Power BI color rules on bars via the <em>fx</em> button. Color by value range, percentile tier, or gradient.</p>
+
+  <p><strong>High contrast & accessibility</strong> — automatically adapts to Windows/Power BI high contrast mode.</p>
+
+  <h3>Free vs Pro</h3>
+
+  <table>
+    <tr><th>Feature</th><th>Free</th><th>Pro</th></tr>
+    <tr><td>Pareto chart + cumulative line</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Reference lines (up to 2)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Drilldown / hierarchy</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Cross-filtering & multi-select</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Conditional formatting (bars)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>High contrast mode</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Bin size</td><td>Fixed at 10%</td><td>✅ Configurable 1–20%</td></tr>
+    <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Bar border & gap styling</td><td>❌</td><td>✅</td></tr>
+    <tr><td>3rd reference line</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Value labels on bars</td><td>❌</td><td>✅</td></tr>
+  </table>
+
+
+  <!-- ─────────────────────────────────────────
+       SECTION 5 — GETTING STARTED
+  ───────────────────────────────────────── -->
+  <h2>Get Started in 3 Steps</h2>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h4>Install from AppSource</h4>
+        <p>In Power BI Desktop → Visualizations pane → three dots → <em>Get more visuals</em> → search <strong>Pareto Chart Pro</strong> → Add. The icon appears in your pane immediately.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h4>Bind your data</h4>
+        <p>Drag a category field (Customer, SKU, Supplier, Defect Category) into <strong>Entity</strong>. Drag a numeric measure (Revenue, Units, Defect Count) into <strong>Value</strong>. The chart renders automatically.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h4>Read the result</h4>
+        <p>The bin where the cumulative line crosses the 80% reference line is your breakpoint. The entities to the left are your critical group — the 20% that drives 80% of the total.</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>Example Configurations</h3>
+
+  <p><strong>Classic 80/20 customer analysis</strong><br>
+  Entity: Customer Name · Value: Revenue · Line 1 at 80%<br>
+  → Instantly shows which customers to treat as key accounts</p>
+
+  <p><strong>ABC inventory classification</strong><br>
+  Entity: SKU Code · Value: Sales Volume · Line 1 at 70% · Line 2 at 90% · Line 3 at 100% <span class="badge pro">Pro</span><br>
+  → Segments the full catalog into A, B, and C items automatically — no DAX required</p>
+
+  <p><strong>Defect prioritization (Lean / Six Sigma)</strong><br>
+  Entity: Defect Category · Value: Defect Count · Bin size 5% <span class="badge pro">Pro</span> · Outlier filter: top 2%<br>
+  → Surfaces the two or three root causes responsible for most defects</p>
+
+  <p><strong>Supplier concentration review</strong><br>
+  Entity: Supplier Name · Value: Purchase Amount · Value labels on <span class="badge pro">Pro</span><br>
+  → Quantifies supply chain risk at a glance</p>
+
+
+  <!-- CTA -->
+  <div class="cta-box">
+    <h3>Get Pareto Chart Pro — Free on AppSource</h3>
+    <p>Full Pareto analysis, drilldown, cross-filtering, and reference lines. Free to use. Pro license unlocks advanced controls.</p>
+    <a class="btn-white" href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">Get it on AppSource →</a>
+  </div>
+
+  <p style="margin-top:28px;font-size:13px;color:var(--light);">
+    Questions or feature requests? <a href="mailto:support@tcviz.com">support@tcviz.com</a> ·
+    <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" target="_blank">GitHub Issues</a> ·
+    <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+  </p>
+
+  <div class="tags">
+    <span class="tag">Power BI</span>
+    <span class="tag">Pareto chart</span>
+    <span class="tag">80/20 analysis</span>
+    <span class="tag">ABC analysis</span>
+    <span class="tag">Custom visual</span>
+    <span class="tag">AppSource</span>
+    <span class="tag">Data analysis</span>
+    <span class="tag">Concentration analysis</span>
+    <span class="tag">Pareto principle</span>
+  </div>
+
+</div><!-- /container -->
+
+</body>
+</html>
