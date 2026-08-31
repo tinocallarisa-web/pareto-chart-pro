@@ -1,0 +1,23 @@
+PARETO CHART PRO v1.2.0.0 — CERTIFICATION NOTES
+
+GUID: ParetoChartPro1A2B3C4D5E6F7A8B9C0D
+Version: 1.2.0.0
+Plan ID: pareto-chart-pro-tcviz
+Branch: https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
+Support: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+Privacy: https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
+Video: https://www.youtube.com/watch?v=1YmpeyACe2o
+
+WHAT'S NEW IN v1.2.0.0:
+1. Tooltips Field Well: Up to 10 custom measures in hover tooltips.
+2. IBCS Mode: One-click International Business Communication Standards compliance (#404040 neutral bars, #000000 solid axis typography).
+3. Big Data Scaling (150,000+ rows): Supports <30k rows natively (window data reduction) and 150k+ rows via DAX quantile column (e.g. [Grupo Pareto] = CEILING((RANKX(ALL(T), T[Sales], , DESC, Skip)/COUNTROWS(ALL(T)))*10, 1)).
+4. Monotonic Pareto Math: Strictly descending bars & clean 10% labels (0-10%, 10-20%... 90-100%).
+5. Instant Cross-Filtering: Category SelectionId deduplication eliminates DS0 query errors (<1ms response).
+
+LICENSING & PRIVACY:
+Native IVisualLicenseManager API via host.licenseManager. Deferred resolution via setTimeout(0) does not block render. No external network servers or telemetry.
+
+TESTING INSTRUCTIONS:
+- Free Tier: Bind Category + Value -> renders 5 bars with cumulative line.
+- Pro Tier: Format Pane -> Pareto -> Bin size % = 5%, enable IBCS Mode toggle, bind extra Tooltips measures.
