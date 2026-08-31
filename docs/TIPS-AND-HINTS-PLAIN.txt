@@ -8,10 +8,26 @@ PARETO CHART PRO (v1.2.0.0) — QUICK USER GUIDE & TIPS
 - Value: Drag your primary numeric measure (Sales, Liters, Defect Count) into Value.
 - Tooltips: Drag up to 10 additional measures (Profit, Margin %, Quantity) into Tooltips.
 
-2. BIG DATA SCALING (150,000+ ROWS)
------------------------------------
-- Massive Datasets (>30k rows): Use a DAX calculated column (e.g. [Grupo Pareto] with 10 or 50 quantile groups) in Entity. This processes 150,000+ rows instantly with <1ms cross-filtering across your entire report.
-- Standard Datasets (<30k rows): Place raw IDs (e.g. customer_id) directly in Entity. Pareto Chart Pro automatically bins, ranks, and calculates cumulative percentages.
+2. BIG DATA ARCHITECTURE (< 30K WITHOUT DAX vs > 30K WITH DAX)
+--------------------------------------------------------------
+A. Datasets < 30,000 Entities (WITHOUT DAX):
+   - Simply drag raw IDs (e.g. customer_id, SKU) directly into Entity.
+   - No DAX required. Pareto Chart Pro automatically bins, ranks, and calculates cumulative percentages natively.
+
+B. Datasets > 30,000 up to 150,000+ Entities (WITH DAX):
+   - Create a DAX calculated column to group entities into quantile bins and place it in Entity.
+   - This delivers instant (<1ms) cross-filtering of all 150,000+ rows across your entire report.
+
+   EXACT DAX CALCULATED COLUMN FORMULA EXAMPLE:
+   --------------------------------------------
+   Grupo Pareto = 
+   VAR VentasActual = 'sales_data'[Sales]
+   VAR TotalFilas = COUNTROWS(ALL('sales_data'))
+   VAR Ranking = RANKX(ALL('sales_data'), 'sales_data'[Sales], VentasActual, DESC, Skip)
+   VAR Percentil = CEILING((Ranking / TotalFilas) * 10, 1)
+   RETURN "Grupo " & FORMAT(Percentil, "00")
+
+   (Note: Change * 10 to * 50 if you prefer 50 fine-grained quantile groups).
 
 3. FORMAT PANE HIGHLIGHTS
 -------------------------

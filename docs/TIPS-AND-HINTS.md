@@ -5,9 +5,25 @@
 2. **Bind Value**: Drag a numeric measure (Sales, Revenue, Liters, Defect Count) into `Value`.
 3. **Bind Tooltips**: Drag up to 10 additional measures (Profit, Margin %, Quantity) into `Tooltips`.
 
-## Big Data Scaling (150,000+ Rows)
-- **Massive Datasets**: Create a DAX calculated column (e.g. `[Grupo Pareto]` dividing rows into 10 or 50 quantile groups) and place it in `Entity`. This delivers instant (<1ms) cross-filtering of all 150,000 rows across your entire report.
-- **Standard Datasets (<30,000 Rows)**: Place raw IDs (e.g. `customer_id`) directly in `Entity`. Pareto Chart Pro handles quantile binning, cumulative line calculation, and outlier trimming natively.
+## Big Data Architecture & Scaling Strategy
+
+### 1. Standard Datasets (< 30,000 Entities) — WITHOUT DAX
+- Simply drag your raw entity ID (e.g. `customer_id`, `product_id`, `SKU`) directly into the **Entity** field well.
+- No DAX formulas required. Pareto Chart Pro automatically handles quantile binning, cumulative percentage calculations, outlier trimming, and tooltips natively.
+
+### 2. Massive Enterprise Datasets (> 30,000 up to 150,000+ Entities) — WITH DAX
+- To process over 30,000 rows up to 150,000+ entities with instant (<1ms) cross-filtering across your entire report, create a DAX calculated column to group entities into quantile bins and place it in **Entity**.
+
+#### Exact DAX Calculated Column Formula Example:
+```dax
+Grupo Pareto = 
+VAR VentasActual = 'sales_data'[Sales]
+VAR TotalFilas = COUNTROWS(ALL('sales_data'))
+VAR Ranking = RANKX(ALL('sales_data'), 'sales_data'[Sales], VentasActual, DESC, Skip)
+VAR Percentil = CEILING((Ranking / TotalFilas) * 10, 1)
+RETURN "Grupo " & FORMAT(Percentil, "00")
+```
+*(Note: Change `* 10` to `* 50` if you prefer 50 fine-grained quantile groups).*
 
 ## Format Pane Reference & Features
 - **IBCS Mode (Pro)**: One-click toggle under Pareto card to apply International Business Communication Standards corporate neutral styling (`#404040` charcoal bars, `#000000` solid axis typography).
