@@ -26,7 +26,7 @@ RETURN "Grupo " & FORMAT(Percentil, "00")
 *(Note: Change `* 10` to `* 50` if you prefer 50 fine-grained quantile groups).*
 
 ## Format Pane Reference & Features
-- **IBCS Mode (Pro)**: One-click toggle under Pareto card to apply International Business Communication Standards corporate neutral styling (`#404040` charcoal bars, `#000000` solid axis typography).
+- **IBCS Mode (Free & Pro)**: One-click toggle under Pareto card to apply International Business Communication Standards corporate neutral styling (`#404040` charcoal bars, `#000000` solid axis typography).
 - **Bin Size % (Pro)**: Set custom bin size from 1% to 20% (up to 100 bars). Free tier is fixed at 20% (5 bars).
 - **Outlier Trimming (Pro)**: Exclude top or bottom % outliers to prevent extreme values from distorting your Pareto bins.
 - **Reference Lines**: Up to 3 configurable reference crosshairs (default line 1 at 80% cumulative threshold).
@@ -37,8 +37,8 @@ RETURN "Grupo " & FORMAT(Percentil, "00")
 | Pareto Bars & Cumulative Line | ✓ | ✓ |
 | Max Rows Streamed | Up to 150,000+ | Up to 150,000+ |
 | Bin Count | Fixed 5 (20%) | Custom 1–20% (100 bars) |
-| Tooltips Field Well | Standard | Up to 10 Extra Measures |
-| IBCS Mode (Corporate Palette) | — | ✓ |
+| Tooltips Field Well | Up to 10 Extra Measures | Up to 10 Extra Measures |
+| IBCS Mode (Corporate Palette) | ✓ | ✓ |
 | Value Labels on Bars | — | ✓ |
 | Outlier Trimming (Top/Bottom %) | — | ✓ |
 | Reference Lines | Up to 2 | Up to 3 |

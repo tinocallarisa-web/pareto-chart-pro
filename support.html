@@ -87,6 +87,28 @@
   .btn-outline { background: transparent; color: var(--acc); border: 2px solid var(--acc); }
   .btn-outline:hover { background: var(--acc); color: #fff; }
 
+  /* ── Search ── */
+  .searchbar { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 14px 48px 16px; }
+  .searchbox { position: relative; max-width: 900px; margin: 0 auto; display: flex; align-items: center;
+               gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; }
+  .searchbox:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(201,100,66,.14); }
+  .searchbox svg { color: var(--t3); flex-shrink: 0; }
+  .searchbox input { flex: 1; border: none; outline: none; background: transparent; font: inherit;
+                     font-size: 14px; color: var(--t1); padding: 11px 0; }
+  .searchbox input::placeholder { color: var(--t3); }
+  .searchbox button { border: none; background: transparent; color: var(--t3); font-size: 20px;
+                      line-height: 1; cursor: pointer; padding: 0 2px; }
+  .searchbox button:hover { color: var(--acc); }
+  .search-status { max-width: 900px; margin: 8px auto 0; font-size: 12px; color: var(--t3); min-height: 16px; }
+  mark { background: #FCE8A8; color: var(--t1); border-radius: 2px; padding: 0 2px; }
+  .is-hidden { display: none !important; }
+
+  /* ── Version pill ── */
+  .verpill { display: block; width: fit-content; font-size: 11px; font-weight: 700; letter-spacing: .4px;
+             background: var(--bg2); color: var(--t2); border: 1px solid var(--line);
+             padding: 3px 10px; border-radius: 20px; margin-bottom: 14px; }
+  .verpill a { color: var(--acc); text-decoration: none; }
+
   /* ── Footer ── */
   footer { background: var(--t1); color: var(--t3); text-align: center; padding: 24px 48px; font-size: 12px; }
   footer a { color: #b5b3aa; text-decoration: none; margin: 0 8px; }
@@ -125,15 +147,32 @@
 
 <!-- Nav -->
 <nav>
+  <a href="index.html">Home</a>
   <a href="#quickstart" class="active">Quick Start</a>
   <a href="#fields">Field Wells</a>
   <a href="#format">Format Pane</a>
   <a href="#free-pro">Free vs Pro</a>
   <a href="#faq">FAQ</a>
+  <a href="tips.html">Tips</a>
+  <a href="changelog.html">Changelog</a>
   <a href="#contact">Contact</a>
 </nav>
 
+<!-- Search -->
+<div class="searchbar">
+  <div class="searchbox">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="docsearch" type="search" placeholder="Search the documentation — try &quot;bin size&quot;, &quot;license&quot;, &quot;drilldown&quot;…"
+           autocomplete="off" aria-label="Search the documentation">
+    <button id="searchclear" type="button" aria-label="Clear search" hidden>&times;</button>
+  </div>
+  <div id="searchstatus" class="search-status" role="status" aria-live="polite"></div>
+</div>
+
 <div class="wrap">
+
+  <div class="verpill">Visual v1.2.0.0 &nbsp;·&nbsp; docs updated 4 Sep 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <!-- Quick Start -->
   <h2 id="quickstart">Quick Start</h2>
@@ -159,7 +198,7 @@
   <div class="cta">
     <a class="btn btn-primary" href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">Get it on AppSource</a>
     <a class="btn btn-outline" href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" target="_blank">Report an Issue</a>
-    <a class="btn btn-outline" href="https://github.com/tinocallarisa-web/pareto-chart-pro/blob/main/CHANGELOG.md" target="_blank">Changelog</a>
+    <a class="btn btn-outline" href="changelog.html">Changelog</a>
   </div>
 
   <!-- Field Wells -->
@@ -192,12 +231,12 @@
     <tr><td>Bin size % <span class="badge badge-pro">Pro</span></td><td>5%</td><td>Each bar represents this percentage of ranked entities. Range: 1–20%. Free tier is fixed at 20%.</td></tr>
     <tr><td>Exclude bottom % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the lowest-value N% of entities before binning (outlier filter).</td></tr>
     <tr><td>Exclude top % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the highest-value N% of entities before binning.</td></tr>
-    <tr><td>Bar color</td><td>#4472C4</td><td>Fill color for all bars. Supports conditional formatting rules.</td></tr>
+    <tr><td>Bar color</td><td>#4472C4</td><td>Fill color for all bars. A single static color — see the conditional formatting note in the FAQ.</td></tr>
     <tr><td>Bar opacity %</td><td>85</td><td>Opacity of bars (0–100).</td></tr>
     <tr><td>Border color <span class="badge badge-pro">Pro</span></td><td>#2E5BA8</td><td>Stroke color for bar borders.</td></tr>
     <tr><td>Border width <span class="badge badge-pro">Pro</span></td><td>0</td><td>Stroke width in pixels (0 = no border).</td></tr>
     <tr><td>Bar gap px <span class="badge badge-pro">Pro</span></td><td>2</td><td>Padding between bars in pixels.</td></tr>
-    <tr><td>IBCS Mode <span class="badge badge-pro">Pro</span></td><td>Off</td><td>One-click toggle to apply International Business Communication Standards (charcoal neutral bars #404040, black solid axis typography, standardized contrast).</td></tr>
+    <tr><td>IBCS Mode <span class="badge badge-free">Free</span></td><td>Off</td><td>One-click toggle to apply International Business Communication Standards (charcoal neutral bars #404040, black solid axis typography, standardized contrast).</td></tr>
   </table>
 
   <h3>Axes</h3>
@@ -251,7 +290,10 @@
     <tr><td>Cross-filtering &amp; multi-select</td><td>✅</td><td>✅</td></tr>
     <tr><td>Drilldown / hierarchy</td><td>✅</td><td>✅</td></tr>
     <tr><td>High contrast mode</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Bin size % (1–20%)</td><td>Fixed at 10%</td><td>✅ Configurable</td></tr>
+    <tr><td>Tooltips field well (up to 10 measures)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>IBCS Mode (standardized styling)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Max entities (Power BI Service)</td><td>150,000+</td><td>150,000+</td></tr>
+    <tr><td>Bin size % (1–20%)</td><td>Fixed at 20% (5 bars)</td><td>✅ Configurable 1–20% (up to 100 bars)</td></tr>
     <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
     <tr><td>Bar border &amp; gap styling</td><td>❌</td><td>✅</td></tr>
     <tr><td>3rd reference line</td><td>❌</td><td>✅</td></tr>
@@ -282,7 +324,7 @@
   </details>
 
   <details>
-    <summary>Why does the visual show "Free: 10% bins" even after buying Pro?</summary>
+    <summary>Why does the visual show "Free: 20% bins" even after buying Pro?</summary>
     <div class="faq-body">
       <p>License validation happens asynchronously after the visual first renders. Wait a moment after opening the report — the badge should disappear automatically once the license is confirmed. If it persists:</p>
       <ul>
@@ -301,9 +343,15 @@
   </details>
 
   <details>
-    <summary>Can I use conditional formatting on bar colors?</summary>
+    <summary>Can I use conditional formatting (the <em>fx</em> button) on bar colors?</summary>
     <div class="faq-body">
-      <p>Yes. In the <strong>Format Pane → Pareto → Bar color</strong>, click the <em>fx</em> button to open the conditional formatting dialog. You can apply rules based on field values, percentile ranges, or gradient scales — the same as any native Power BI visual.</p>
+      <p><strong>Not yet.</strong> Bar color is currently a single static color — the <em>fx</em> rule-based dialog you see on native Power BI visuals is not available on this visual. Rule-based bar coloring is on the roadmap; see the <a href="changelog.html#roadmap" style="color:var(--acc);">roadmap</a>.</p>
+      <p>In the meantime, these are the practical ways to create emphasis:</p>
+      <ul>
+        <li><strong>Reference lines</strong> — the clearest way to mark a decision threshold. Put line 1 at 80% and a second at 95% to band the chart into zones.</li>
+        <li><strong>IBCS Mode</strong> — neutral charcoal bars make the cumulative line and reference lines carry the emphasis instead of the bars.</li>
+        <li><strong>Bar opacity</strong> — lower opacity pushes the bars back visually so the cumulative line reads first.</li>
+      </ul>
     </div>
   </details>
 
@@ -317,7 +365,12 @@
   <details>
     <summary>What is the maximum number of data rows the visual supports?</summary>
     <div class="faq-body">
-      <p>The visual requests up to 30,000 rows from the data model. Because the visual groups entities into bins, even large datasets render cleanly — a dataset with 10,000 SKUs at 10% bin size produces only 10 bars. For datasets larger than 30,000 rows, pre-filter with slicers or report filters before connecting to the visual.</p>
+      <p>It depends on where the report runs:</p>
+      <ul>
+        <li><strong>Power BI Service:</strong> the visual streams data in segments and supports <strong>150,000+ entities</strong>. The first segment is 30,000 rows; further segments are fetched automatically.</li>
+        <li><strong>Power BI Desktop:</strong> segment fetching is not available, so the visual is capped at <strong>30,000 rows</strong> and shows a "Data limited to 30,000 rows" notice. This is a Power BI Desktop platform limitation, not a tier limit — the row cap is identical in Free and Pro.</li>
+      </ul>
+      <p>Because entities are grouped into bins, size rarely hurts readability: 10,000 SKUs render as 5 bars at the Free 20% bin size, or 10 bars at a Pro 10% bin size. For datasets well beyond 150,000 entities, pre-group with a DAX quantile column — see <a href="tips.html#bigdata" style="color:var(--acc);">Tips &amp; Best Practices</a>.</p>
     </div>
   </details>
 
@@ -370,17 +423,152 @@
     <a href="https://github.com/tinocallarisa-web/pareto-chart-pro" target="_blank">GitHub</a>
     <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">AppSource</a>
   </div>
-  <p>© 2025 TCViz · Pareto Chart Pro · <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
+  <p>© 2026 TCViz · Pareto Chart Pro · <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
 </footer>
 
 <script>
-  // Smooth scroll + nav highlight
-  document.querySelectorAll('nav a').forEach(a => {
-    a.addEventListener('click', e => {
-      document.querySelectorAll('nav a').forEach(x => x.classList.remove('active'));
+(function () {
+  'use strict';
+
+  // ── Nav highlight (in-page anchors only) ────────────────────────────────────
+  document.querySelectorAll('nav a[href^="#"]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.querySelectorAll('nav a').forEach(function (x) { x.classList.remove('active'); });
       a.classList.add('active');
     });
   });
+
+  // ── Documentation search ────────────────────────────────────────────────────
+  var input  = document.getElementById('docsearch');
+  var clear  = document.getElementById('searchclear');
+  var status = document.getElementById('searchstatus');
+  var wrap   = document.querySelector('.wrap');
+  if (!input || !wrap) { return; }
+
+  var HIDE = 'is-hidden';
+
+  // Atomic searchable units: one FAQ entry, one table row, one card.
+  var units = [];
+  function add(el) {
+    if (units.some(function (u) { return u.el === el; })) { return; }
+    units.push({ el: el, html: el.innerHTML, text: (el.textContent || '').toLowerCase() });
+  }
+  wrap.querySelectorAll('details').forEach(add);
+  wrap.querySelectorAll('table tr').forEach(function (tr) {
+    if (tr.querySelector('th')) { return; }   // header rows follow their table
+    add(tr);
+  });
+  wrap.querySelectorAll('.card, .contact-box').forEach(add);
+
+  // Sections: an <h2> plus every sibling up to the next <h2>.
+  var sections = [];
+  var current = null;
+  Array.prototype.forEach.call(wrap.children, function (el) {
+    if (el.tagName === 'H2') {
+      current = { head: el, body: [] };
+      sections.push(current);
+    } else if (current) {
+      current.body.push(el);
+    }
+  });
+  // Each body element remembers which units live inside it.
+  sections.forEach(function (sec) {
+    sec.body.forEach(function (b) {
+      b._units = units.filter(function (u) { return b === u.el || b.contains(u.el); });
+      if (!b._units.length) { b._html = b.innerHTML; }
+    });
+  });
+
+  function escapeRe(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  function escapeHtml(t) {
+    return t.replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; });
+  }
+
+  function highlight(el, terms) {
+    var re = new RegExp('(' + terms.map(escapeRe).join('|') + ')', 'gi');
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var nodes = [], n;
+    while ((n = walker.nextNode())) { nodes.push(n); }
+    nodes.forEach(function (node) {
+      var txt = node.nodeValue;
+      re.lastIndex = 0;
+      if (!re.test(txt)) { return; }
+      re.lastIndex = 0;
+      var span = document.createElement('span');
+      span.innerHTML = escapeHtml(txt).replace(re, '<mark>$1</mark>');
+      node.parentNode.replaceChild(span, node);
+    });
+  }
+
+  function showAll() {
+    units.forEach(function (u) { u.el.classList.remove(HIDE); u.el.innerHTML = u.html; });
+    sections.forEach(function (sec) {
+      sec.head.classList.remove(HIDE);
+      sec.body.forEach(function (b) {
+        b.classList.remove(HIDE);
+        if (b._html !== undefined) { b.innerHTML = b._html; }
+      });
+    });
+    status.textContent = '';
+    clear.hidden = true;
+  }
+
+  function run(q) {
+    q = (q || '').trim();
+    if (q.length < 2) { showAll(); return; }
+    clear.hidden = false;
+
+    var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    var hits = 0;
+
+    units.forEach(function (u) {
+      u.el.innerHTML = u.html;
+      var match = terms.every(function (t) { return u.text.indexOf(t) !== -1; });
+      u.el.classList.toggle(HIDE, !match);
+      if (match) {
+        hits++;
+        highlight(u.el, terms);
+        if (u.el.tagName === 'DETAILS') { u.el.open = true; }
+      }
+    });
+
+    sections.forEach(function (sec) {
+      var anyVisible = false;
+      sec.body.forEach(function (b) {
+        var visible;
+        if (b._units.length) {
+          visible = b._units.some(function (u) { return !u.el.classList.contains(HIDE); });
+        } else {
+          b.innerHTML = b._html;
+          var txt = (b.textContent || '').toLowerCase();
+          visible = terms.every(function (t) { return txt.indexOf(t) !== -1; });
+          if (visible) { highlight(b, terms); }
+        }
+        b.classList.toggle(HIDE, !visible);
+        if (visible) { anyVisible = true; }
+      });
+      sec.head.classList.toggle(HIDE, !anyVisible);
+    });
+
+    status.textContent = hits
+      ? hits + ' result' + (hits === 1 ? '' : 's') + ' for “' + q + '”'
+      : 'No results for “' + q + '”. Try a Format Pane setting name, or email support@tcviz.com.';
+  }
+
+  var timer;
+  input.addEventListener('input', function () {
+    clearTimeout(timer);
+    timer = setTimeout(function () { run(input.value); }, 120);
+  });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { input.value = ''; showAll(); }
+  });
+  clear.addEventListener('click', function () { input.value = ''; showAll(); input.focus(); });
+
+  // Deep link: support.html?q=license
+  var qp = new URLSearchParams(location.search).get('q');
+  if (qp) { input.value = qp; run(qp); }
+})();
 </script>
 </body>
 </html>

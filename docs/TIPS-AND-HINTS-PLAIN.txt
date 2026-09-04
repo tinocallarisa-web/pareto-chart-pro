@@ -31,7 +31,7 @@ B. Datasets > 30,000 up to 150,000+ Entities (WITH DAX):
 
 3. FORMAT PANE HIGHLIGHTS
 -------------------------
-- IBCS Mode (Pro): Toggle under Pareto card for International Business Communication Standards corporate neutral styling (#404040 charcoal bars, #000000 solid axis typography).
+- IBCS Mode (Free & Pro): Toggle under Pareto card for International Business Communication Standards corporate neutral styling (#404040 charcoal bars, #000000 solid axis typography).
 - Bin Size % (Pro): Adjust bin size from 1% to 20% (up to 100 bars). Free tier is fixed at 20% (5 bars).
 - Outlier Trimming (Pro): Exclude top or bottom % outliers to keep Pareto bins clean.
 - Value Labels (Pro): Display percentages directly above bars with customizable font size and color.

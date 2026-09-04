@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Changelog &amp; Roadmap — Pareto Chart Pro | TCViz</title>
+<meta name="description" content="Pareto Chart Pro for Microsoft Power BI by TCViz — 80/20 concentration analysis with ranked bins, cumulative line and reference thresholds.">
+<style>
+  :root {
+    --bg: #FAF9F5; --bg2: #EDE9DE; --bd: #F5F3ED; --line: #DAD9D4;
+    --t1: #3D3929; --t2: #535146; --t3: #83827D;
+    --acc: #C96442; --accd: #B05730; --acc2: #9C87F5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--t1); line-height: 1.65; }
+
+  /* ── Header ── */
+  header { background: var(--t1); color: #fff; padding: 28px 48px; display: flex; align-items: center; gap: 20px; }
+  header svg { flex-shrink: 0; }
+  header .title { font-size: 22px; font-weight: 700; }
+  header .sub   { font-size: 13px; color: #b5b3aa; margin-top: 2px; }
+
+  /* ── Nav ── */
+  nav { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 0 48px; display: flex; gap: 0; }
+  nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 600; color: var(--t2);
+          text-decoration: none; border-bottom: 3px solid transparent; transition: color .2s, border-color .2s; }
+  nav a:hover, nav a.active { color: var(--acc); border-bottom-color: var(--acc); }
+
+  /* ── Layout ── */
+  .wrap { max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+  h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  h2 { font-size: 17px; font-weight: 700; color: var(--t1); margin: 40px 0 12px; padding-bottom: 8px;
+       border-bottom: 2px solid var(--acc); display: inline-block; }
+  h3 { font-size: 14px; font-weight: 700; color: var(--t1); margin: 18px 0 6px; }
+  p  { font-size: 14px; color: var(--t2); margin-bottom: 10px; }
+  ul { font-size: 14px; color: var(--t2); padding-left: 20px; margin-bottom: 10px; }
+  li { margin-bottom: 5px; }
+  code { font-family: monospace; background: var(--bg2); padding: 1px 6px; border-radius: 4px;
+         font-size: 12px; color: var(--acc); }
+
+  /* ── Cards ── */
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 24px 28px; margin-bottom: 16px; }
+
+  /* ── Badges ── */
+  .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px;
+           text-transform: uppercase; letter-spacing: .5px; vertical-align: middle; margin-left: 6px; }
+  .badge-pro  { background: var(--acc2); color: #fff; }
+  .badge-free { background: var(--acc);  color: #fff; }
+
+  /* ── Field wells table ── */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 16px; }
+  th { background: var(--bg2); color: var(--t1); font-weight: 700; padding: 10px 14px; text-align: left;
+       border-bottom: 2px solid var(--line); }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--bd); color: var(--t2); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── FAQ ── */
+  details { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 10px; background: #fff; }
+  summary { padding: 14px 18px; font-size: 14px; font-weight: 600; cursor: pointer; list-style: none;
+            display: flex; align-items: center; justify-content: space-between; color: var(--t1); }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; font-size: 18px; font-weight: 300; color: var(--acc); transition: transform .2s; }
+  details[open] summary::after { content: '−'; }
+  details[open] summary { border-bottom: 1px solid var(--line); }
+  .faq-body { padding: 14px 18px; font-size: 14px; color: var(--t2); }
+  .faq-body p { margin-bottom: 6px; }
+  .faq-body ul { margin-top: 6px; }
+
+  /* ── Contact box ── */
+  .contact-box { background: var(--acc); color: #fff; border-radius: 10px; padding: 24px 28px;
+                  display: flex; align-items: center; gap: 20px; }
+  .contact-box .icon { font-size: 36px; flex-shrink: 0; }
+  .contact-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: #fff; }
+  .contact-box p  { font-size: 13px; color: rgba(255,255,255,.85); margin: 0; }
+  .contact-box a  { color: #fff; font-weight: 700; text-decoration: underline; }
+
+  /* ── Video embed ── */
+  .video-wrap { position: relative; padding-bottom: 56.25%; height: 0; border-radius: 10px; overflow: hidden;
+                border: 1px solid var(--line); margin-bottom: 20px; }
+  .video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+  /* ── CTA strip ── */
+  .cta { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+  .btn { display: inline-block; padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 700;
+          text-decoration: none; transition: background .2s; }
+  .btn-primary { background: var(--acc); color: #fff; }
+  .btn-primary:hover { background: var(--accd); }
+  .btn-outline { background: transparent; color: var(--acc); border: 2px solid var(--acc); }
+  .btn-outline:hover { background: var(--acc); color: #fff; }
+
+  /* ── Search ── */
+  .searchbar { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 14px 48px 16px; }
+  .searchbox { position: relative; max-width: 900px; margin: 0 auto; display: flex; align-items: center;
+               gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; }
+  .searchbox:focus-within { border-color: var(--acc); box-shadow: 0 0 0 3px rgba(201,100,66,.14); }
+  .searchbox svg { color: var(--t3); flex-shrink: 0; }
+  .searchbox input { flex: 1; border: none; outline: none; background: transparent; font: inherit;
+                     font-size: 14px; color: var(--t1); padding: 11px 0; }
+  .searchbox input::placeholder { color: var(--t3); }
+  .searchbox button { border: none; background: transparent; color: var(--t3); font-size: 20px;
+                      line-height: 1; cursor: pointer; padding: 0 2px; }
+  .searchbox button:hover { color: var(--acc); }
+  .search-status { max-width: 900px; margin: 8px auto 0; font-size: 12px; color: var(--t3); min-height: 16px; }
+  mark { background: #FCE8A8; color: var(--t1); border-radius: 2px; padding: 0 2px; }
+  .is-hidden { display: none !important; }
+
+  /* ── Version pill ── */
+  .verpill { display: block; width: fit-content; font-size: 11px; font-weight: 700; letter-spacing: .4px;
+             background: var(--bg2); color: var(--t2); border: 1px solid var(--line);
+             padding: 3px 10px; border-radius: 20px; margin-bottom: 14px; }
+  .verpill a { color: var(--acc); text-decoration: none; }
+
+  /* ── Footer ── */
+  footer { background: var(--t1); color: var(--t3); text-align: center; padding: 24px 48px; font-size: 12px; }
+  footer a { color: #b5b3aa; text-decoration: none; margin: 0 8px; }
+  footer a:hover { color: #fff; }
+</style>
+
+<style>
+  .lead { font-size: 15px; color: var(--t2); max-width: 68ch; margin-bottom: 20px; }
+  .rel { background:#fff; border:1px solid var(--line); border-radius:10px; padding:22px 26px; margin-bottom:16px; }
+  .rel-head { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+  .rel-ver { font-size:18px; font-weight:700; color:var(--t1); }
+  .rel-date { font-size:12px; color:var(--t3); }
+  .tag { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase;
+         letter-spacing:.5px; padding:2px 8px; border-radius:20px; }
+  .tag-cur { background:var(--acc); color:#fff; }
+  .tag-add { background:#2E7D5B; color:#fff; }
+  .tag-chg { background:#8A6D1F; color:#fff; }
+  .tag-fix { background:#2E5BA8; color:#fff; }
+  .tag-plan{ background:var(--bg2); color:var(--t2); border:1px solid var(--line); }
+  .rel h4 { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
+            color:var(--t3); margin:16px 0 6px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:16px; margin-bottom:16px; }
+  .tile { background:#fff; border:1px solid var(--line); border-radius:10px; padding:22px 24px;
+          text-decoration:none; display:block; transition:border-color .2s, transform .2s; }
+  .tile:hover { border-color:var(--acc); transform:translateY(-2px); }
+  .tile h3 { margin:0 0 6px; font-size:15px; color:var(--t1); }
+  .tile p  { margin:0; font-size:13px; color:var(--t2); }
+  .tile .arrow { color:var(--acc); font-weight:700; }
+  pre { background:var(--t1); color:#EDE9DE; padding:16px 18px; border-radius:8px; overflow-x:auto;
+        font-size:12px; line-height:1.6; margin-bottom:14px; }
+  pre code { background:none; color:inherit; padding:0; font-size:12px; }
+  .note { border-left:4px solid var(--acc); background:#fff; border-radius:0 8px 8px 0;
+          padding:14px 18px; margin-bottom:16px; font-size:13px; color:var(--t2); }
+  .note strong { color:var(--t1); }
+  .hero { background:var(--bg2); border-bottom:1px solid var(--line); padding:52px 24px; text-align:center; }
+  .hero h1 { font-size:32px; margin-bottom:10px; }
+  .hero p  { font-size:15px; color:var(--t2); max-width:62ch; margin:0 auto 22px; }
+  @media (max-width: 640px) {
+    header, nav, .searchbar { padding-left:20px; padding-right:20px; }
+    nav { overflow-x:auto; }
+    .wrap { padding:32px 18px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="90" height="40">
+    <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#B05730"/>
+      <stop offset=".55" stop-color="#C96442"/>
+      <stop offset="1" stop-color="#9C87F5"/>
+    </linearGradient></defs>
+    <g transform="translate(40,46)">
+      <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
+      <g fill="url(#g)">
+        <rect x="42" y="110" width="20" height="58" rx="5"/>
+        <rect x="70" y="86" width="20" height="82" rx="5"/>
+        <rect x="98" y="62" width="20" height="106" rx="5"/>
+        <rect x="126" y="38" width="20" height="130" rx="5"/>
+      </g>
+    </g>
+    <text x="258" y="246" font-family="Poppins,sans-serif" font-weight="700" font-size="196" letter-spacing="-4">
+      <tspan fill="url(#g)">tc</tspan><tspan fill="#fff">viz</tspan>
+    </text>
+    <text x="264" y="306" font-family="Poppins,sans-serif" font-weight="500" font-size="31" letter-spacing="6.5" fill="#83827D">VISUALS TO POWER BI</text>
+  </svg>
+  <div>
+    <div class="title">Pareto Chart Pro</div>
+    <div class="sub">Support &amp; Documentation</div>
+  </div>
+</header>
+
+<nav>
+  <a href="index.html">Home</a>
+  <a href="support.html">Documentation</a>
+  <a href="tips.html">Tips</a>
+  <a href="changelog.html" class="active">Changelog</a>
+  <a href="support.html#faq">FAQ</a>
+  <a href="support.html#contact">Contact</a>
+</nav>
+
+
+<div class="wrap">
+
+  <h1>Changelog</h1>
+  <p class="lead">Every released version of Pareto Chart Pro, what changed in it, and what is planned next.
+  The version you are running is shown in Power BI under <strong>Format Pane → About</strong>, or on the
+  visual's AppSource page.</p>
+
+  <h2 id="releases">Releases</h2>
+
+  <div class="rel">
+    <div class="rel-head">
+      <span class="rel-ver">1.2.0.0</span>
+      <span class="tag tag-cur">Current</span>
+      <span class="rel-date">31 August 2026</span>
+    </div>
+
+    <h4><span class="tag tag-add">Added</span></h4>
+    <ul>
+      <li><strong>Tooltips field well</strong> — bind up to 10 additional measures (Profit, Quantity, Margin %,
+          Customer Count) and show them in the tooltips for both bars and cumulative-line dots.</li>
+      <li><strong>IBCS Mode</strong> — one toggle in the Pareto card applies International Business Communication
+          Standards styling: neutral charcoal bars (<code>#404040</code>), solid black axis typography,
+          restrained grid contrast. Available in both Free and Pro.</li>
+      <li><strong>150,000+ entity support in Power BI Service</strong> — segment streaming with zero-allocation
+          selection-ID generation.</li>
+      <li><strong>Strict monotonic binning</strong> — remainder entities (<code>n % bins</code>) are assigned to
+          the top bins, which guarantees strictly descending bars and clean interval labels
+          (<code>0–10%</code>, <code>10–20%</code>, …).</li>
+    </ul>
+
+    <h4><span class="tag tag-chg">Changed</span></h4>
+    <ul>
+      <li><strong>Dynamic bin adaptation on filtered data</strong> — when slicers reduce the row count below the
+          requested bin count, the visual now adapts instead of rendering empty bars or a broken X axis.</li>
+      <li><strong>Explicit measure role resolution</strong> — the primary measure is isolated from tooltip columns,
+          so Pareto sorting stays correct even with several tooltip measures bound.</li>
+    </ul>
+
+    <h4><span class="tag tag-fix">Fixed</span></h4>
+    <ul>
+      <li>Cross-filtering could fail with <code>The DataSet 'DS0' contains a filter with duplicate columns</code>.
+          Selection IDs are now deduplicated per category; cross-filter response is sub-millisecond.</li>
+      <li>The visual could freeze while loading segments on queries smaller than one chunk.</li>
+    </ul>
+  </div>
+
+  <div class="rel">
+    <div class="rel-head">
+      <span class="rel-ver">1.1.0.0</span>
+      <span class="rel-date">5 August 2026</span>
+    </div>
+
+    <h4><span class="tag tag-add">Added</span></h4>
+    <ul>
+      <li><strong>Drilldown</strong> — bind a hierarchy to <code>Entity</code> and use the Power BI drill buttons;
+          the Pareto recalculates at every level.</li>
+      <li><strong>Tooltips on cumulative-line dots</strong> — entity range, cumulative %, and bin share.</li>
+      <li><strong>Report / canvas tooltip support</strong> — the visual registers with the Power BI tooltip service.</li>
+      <li><strong>High contrast mode</strong> — bars, line, axes, dots and reference lines switch to the system
+          palette automatically.</li>
+      <li><strong>New Formatting Pane API</strong> — migrated from <code>enumerateObjectInstances()</code> to
+          <code>getFormattingModel()</code>. Pro-only settings are now hidden in the Free tier rather than shown
+          disabled.</li>
+      <li><strong>Reference-line labels at the top</strong> of the line, so they no longer collide with X-axis ticks.</li>
+    </ul>
+
+    <h4><span class="tag tag-chg">Changed</span></h4>
+    <ul>
+      <li><strong>Free tier bin size is now 20% (5 bars)</strong>, previously 10% (10 bars).</li>
+    </ul>
+  </div>
+
+  <div class="rel">
+    <div class="rel-head">
+      <span class="rel-ver">1.0.0.3</span>
+      <span class="rel-date">17 July 2026</span>
+    </div>
+    <h4><span class="tag tag-add">Added</span></h4>
+    <ul>
+      <li>First AppSource release: ranked bins, cumulative percentage line, up to 2 reference lines
+          (3rd in Pro), Free/Pro licensing via <code>IVisualLicenseManager</code>, cross-filtering,
+          multi-select, highlight dimming, right-click context menu, landing page, bar tooltips.</li>
+      <li>Pro: value labels on bars, outlier exclusion (top/bottom %), custom bin size 1–20%,
+          bar border, gap and opacity styling.</li>
+    </ul>
+  </div>
+
+  <h2 id="roadmap">Roadmap</h2>
+  <p class="lead">Planned work, in rough priority order. No dates are promised — items ship when they are
+  ready and have passed AppSource certification. If one of these matters to you,
+  <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" style="color:var(--acc);font-weight:600;" target="_blank">open
+  an issue</a> and say so; that is what moves things up the list.</p>
+
+  <div class="rel">
+    <h4><span class="tag tag-plan">Planned</span></h4>
+    <ul>
+      <li><strong>Rule-based bar color (<em>fx</em> conditional formatting)</strong> — colour bins by threshold,
+          and highlight the bin where the cumulative line crosses a reference line. The most requested gap today.</li>
+      <li><strong>Deeper keyboard and screen-reader support</strong> — arrow-key navigation across bins,
+          descriptive per-bin labels, and a visible focus ring, beyond the current high-contrast and
+          keyboard-focus support.</li>
+      <li><strong>Small-tile layout</strong> — adaptive margins, tick rotation and automatic label suppression so
+          the chart stays readable in compact dashboard tiles.</li>
+      <li><strong>Additional display languages</strong> beyond English.</li>
+    </ul>
+  </div>
+
+  <div class="note">
+    <strong>Reporting something?</strong> Bugs and feature requests go to
+    <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" style="color:var(--acc);" target="_blank">GitHub Issues</a>.
+    Licensing and billing questions go to <a href="mailto:support@tcviz.com" style="color:var(--acc);">support@tcviz.com</a>.
+    Please include your Power BI Desktop version, the visual version, and a screenshot or sample .pbix where possible.
+  </div>
+
+</div><!-- /wrap -->
+
+
+<footer>
+  <div style="margin-bottom:10px;">
+    <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html">Privacy Policy</a>
+    <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html">Terms of Service</a>
+    <a href="https://github.com/tinocallarisa-web/pareto-chart-pro" target="_blank">GitHub</a>
+    <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">AppSource</a>
+  </div>
+  <p>© 2026 TCViz · Pareto Chart Pro · <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
+</footer>
+</body>
+</html>
