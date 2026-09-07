@@ -17,7 +17,7 @@ Support:
 https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 
 Video walkthrough:
-https://www.youtube.com/watch?v=1YmpeyACe2o
+https://www.youtube.com/watch?v=qtN0ckSXNZQ
 
 License validation:
 Uses official Microsoft IVisualLicenseManager API. No external server.

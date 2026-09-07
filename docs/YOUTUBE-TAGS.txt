@@ -1,1 +1,22 @@
-power bi pareto chart,pareto chart pro,power bi custom visual,80 20 rule power bi,abc analysis power bi,ibcs power bi,power bi big data 150k,power bi tooltips,power bi appsource,tcviz,power bi tutorial,power bi data visualization,power bi cross filtering
+MAIN TAG BLOCK (paste as-is — 481 characters, under YouTube's 500 limit)
+
+pareto chart power bi,how to make a pareto chart in power bi,pareto analysis power bi,80 20 rule power bi,abc analysis power bi,power bi pareto without dax,power bi custom visual,power bi tutorial,pareto chart tutorial,cumulative percentage power bi,power bi 80 20 analysis,customer concentration analysis,power bi large dataset,power bi data visualization,power bi accessibility,conditional formatting power bi,power bi cross filtering,tcviz
+
+
+VARIANTS, depending on the angle you lead with
+
+If leading on "no DAX":
+power bi pareto without dax,pareto chart no dax,rankx alternative power bi,power bi cumulative measure,dax pareto analysis
+
+If leading on scale:
+power bi large dataset,power bi 500000 rows,power bi performance,power bi big data visual,power bi enterprise reporting
+
+If leading on the business use case:
+customer concentration analysis,sku rationalisation,abc classification,supplier spend analysis,defect prioritisation,revenue concentration risk
+
+
+NOTES
+- Removed from the previous version: "power bi big data 150k" — the figure was understated
+  and version-stamped. Numbers in tags date badly.
+- Keep "tcviz" last. Brand tags do nothing for discovery; they only help people who already
+  know the name find you again.

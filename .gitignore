@@ -2,3 +2,9 @@ node_modules/
 .tmp/
 dist/
 *.pbiviz
+
+# Personal Claude skill — kept locally, not published to the public repo
+SKILL_pbiviz-appsource.md
+
+# Screenshots dropped here by the Claude desktop app
+Claude outputs/

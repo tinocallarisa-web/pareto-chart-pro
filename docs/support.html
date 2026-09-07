@@ -151,6 +151,8 @@
   <a href="#quickstart" class="active">Quick Start</a>
   <a href="#fields">Field Wells</a>
   <a href="#format">Format Pane</a>
+  <a href="#accessibility">Accessibility</a>
+  <a href="#performance">Performance</a>
   <a href="#free-pro">Free vs Pro</a>
   <a href="#faq">FAQ</a>
   <a href="tips.html">Tips</a>
@@ -172,7 +174,7 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.2.0.0 &nbsp;·&nbsp; docs updated 4 Sep 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.3.0.0 &nbsp;·&nbsp; docs updated 7 Sep 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <!-- Quick Start -->
   <h2 id="quickstart">Quick Start</h2>
@@ -193,7 +195,7 @@
   <!-- Video -->
   <h2>Video Walkthrough</h2>
   <div class="video-wrap">
-    <iframe src="https://www.youtube.com/embed/1YmpeyACe2o" allowfullscreen loading="lazy" title="Pareto Chart Pro walkthrough"></iframe>
+    <iframe src="https://www.youtube.com/embed/qtN0ckSXNZQ" allowfullscreen loading="lazy" title="Pareto Chart Pro walkthrough"></iframe>
   </div>
   <div class="cta">
     <a class="btn btn-primary" href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">Get it on AppSource</a>
@@ -231,12 +233,25 @@
     <tr><td>Bin size % <span class="badge badge-pro">Pro</span></td><td>5%</td><td>Each bar represents this percentage of ranked entities. Range: 1–20%. Free tier is fixed at 20%.</td></tr>
     <tr><td>Exclude bottom % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the lowest-value N% of entities before binning (outlier filter).</td></tr>
     <tr><td>Exclude top % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the highest-value N% of entities before binning.</td></tr>
-    <tr><td>Bar color</td><td>#4472C4</td><td>Fill color for all bars. A single static color — see the conditional formatting note in the FAQ.</td></tr>
+    <tr><td>Bar color</td><td>#4472C4</td><td>Fill color for all bars. Supports rule-based conditional formatting via the <em>fx</em> button; each bar takes the color of its top-ranked entity.</td></tr>
     <tr><td>Bar opacity %</td><td>85</td><td>Opacity of bars (0–100).</td></tr>
     <tr><td>Border color <span class="badge badge-pro">Pro</span></td><td>#2E5BA8</td><td>Stroke color for bar borders.</td></tr>
     <tr><td>Border width <span class="badge badge-pro">Pro</span></td><td>0</td><td>Stroke width in pixels (0 = no border).</td></tr>
     <tr><td>Bar gap px <span class="badge badge-pro">Pro</span></td><td>2</td><td>Padding between bars in pixels.</td></tr>
     <tr><td>IBCS Mode <span class="badge badge-free">Free</span></td><td>Off</td><td>One-click toggle to apply International Business Communication Standards (charcoal neutral bars #404040, black solid axis typography, standardized contrast).</td></tr>
+  </table>
+
+  <h3>Threshold Colors</h3>
+  <p>Colors bars by where they fall relative to a cumulative % threshold. Overrides <em>Bar color</em>
+  and any <em>fx</em> rule while it is on. Available in Free and Pro.</p>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Color bars by threshold</td><td>Off</td><td>Turns the whole card on. The remaining settings appear only when it is on.</td></tr>
+    <tr><td>Threshold (cumulative %)</td><td>80</td><td>The cumulative percentage that separates the vital few from the rest.</td></tr>
+    <tr><td>Within threshold</td><td>#4472C4</td><td>Bars whose cumulative % is at or below the threshold.</td></tr>
+    <tr><td>Beyond threshold</td><td>#C6CFDF</td><td>Bars past the crossing bin.</td></tr>
+    <tr><td>Highlight crossing bin</td><td>On</td><td>Give the bin where the cumulative line crosses its own color.</td></tr>
+    <tr><td>Crossing bin color</td><td>#ED7D31</td><td>Color for that bin.</td></tr>
   </table>
 
   <h3>Axes</h3>
@@ -278,6 +293,114 @@
     <tr><td>Show % sign</td><td>On</td><td>Append "%" to the label value.</td></tr>
   </table>
 
+  <!-- Accessibility -->
+  <h2 id="accessibility">Accessibility</h2>
+
+  <div class="card">
+    <h3>Keyboard navigation</h3>
+    <p>The chart is a <strong>single Tab stop</strong>. Tab into it once and the arrow keys move
+    between bins, so the chart never traps keyboard users the way a control with one stop per bar
+    would.</p>
+    <table>
+      <tr><th>Key</th><th>Action</th></tr>
+      <tr><td><code>Tab</code></td><td>Move focus into, or out of, the chart</td></tr>
+      <tr><td><code>←</code> <code>→</code> <code>↑</code> <code>↓</code></td><td>Move between bins</td></tr>
+      <tr><td><code>Home</code> / <code>End</code></td><td>First / last bin</td></tr>
+      <tr><td><code>Enter</code> or <code>Space</code></td><td>Select the focused bin and cross-filter</td></tr>
+      <tr><td><code>Ctrl</code> / <code>Cmd</code> + <code>Enter</code></td><td>Add the bin to the current selection</td></tr>
+      <tr><td><code>Escape</code></td><td>Clear the selection</td></tr>
+      <tr><td><code>Shift</code>+<code>F10</code> or <code>ContextMenu</code></td><td>Open the context menu</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Screen readers and visual accessibility</h3>
+    <ul>
+      <li>The chart exposes <code>role="listbox"</code> and each bar <code>role="option"</code> with
+      <code>aria-selected</code> kept in step with the actual selection.</li>
+      <li>Every bar carries a descriptive label — its position, the entity range it covers, its share
+      of total value, the cumulative percentage and how many entities it holds — so the chart is
+      readable without seeing it.</li>
+      <li><strong>Tooltips open on keyboard focus</strong>, not only on hover. A tooltip that only
+      appears under a mouse pointer is invisible to a keyboard user.</li>
+      <li>A visible focus ring marks the focused bar, with a dedicated high-contrast variant.</li>
+      <li>In Windows or Power BI high contrast mode, every element — bars, cumulative line, axes,
+      dots and reference lines — switches to the system palette automatically.</li>
+    </ul>
+  </div>
+
+  <!-- Performance -->
+  <h2 id="performance">Performance &amp; scale</h2>
+
+  <p>The visual ranks and bins in the browser, so what governs responsiveness is not the
+  size of your model but <strong>how many entities end up behind a single bar</strong>.
+  That number is entirely under your control: it is the total entity count multiplied by
+  the bin size.</p>
+
+  <div class="card">
+    <h3>Entities per bar, and what it feels like</h3>
+    <table>
+      <tr><th>Entities behind one bar</th><th>Imported model</th><th>Live connection</th></tr>
+      <tr><td>up to 5,000</td><td>Immediate</td><td>Comfortable</td></tr>
+      <tr><td>5,000 – 10,000</td><td>Fluid</td><td>Slow but works</td></tr>
+      <tr><td>10,000 – 20,000</td><td>Perceptible, still usable</td><td>Not recommended</td></tr>
+      <tr><td>above 20,000</td><td colspan="2">Not usable — the visual declines to filter and tells you so</td></tr>
+    </table>
+    <p style="font-size:12px;color:var(--t3);">Every figure above was measured on a
+    500,000-entity model in Power BI Service with an integer key, varying bin size to vary
+    entities per bar — on both an imported model and a live connection to a semantic model.</p>
+    <div class="note">
+      <strong>Live connections are the slower case, and the one that matters.</strong> With an
+      imported model the filter resolves in local memory; over a live connection to a semantic
+      model the query travels to the model and back. Since most enterprise reports run live,
+      the visual's limit follows the live figure: <strong>10,000 entities per bar</strong>.
+      Text keys are heavier per value than integer keys, so with long text codes expect the
+      comfortable ceiling to be lower still — bind a numeric key where you have one.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Choosing a bin size for your model</h3>
+    <p>Clicking a bar asks Power BI to filter the rest of the report by every entity behind
+    it. Power BI carries that as a list of values, and beyond roughly 20,000 the query it
+    has to build becomes too large to run comfortably. So the rule is simply:</p>
+    <p style="font-size:15px;text-align:center;margin:14px 0;">
+      <code style="font-size:14px;">maximum bin size % = 1,000,000 ÷ number of entities</code>
+    </p>
+    <table>
+      <tr><th>Entities in the model</th><th>Largest bin size that stays filterable</th><th>Bars</th></tr>
+      <tr><td>up to 50,000</td><td>20% — no constraint</td><td>5</td></tr>
+      <tr><td>100,000</td><td>10%</td><td>10</td></tr>
+      <tr><td>250,000</td><td>4%</td><td>25</td></tr>
+      <tr><td>500,000</td><td>2%</td><td>50</td></tr>
+      <tr><td>1,000,000</td><td>1%</td><td>100</td></tr>
+    </table>
+    <p>A practical pattern for very large models: read the chart at a comfortable bin size,
+    and drop to a smaller one when you actually want to click through to the detail.</p>
+    <div class="note">
+      <strong>Free tier note.</strong> The Free bin size is fixed at 20%, which means five
+      bars. Above roughly 50,000 entities each bar exceeds what Power BI can cross-filter,
+      and clicking a bar will decline instead of filtering. This is a platform limit on
+      filter size, not a restriction we impose — but reducing the bin size is a Pro control,
+      so cross-filtering very large models does require Pro.
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Loading large models</h3>
+    <p>In <strong>Power BI Service</strong> the visual streams data in segments and has been
+    exercised at 500,000 entities with slicers re-ranking correctly. Power BI's own ceilings
+    apply: 1,048,576 rows, and 100&nbsp;MB of data, after which it stops sending more.</p>
+    <p>In <strong>Power BI Desktop</strong> segment streaming is unavailable and the visual
+    stops at 30,000 rows. This is a Desktop platform behaviour, identical in Free and Pro.</p>
+    <p>Whenever Power BI stops short of the full set, the visual says so in an amber notice
+    with the exact number of rows it received. A Pareto always spans 0–100%, so a chart built
+    on partial data looks entirely normal — the notice is the only way to tell.</p>
+    <p><strong>Keep the entity key narrow.</strong> An integer key costs far less than a long
+    text code at every stage: less data to stream toward the 100&nbsp;MB ceiling, and lighter
+    filters when you click. If you have both, bind the numeric one.</p>
+  </div>
+
   <!-- Free vs Pro -->
   <h2 id="free-pro">Free vs Pro</h2>
   <table>
@@ -292,7 +415,7 @@
     <tr><td>High contrast mode</td><td>✅</td><td>✅</td></tr>
     <tr><td>Tooltips field well (up to 10 measures)</td><td>✅</td><td>✅</td></tr>
     <tr><td>IBCS Mode (standardized styling)</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Max entities (Power BI Service)</td><td>150,000+</td><td>150,000+</td></tr>
+    <tr><td>Max entities (Power BI Service)</td><td>500,000+</td><td>500,000+</td></tr>
     <tr><td>Bin size % (1–20%)</td><td>Fixed at 20% (5 bars)</td><td>✅ Configurable 1–20% (up to 100 bars)</td></tr>
     <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
     <tr><td>Bar border &amp; gap styling</td><td>❌</td><td>✅</td></tr>
@@ -345,13 +468,18 @@
   <details>
     <summary>Can I use conditional formatting (the <em>fx</em> button) on bar colors?</summary>
     <div class="faq-body">
-      <p><strong>Not yet.</strong> Bar color is currently a single static color — the <em>fx</em> rule-based dialog you see on native Power BI visuals is not available on this visual. Rule-based bar coloring is on the roadmap; see the <a href="changelog.html#roadmap" style="color:var(--acc);">roadmap</a>.</p>
-      <p>In the meantime, these are the practical ways to create emphasis:</p>
-      <ul>
-        <li><strong>Reference lines</strong> — the clearest way to mark a decision threshold. Put line 1 at 80% and a second at 95% to band the chart into zones.</li>
-        <li><strong>IBCS Mode</strong> — neutral charcoal bars make the cumulative line and reference lines carry the emphasis instead of the bars.</li>
-        <li><strong>Bar opacity</strong> — lower opacity pushes the bars back visually so the cumulative line reads first.</li>
-      </ul>
+      <p><strong>Yes</strong>, from version 1.3.0.0. In <strong>Format Pane → Pareto → Bar color</strong>, click the <em>fx</em> button for the rule-based dialog — gradient, rules or field value, the same as a native visual.</p>
+      <p>One thing to understand about the result: Power BI resolves the rule <strong>per entity</strong>, but a bar is a bin holding many entities. Each bar takes the color of its <strong>top-ranked entity</strong>, falling back to the first entity in the bin that the rule resolves. So with a gradient, a bar shows where its largest member sits on the scale, not the average of the bin.</p>
+      <p>If what you want is to color bars by their position in the Pareto rather than by a field, use <strong>Threshold Colors</strong> instead — see below. It is usually the more useful of the two.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How do Threshold Colors work, and how are they different from <em>fx</em>?</summary>
+    <div class="faq-body">
+      <p><strong>Format Pane → Threshold Colors</strong> colors each bar by where it falls relative to a cumulative percentage threshold — 80% by default. Bars within the threshold take one color, bars beyond it another, and the bin where the cumulative line actually crosses can be highlighted separately.</p>
+      <p>This answers the question a Pareto is usually asked: <em>which share of entities is the vital few, and where exactly does the line cross?</em> The <em>fx</em> dialog colors by a field value; Threshold Colors color by position in the distribution.</p>
+      <p>When both are on, Threshold Colors wins. The full precedence is: high contrast → IBCS Mode → Threshold Colors → <em>fx</em> rule → the constant Bar color.</p>
     </div>
   </details>
 
@@ -367,10 +495,10 @@
     <div class="faq-body">
       <p>It depends on where the report runs:</p>
       <ul>
-        <li><strong>Power BI Service:</strong> the visual streams data in segments and supports <strong>150,000+ entities</strong>. The first segment is 30,000 rows; further segments are fetched automatically.</li>
+        <li><strong>Power BI Service:</strong> the visual streams data in segments and supports <strong>500,000+ entities</strong>. The first segment is 30,000 rows; further segments are fetched automatically.</li>
         <li><strong>Power BI Desktop:</strong> segment fetching is not available, so the visual is capped at <strong>30,000 rows</strong> and shows a "Data limited to 30,000 rows" notice. This is a Power BI Desktop platform limitation, not a tier limit — the row cap is identical in Free and Pro.</li>
       </ul>
-      <p>Because entities are grouped into bins, size rarely hurts readability: 10,000 SKUs render as 5 bars at the Free 20% bin size, or 10 bars at a Pro 10% bin size. For datasets well beyond 150,000 entities, pre-group with a DAX quantile column — see <a href="tips.html#bigdata" style="color:var(--acc);">Tips &amp; Best Practices</a>.</p>
+      <p>Because entities are grouped into bins, size rarely hurts readability: 10,000 SKUs render as 5 bars at the Free 20% bin size, or 10 bars at a Pro 10% bin size. What size does affect is cross-filtering — see <a href="#performance" style="color:var(--acc);">Performance &amp; scale</a> for how to choose a bin size for your model.</p>
     </div>
   </details>
 

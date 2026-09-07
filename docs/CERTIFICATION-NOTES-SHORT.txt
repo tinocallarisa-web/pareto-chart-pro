@@ -1,23 +1,58 @@
-PARETO CHART PRO v1.2.0.0 — CERTIFICATION NOTES
-
-GUID: ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-Version: 1.2.0.0
-Plan ID: pareto-chart-pro-tcviz
-Branch: https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
+Pareto Chart Pro v1.3.0.0 — GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
+Source: https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
 Support: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 Privacy: https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
-Video: https://www.youtube.com/watch?v=1YmpeyACe2o
+Terms:   https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
+Video:   https://www.youtube.com/watch?v=qtN0ckSXNZQ
 
-WHAT'S NEW IN v1.2.0.0:
-1. Tooltips Field Well: Up to 10 custom measures in hover tooltips.
-2. IBCS Mode: One-click International Business Communication Standards compliance (#404040 neutral bars, #000000 solid axis typography).
-3. Big Data Scaling (150,000+ rows): Supports <30k rows natively (window data reduction) and 150k+ rows via DAX quantile column (e.g. [Grupo Pareto] = CEILING((RANKX(ALL(T), T[Sales], , DESC, Skip)/COUNTROWS(ALL(T)))*10, 1)).
-4. Monotonic Pareto Math: Strictly descending bars & clean 10% labels (0-10%, 10-20%... 90-100%).
-5. Instant Cross-Filtering: Category SelectionId deduplication eliminates DS0 query errors (<1ms response).
+PRIVACY / NETWORK
+No external network calls. No telemetry, no analytics, no CDN, no custom endpoints.
+All calculation and rendering is local. The only host API used is Microsoft's own
+IVisualLicenseManager (getAvailableServicePlans), which carries no report data.
+No local file access, no localStorage, no cookies. The visual persists one property,
+general.filter, through the standard host.applyJsonFilter mechanism.
 
-LICENSING & PRIVACY:
-Native IVisualLicenseManager API via host.licenseManager. Deferred resolution via setTimeout(0) does not block render. No external network servers or telemetry.
+LICENSING
+Plan ID: pareto-chart-pro-tcviz. Resolution is deferred with setTimeout(0) after the
+first render, so it never blocks painting; on failure the visual stays on Free.
+Source is in production state: isPro resolved by the licence manager, DEV_MODE false,
+GUID without suffix.
 
-TESTING INSTRUCTIONS:
-- Free Tier: Bind Category + Value -> renders 5 bars with cumulative line.
-- Pro Tier: Format Pane -> Pareto -> Bin size % = 5%, enable IBCS Mode toggle, bind extra Tooltips measures.
+FREE: full Pareto with cumulative line; 20% bins (5 bars); 2 reference lines;
+conditional formatting (fx) and Threshold Colors; Tooltips field well (10 measures);
+IBCS Mode; drilldown; cross-filtering and multi-select; keyboard navigation and
+screen-reader labels; high contrast.
+
+PRO: bin size 1-20% (up to 100 bars); outlier trimming; value labels; 3rd reference
+line; bar border and gap styling.
+
+ACCESSIBILITY
+supportsKeyboardFocus is declared and implemented. Roving tabindex (the chart is one
+Tab stop), arrows move between bins, Home/End, Enter/Space select, Ctrl+Enter adds,
+Escape clears, Shift+F10 opens the context menu. role=listbox / role=option,
+aria-selected, descriptive aria-labels. Tooltips open on focus as well as hover.
+Visible focus ring with a forced-colors variant. High contrast via colorPalette.
+
+DATA VOLUME
+capabilities declares window count 30000; Power BI Service streams further segments
+with fetchMoreData(true), verified at 500,000 entities with slicers re-ranking.
+Desktop cannot stream segments and stops at 30,000. When Power BI stops short, the
+visual shows an amber notice with the exact row count received — a Pareto always
+spans 0-100%, so partial data would otherwise look normal.
+
+CROSS-FILTERING
+Clicking a bar applies a BasicFilter over every entity in the bin. Measured ceiling
+is 10,000 entities per bar over a live connection; past that the visual declines and
+asks the user to reduce the bin size, rather than filtering a subset silently.
+
+RENDERING EVENTS
+renderingStarted at the top of update(); every exit path calls renderingFinished or
+renderingFailed, including the empty-data-view and segment-continuation returns.
+
+TESTING
+Free: bind a dimension to Entity and a numeric measure to Value; 5 bars render with
+the cumulative line and an 80% reference. Click a bar to cross-filter. Tab in, use
+arrows, press Enter. Format Pane > Pareto > Bar color > fx opens conditional
+formatting. Format Pane > Threshold Colors colors bars by cumulative threshold.
+Pro: with an active plan, set Bin size % to 5 (20 bars), then check outlier trimming,
+value labels, the third reference line, and bar border/gap.

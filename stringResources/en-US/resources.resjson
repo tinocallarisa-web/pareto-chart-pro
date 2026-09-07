@@ -1,0 +1,56 @@
+{
+  "Visual_Pareto": "Pareto",
+  "Visual_BinSize": "Bin size % of entities",
+  "Visual_TrimLower": "Exclude bottom % entities",
+  "Visual_TrimUpper": "Exclude top % entities",
+  "Visual_BarColor": "Bar color",
+  "Visual_BarOpacity": "Bar opacity %",
+  "Visual_BorderColor": "Border color",
+  "Visual_BorderWidth": "Border width",
+  "Visual_BarGap": "Bar gap px",
+  "Visual_IbcsMode": "IBCS Mode (Standardized)",
+
+  "Visual_ThresholdColors": "Threshold Colors",
+  "Visual_ThresholdShow": "Color bars by threshold",
+  "Visual_ThresholdValue": "Threshold (cumulative %)",
+  "Visual_ThresholdWithin": "Within threshold",
+  "Visual_ThresholdBeyond": "Beyond threshold",
+  "Visual_ThresholdHighlightCrossing": "Highlight crossing bin",
+  "Visual_ThresholdCrossingColor": "Crossing bin color",
+
+  "Visual_Axes": "Axes",
+  "Visual_AxisColor": "Axis text color",
+  "Visual_GridColor": "Grid color",
+  "Visual_FontSize": "Font size",
+  "Visual_ShowXLabel": "Show X axis label",
+  "Visual_ShowYLabel": "Show Y axis label",
+
+  "Visual_CumulativeLine": "Cumulative Line",
+  "Visual_LineColor": "Line color",
+  "Visual_LineWidth": "Line width",
+  "Visual_ShowDots": "Show dots",
+  "Visual_DotRadius": "Dot radius",
+
+  "Visual_ReferenceLines": "Reference Lines",
+  "Visual_ShowLine": "Show line",
+  "Visual_LineThreshold": "Cumulative % threshold",
+  "Visual_LineLabel": "Line label",
+
+  "Visual_ValueLabels": "Value Labels",
+  "Visual_Show": "Show",
+  "Visual_Color": "Color",
+  "Visual_ShowPercent": "Show % sign",
+
+  "Visual_AxisX": "% of entities (best → worst)",
+  "Visual_AxisY": "% of total value",
+  "Visual_CumulativeAxis": "Cumulative %",
+
+  "Visual_LandingTitle": "Pareto Chart Pro",
+  "Visual_LandingSubtitle": "Focus on the entities that drive most of the result",
+  "Visual_LandingEntity": "Entity — the dimension to rank (customer, product, SKU…)",
+  "Visual_LandingValue": "Value — the numeric measure to concentrate",
+
+  "Visual_FreeBadge": "Free tier",
+  "Visual_Truncated": "Data limited to 30,000 rows. Use Power BI Service for the full dataset.",
+  "Visual_Loading": "Loading data…"
+}

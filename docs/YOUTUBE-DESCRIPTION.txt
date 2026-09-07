@@ -1,29 +1,102 @@
-PARETO CHART PRO v1.2.0.0 FOR POWER BI — BIG DATA (150K+ ROWS), IBCS MODE & TOOLTIPS FIELD WELL
+════════════════════════════════════════════════════════════════
+MAIN DESCRIPTION
+════════════════════════════════════════════════════════════════
 
-Unlock true 80/20 ABC concentration analysis in Power BI with Pareto Chart Pro v1.2.0.0. Analyze over 150,000+ rows instantly, apply executive-ready IBCS corporate styling with one click, and display custom tooltip metrics across your dashboards.
+Most Power BI Pareto charts are built with a sorted column chart, a RANKX measure and a
+cumulative DAX calculation — and they fall apart the moment you have more than a few
+hundred categories. This walkthrough shows a different approach: two fields, no DAX, and a
+chart that stays readable whether you have 400 customers or 500,000.
 
-Get it on Microsoft AppSource: https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro
-Full Documentation & Quick Start: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+We use a real question — half a million customers, twelve account managers, which customers
+actually matter — and answer it end to end.
 
-CHAPTERS:
-0:00 - Introduction & What's New in v1.2.0.0
-0:45 - High-Performance 150,000+ Row Streaming
-1:30 - Setting up the Tooltips Field Well
-2:15 - Enabling IBCS Mode (Corporate Standard)
-3:00 - Cross-Filtering & Zero DS0 Query Errors
-3:45 - Free vs Pro Tier Comparison
+WHAT YOU'LL LEARN
+• Why the 80/20 rule is a heuristic, not a law — and how to find out what your business
+  actually is (some are 90/10, some are 60/40)
+• How to read a Pareto whose X axis is a share of entities rather than a list of names
+• How to mark the exact point where cumulative value crosses your threshold
+• Why concentration is a property of the segment, not the business — and what happens to
+  the curve when you slice by channel
+• How to go from the shape of the distribution to the actual list of accounts
+• How the chart behaves for keyboard and screen-reader users
 
-WHAT'S NEW IN VERSION 1.2.0.0:
-- Tooltips Field Well: Bind up to 10 additional measures (Profit, Margin %, Quantity).
-- IBCS Mode: One-click International Business Communication Standards compliance.
-- 150,000+ Row Support: Stream massive datasets with window data reduction.
-- Monotonic Pareto Math: Strictly descending bars and clean 10% interval labels.
-- Instant Cross-Filtering: Category deduplication eliminates DS0 errors.
+CHAPTERS
+0:00  The question: 500,000 customers, 12 account managers
+0:35  Why the native approach breaks down
+1:30  Building it — two fields, no DAX
+2:45  Threshold Colors: making the crossing point obvious
+3:45  Slicing by channel — concentration changes shape
+4:45  From the chart to the list of accounts
+5:45  Keyboard navigation and accessibility
+6:45  Free vs Pro, and where to go next
 
-LINKS & RESOURCES:
-- Website: https://tcviz.com
-- Support & FAQ: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
-- Privacy Policy: https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
-- Terms of Use: https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
+ABOUT THE VISUAL
+Pareto Chart Pro ranks the entities you bind, groups them into bins of a fixed percentage
+of the entity population, and overlays a cumulative percentage line with up to three
+reference thresholds. Because the axis is a share of entities rather than one bar per
+category, it stays readable at any size. It is certified by Microsoft, which means it makes
+no external network calls of any kind — all calculation happens locally in Power BI.
 
-#PowerBI #ParetoChart #BusinessIntelligence #PowerBIDesktop #IBCS #DataVisualization #TCViz #AppSource
+In Power BI Service the visual streams data in segments and has been tested at 500,000
+entities with slicers re-ranking correctly. In Power BI Desktop, segment streaming is a
+platform limitation and the visual reads up to 30,000 rows.
+
+FREE VS PRO
+Everything in this video works in the free tier except one control: bin size. Free is fixed
+at 20% (five bars); Pro allows 1–20%, up to 100 bars. Bin size is also what determines how
+many entities sit behind a bar, which matters for cross-filtering large models — the
+documentation has the measured figures.
+
+FOLLOW ALONG
+The dataset used here is synthetic and reproducible — 500,000 customers across four
+channels, generated from a seeded script. Link in the documentation.
+
+LINKS
+Get it on AppSource: https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro
+Documentation & FAQ:  https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+Tips & scenarios:     https://tinocallarisa-web.github.io/pareto-chart-pro/tips.html
+Changelog:            https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html
+Source & issues:      https://github.com/tinocallarisa-web/pareto-chart-pro
+Privacy policy:       https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
+
+Questions, bugs or feature requests: open an issue on GitHub, or email support@tcviz.com
+
+#PowerBI #ParetoChart #ParetoAnalysis #ABCAnalysis #DataVisualization #PowerBITutorial
+#BusinessIntelligence #TCViz
+
+
+════════════════════════════════════════════════════════════════
+SHORT VERSION — LinkedIn, Shorts, X
+════════════════════════════════════════════════════════════════
+
+Everyone quotes the 80/20 rule. Almost nobody checks whether their business is actually
+80/20 — plenty are 90/10, and some are 60/40.
+
+Here's how to find out in Power BI with two fields and no DAX, on a model of 500,000
+customers, in about seven minutes.
+
+Full walkthrough: https://www.youtube.com/watch?v=qtN0ckSXNZQ
+#PowerBI #ParetoAnalysis #DataVisualization
+
+
+════════════════════════════════════════════════════════════════
+ALTERNATIVE TITLES
+════════════════════════════════════════════════════════════════
+
+1. How to Build a Pareto Chart in Power BI — No DAX Required        (56)   ← recommended
+2. Pareto Chart in Power BI: Find Your Real 80/20 (No DAX)          (54)
+3. Pareto Analysis in Power BI: Find Your Real 80/20 in Two Fields  (63)
+4. Your 80/20 Might Actually Be 90/10 — Pareto Analysis in Power BI (64)
+5. 80/20 Analysis in Power BI Without DAX or Workarounds            (53)
+
+
+════════════════════════════════════════════════════════════════
+NOTES BEFORE PUBLISHING
+════════════════════════════════════════════════════════════════
+
+- Chapter timings above are the script's targets. Replace them with the real ones; YouTube
+  needs the first chapter at exactly 0:00 for the chapter UI to appear.
+- "Follow along" assumes the dataset generator is published in the repo. Either add
+  _testdata/gen.py to it and link it from the docs, or delete that section.
+- Unlist the previous video. Its description claims cross-filtering behaviour that the
+  visual did not have at the time.

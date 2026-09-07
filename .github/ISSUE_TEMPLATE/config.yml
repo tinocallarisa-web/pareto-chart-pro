@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📘 Documentation
+    url: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+    about: Quick start, field wells, full Format Pane reference and a searchable FAQ.
+  - name: 💡 Tips & best practices
+    url: https://tinocallarisa-web.github.io/pareto-chart-pro/tips.html
+    about: Worked business scenarios, scaling to large models, and common Pareto mistakes.
+  - name: 📋 Changelog & roadmap
+    url: https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html
+    about: What shipped in each version, and what is planned next.
+  - name: 💬 Questions & ideas
+    url: https://github.com/tinocallarisa-web/pareto-chart-pro/discussions
+    about: Ask how to model something, or discuss an idea before opening a request.
+  - name: ✉️ Licensing & billing
+    url: mailto:support@tcviz.com
+    about: Purchases, Pro activation and invoices are handled by email, not in this tracker.

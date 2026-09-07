@@ -1,44 +1,136 @@
-# Tips & Hints — Pareto Chart Pro (v1.2.0.0)
+# Tips & Hints — Pareto Chart Pro (v1.3.0.0)
 
-## Getting Started
-1. **Bind Entity**: Drag a categorical dimension (Customer, Product, SKU, Supplier) into `Entity`. For drilldown, drag a hierarchy field.
-2. **Bind Value**: Drag a numeric measure (Sales, Revenue, Liters, Defect Count) into `Value`.
-3. **Bind Tooltips**: Drag up to 10 additional measures (Profit, Margin %, Quantity) into `Tooltips`.
+## Getting started
+1. **Entity** — a categorical dimension (Customer, Product, SKU, Supplier). A hierarchy here enables drilldown.
+2. **Value** — a numeric measure (Sales, Revenue, Liters, Defect count).
+3. **Tooltips** — up to 10 extra measures (Profit, Margin %, Quantity) shown on hover and on keyboard focus.
 
-## Big Data Architecture & Scaling Strategy
+No DAX, no pre-sorting, no cumulative measure. Ranking, binning and the cumulative line are automatic.
 
-### 1. Standard Datasets (< 30,000 Entities) — WITHOUT DAX
-- Simply drag your raw entity ID (e.g. `customer_id`, `product_id`, `SKU`) directly into the **Entity** field well.
-- No DAX formulas required. Pareto Chart Pro automatically handles quantile binning, cumulative percentage calculations, outlier trimming, and tooltips natively.
+## Bin size is the scale control, not a cosmetic setting
 
-### 2. Massive Enterprise Datasets (> 30,000 up to 150,000+ Entities) — WITH DAX
-- To process over 30,000 rows up to 150,000+ entities with instant (<1ms) cross-filtering across your entire report, create a DAX calculated column to group entities into quantile bins and place it in **Entity**.
+Each bar is a bin holding a share of your ranked entities. Clicking a bar asks Power BI to filter the
+rest of the report by **every entity behind it**, and Power BI carries that as a list of values. Past
+roughly 10,000 values the query becomes too heavy, so the bin size decides whether a model of a given
+size stays clickable:
 
-#### Exact DAX Calculated Column Formula Example:
-```dax
-Grupo Pareto = 
-VAR VentasActual = 'sales_data'[Sales]
-VAR TotalFilas = COUNTROWS(ALL('sales_data'))
-VAR Ranking = RANKX(ALL('sales_data'), 'sales_data'[Sales], VentasActual, DESC, Skip)
-VAR Percentil = CEILING((Ranking / TotalFilas) * 10, 1)
-RETURN "Grupo " & FORMAT(Percentil, "00")
 ```
-*(Note: Change `* 10` to `* 50` if you prefer 50 fine-grained quantile groups).*
+maximum bin size % = 1,000,000 ÷ number of entities
+```
 
-## Format Pane Reference & Features
-- **IBCS Mode (Free & Pro)**: One-click toggle under Pareto card to apply International Business Communication Standards corporate neutral styling (`#404040` charcoal bars, `#000000` solid axis typography).
-- **Bin Size % (Pro)**: Set custom bin size from 1% to 20% (up to 100 bars). Free tier is fixed at 20% (5 bars).
-- **Outlier Trimming (Pro)**: Exclude top or bottom % outliers to prevent extreme values from distorting your Pareto bins.
-- **Reference Lines**: Up to 3 configurable reference crosshairs (default line 1 at 80% cumulative threshold).
-
-## Free vs Pro Comparison
-| Feature | Free Tier | Pro Tier |
+| Entities | Largest filterable bin | Bars |
 |---|---|---|
-| Pareto Bars & Cumulative Line | ✓ | ✓ |
-| Max Rows Streamed | Up to 150,000+ | Up to 150,000+ |
-| Bin Count | Fixed 5 (20%) | Custom 1–20% (100 bars) |
-| Tooltips Field Well | Up to 10 Extra Measures | Up to 10 Extra Measures |
-| IBCS Mode (Corporate Palette) | ✓ | ✓ |
-| Value Labels on Bars | — | ✓ |
-| Outlier Trimming (Top/Bottom %) | — | ✓ |
-| Reference Lines | Up to 2 | Up to 3 |
+| up to 50,000 | 20% — no constraint | 5 |
+| 100,000 | 10% | 10 |
+| 250,000 | 4% | 25 |
+| 500,000 | 2% | 50 |
+| 1,000,000 | 1% | 100 |
+
+Measured response, on a 500,000-entity model in Power BI Service:
+
+| Entities per bar | Imported model | Live connection |
+|---|---|---|
+| up to 5,000 | instant | comfortable |
+| 5,000 – 10,000 | fluid | slow but works |
+| 10,000 – 20,000 | usable | not recommended |
+| above 20,000 | the visual declines to filter and says so | |
+
+A live connection sends the query to the remote model, so it is the slower case — and the one most
+enterprise reports use. **Bind a numeric key where you have one**: an integer costs far less per value
+than a long text code, both when streaming toward Power BI's 100 MB ceiling and when filtering.
+
+A good working pattern for very large models: read the chart at a comfortable bin size, and drop to a
+smaller one when you actually want to click through to detail.
+
+## Scale, and why you probably do not need DAX pre-grouping
+
+In **Power BI Service** the visual streams data in segments and has been verified at **500,000
+entities with slicers re-ranking correctly**. Power BI's ceilings apply: 1,048,576 rows and 100 MB.
+
+In **Power BI Desktop** segment streaming is unavailable and the visual stops at 30,000 rows. That is
+a Desktop platform behaviour, identical in Free and Pro. Build in Desktop, measure in Service.
+
+> **Earlier versions of this guide recommended a DAX quantile column for models above 30,000
+> entities. That advice is withdrawn for any report with slicers.** A calculated column is evaluated
+> at refresh, not against the current filter context, so the groups are frozen: filter to one region
+> and every entity keeps its label from the global ranking. The chart then shows the global groups
+> restricted to that region, which is not the Pareto of that region — and with a strong filter the
+> bars stop descending at all. The visual's own binning recalculates on every update, from data Power
+> BI has already filtered, so it is the correct choice whenever slicers are in play.
+>
+> Pre-grouping remains valid for one case only: when the Pareto must always be measured over the
+> complete universe and must **not** respond to slicers.
+
+## Trimming outliers
+
+The Pro `Exclude top %` / `Exclude bottom %` controls remove entities before binning. Two things to
+know before using them.
+
+**The denominator changes.** The cumulative line is recomputed over what remains, so after trimming
+"80% of the total" means 80% of the trimmed total, not of your business.
+
+**Excluding from the top is rarely what you want.** With binning an extreme entity is already diluted
+across its bin, so the usual reason for trimming — one giant wrecking the scale — mostly does not
+apply here. If you want to set a dominant cluster aside, a cleaner method is to use small bins (5% or
+less) and simply read, or exclude, the first bar: the cut lands on a visible, labelled boundary and
+nothing is hidden.
+
+**Excluding from the bottom has a real use.** A long tail of dormant entities with near-zero value
+barely affects the total but badly distorts the entity axis — "the top 20% of customers" is
+meaningless when three quarters of them never buy.
+
+If you need a precise cut, make it in the model rather than in the visual, where you have entity-level
+granularity and the exclusion stays visible:
+
+```dax
+Grupo Pareto =
+VAR Corte         = 0.01                                     -- top 1% excluded
+VAR LitrosCliente = CALCULATE ( SUM ( 'sales_data'[liters_sku] ) )
+VAR TotalClientes = COUNTROWS ( ALL ( 'clientes' ) )
+VAR Ranking =
+    RANKX ( ALL ( 'clientes' ), CALCULATE ( SUM ( 'sales_data'[liters_sku] ) ),
+            LitrosCliente, DESC, Skip )
+VAR Excluidos = ROUNDUP ( TotalClientes * Corte, 0 )
+RETURN IF ( Ranking <= Excluidos, "Excluido", "Incluido" )
+```
+
+Returning a labelled `"Excluido"` group rather than `BLANK()` keeps those entities visible and lets you
+filter them out at page level, where the filter pane shows what was removed. Note this is a calculated
+column and carries the same static-groups caveat as above; and in a live connection to a shared
+semantic model you cannot add calculated columns at all.
+
+## Coloring bars
+
+- **Bar color + `fx`** — rule-based conditional formatting. Power BI resolves the rule per entity, so
+  each bar takes the color of its **top-ranked entity**. On a gradient, a bar shows where its largest
+  member sits, not the average of the bin.
+- **Threshold Colors** — colors bars by their position relative to a cumulative threshold, with an
+  optional highlight on the crossing bin. For a Pareto this is usually the more useful of the two.
+- **IBCS Mode** — neutral charcoal bars so the cumulative line and reference lines carry the message.
+- Precedence: high contrast → IBCS → Threshold Colors → `fx` rule → constant Bar color.
+
+## Keyboard
+
+The chart is a single Tab stop. `←` `→` `↑` `↓` move between bins, `Home`/`End` jump to the ends,
+`Enter`/`Space` select, `Ctrl`/`Cmd`+`Enter` adds to the selection, `Escape` clears, `Shift`+`F10`
+opens the context menu. Tooltips open on focus, not only on hover.
+
+## Free vs Pro
+
+| Feature | Free | Pro |
+|---|---|---|
+| Pareto bars & cumulative line | ✓ | ✓ |
+| Reference lines | up to 2 | up to 3 |
+| Conditional formatting (`fx`) & Threshold Colors | ✓ | ✓ |
+| Tooltips field well (10 measures) | ✓ | ✓ |
+| IBCS Mode | ✓ | ✓ |
+| Keyboard navigation, high contrast | ✓ | ✓ |
+| Max entities (Power BI Service) | 500,000+ | 500,000+ |
+| Bin size | fixed 20% (5 bars) | 1–20% (up to 100 bars) |
+| Outlier trimming (top/bottom %) | — | ✓ |
+| Value labels on bars | — | ✓ |
+| Bar border & gap styling | — | ✓ |
+
+Because bin size governs how many entities sit behind a bar, cross-filtering a model above roughly
+50,000 entities requires reducing the bin size — which is a Pro control. This is a consequence of
+Power BI's filter size limit, not a restriction imposed by the visual.

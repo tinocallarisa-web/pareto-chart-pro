@@ -259,27 +259,43 @@
 
   <div class="note">
     <strong>Row limits are the same in Free and Pro.</strong> In <strong>Power BI Service</strong> the visual
-    streams data in segments and handles 150,000+ entities. In <strong>Power BI Desktop</strong> segment fetching
+    streams data in segments and handles 500,000+ entities. In <strong>Power BI Desktop</strong> segment fetching
     is unavailable, so the visual caps at 30,000 rows and shows a notice. This is a Power BI Desktop platform
     behaviour, not a licensing limit.
   </div>
 
-  <h3>Under ~30,000 entities — no DAX needed</h3>
+  <h3>Any size — bind the raw entity, no DAX needed</h3>
   <p>Drag the raw entity key (<code>customer_id</code>, <code>product_id</code>, <code>SKU</code>) straight into
-  <code>Entity</code>. The visual handles ranking, binning, cumulative percentages and outlier trimming itself.
-  Do not pre-sort or pre-aggregate — you will only fight the visual's internal sort.</p>
+  <code>Entity</code>. The visual handles ranking, binning, cumulative percentages and outlier trimming itself,
+  and it recalculates on every update from data Power BI has already filtered — so the Pareto is of whatever
+  your slicers currently select. Do not pre-sort or pre-aggregate; you will only fight the visual's internal sort.</p>
+  <p><strong>Bind a numeric key where you have one.</strong> An integer costs far less per value than a long text
+  code, both when streaming toward Power BI's 100&nbsp;MB ceiling and when cross-filtering.</p>
 
-  <h3>Beyond that — pre-group with a DAX quantile column</h3>
-  <p>For very large entity counts, or when you want sub-millisecond cross-filtering across a heavy report,
-  pre-group entities into quantiles with a calculated column and bind that column to <code>Entity</code>:</p>
-<pre><code>Grupo Pareto =
-VAR VentasActual = 'sales_data'[Sales]
-VAR TotalFilas   = COUNTROWS(ALL('sales_data'))
-VAR Ranking      = RANKX(ALL('sales_data'), 'sales_data'[Sales], VentasActual, DESC, Skip)
-VAR Percentil    = CEILING((Ranking / TotalFilas) * 10, 1)
-RETURN "Grupo " &amp; FORMAT(Percentil, "00")</code></pre>
-  <p>Change <code>* 10</code> to <code>* 50</code> for 50 finer quantile groups. This is a calculated
-  <em>column</em>, not a measure — it must be evaluated at model refresh so the visual can rank against it.</p>
+  <h3>Bin size is what governs cross-filtering at scale</h3>
+  <p>Clicking a bar asks Power BI to filter the report by every entity behind it, carried as a list of values.
+  Past roughly 10,000 values that query becomes too heavy, so bin size decides whether a model of a given size
+  stays clickable:</p>
+  <p style="font-size:15px;text-align:center;margin:14px 0;">
+    <code style="font-size:14px;">maximum bin size % = 1,000,000 ÷ number of entities</code>
+  </p>
+  <p>At 500,000 entities that means 2% bins — 50 bars. The full measured table, for imported models and live
+  connections separately, is in the
+  <a href="support.html#performance" style="color:var(--acc);font-weight:600;">documentation</a>.</p>
+
+  <div class="note">
+    <strong>A DAX quantile column is no longer the recommendation.</strong> Earlier versions of this guide
+    suggested pre-grouping entities with a calculated column for large models. That advice is withdrawn for any
+    report with slicers. A calculated column is evaluated at refresh, not against the current filter context, so
+    the groups are frozen: filter to one region and every entity keeps the label it earned in the global ranking.
+    The chart then shows the global groups restricted to that region — which is not the Pareto of that region,
+    and under a strong filter the bars stop descending at all.
+    <br><br>
+    The visual's own binning recalculates on every update, so it is the correct choice whenever slicers are in
+    play — which, in practice, is nearly always. Pre-grouping remains valid only when the Pareto must always be
+    measured over the complete universe and must <em>not</em> respond to slicers. Note also that a live connection
+    to a shared semantic model does not allow calculated columns at all.
+  </div>
 
   <h2 id="formatting">Formatting recipes</h2>
 

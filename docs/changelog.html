@@ -205,8 +205,63 @@
 
   <div class="rel">
     <div class="rel-head">
-      <span class="rel-ver">1.2.0.0</span>
+      <span class="rel-ver">1.3.0.0</span>
       <span class="tag tag-cur">Current</span>
+      <span class="rel-date">September 2026</span>
+    </div>
+
+    <h4><span class="tag tag-add">Added</span></h4>
+    <ul>
+      <li><strong>Conditional formatting on bar color</strong> — the <em>fx</em> rule dialog is now
+          available on <code>Format Pane → Pareto → Bar color</code>. Power BI resolves the rule per
+          entity; each bar takes the color of its top-ranked entity.</li>
+      <li><strong>Threshold Colors</strong> — color bars by where they fall relative to a cumulative
+          percentage threshold, with an optional highlight on the bin where the cumulative line
+          crosses. Available in Free and Pro.</li>
+      <li><strong>Keyboard navigation and screen-reader support</strong> — the chart is a single Tab
+          stop; arrows move between bins, <code>Enter</code>/<code>Space</code> select,
+          <code>Escape</code> clears, <code>Shift+F10</code> opens the context menu. Bars expose
+          <code>role="option"</code>, <code>aria-selected</code> and a descriptive label, and tooltips
+          now open on focus as well as hover. A visible focus ring includes a high-contrast variant.</li>
+      <li><strong>Localizable display strings</strong>.</li>
+    </ul>
+
+    <h4><span class="tag tag-chg">Changed</span></h4>
+    <ul>
+      <li><strong>Adaptive layout</strong> — margins, font size and axis chrome scale with the
+          viewport. On small tiles the axis titles, the right-hand cumulative axis and the Free badge
+          are dropped and X tick labels are thinned, instead of overlapping.</li>
+      <li><strong>Cross-filtering now uses a filter rather than selection identities</strong>, which
+          removes the previous practical limit on how many entities a bar could filter. Clicking a bar
+          filters every entity behind it, up to 10,000 — beyond that the visual declines and says which
+          setting fixes it, rather than filtering a subset. See
+          <a href="support.html#performance">Performance &amp; scale</a> for the measured figures.</li>
+      <li><code>host.allowInteractions</code> is honored before selection, keyboard activation and the
+          context menu.</li>
+    </ul>
+
+    <h4><span class="tag tag-fix">Fixed</span></h4>
+    <ul>
+      <li><strong>Clicking a bar filtered by one entity instead of all of them.</strong> A bar
+          representing 40 customers cross-filtered the report by 1. The bar dimming ran off local
+          state, so the chart looked correct while the filter it emitted was not. Introduced in
+          1.2.0.0.</li>
+      <li><strong>The partial-data warning never appeared.</strong> The flag that triggers it was
+          hard-wired off, so when Power BI stopped short of the full dataset the visual drew a Pareto
+          of a partial universe with no indication — and a Pareto always spans 0–100%, so it looks
+          entirely normal. It now reports the exact number of rows received.</li>
+      <li><strong>Power BI Desktop could hang on large models.</strong> The visual kept asking for more
+          data in an environment that cannot stream it, without ever rendering. Three independent
+          brakes now stop that loop.</li>
+      <li><strong>The first click on a bar left it unmarked</strong>, requiring a second click.</li>
+      <li><strong>Highlights arriving from other visuals were erased</strong> when the visual had no
+          selection of its own.</li>
+    </ul>
+  </div>
+
+  <div class="rel">
+    <div class="rel-head">
+      <span class="rel-ver">1.2.0.0</span>
       <span class="rel-date">31 August 2026</span>
     </div>
 
@@ -290,14 +345,16 @@
   <div class="rel">
     <h4><span class="tag tag-plan">Planned</span></h4>
     <ul>
-      <li><strong>Rule-based bar color (<em>fx</em> conditional formatting)</strong> — colour bins by threshold,
-          and highlight the bin where the cumulative line crosses a reference line. The most requested gap today.</li>
-      <li><strong>Deeper keyboard and screen-reader support</strong> — arrow-key navigation across bins,
-          descriptive per-bin labels, and a visible focus ring, beyond the current high-contrast and
-          keyboard-focus support.</li>
-      <li><strong>Small-tile layout</strong> — adaptive margins, tick rotation and automatic label suppression so
-          the chart stays readable in compact dashboard tiles.</li>
-      <li><strong>Additional display languages</strong> beyond English.</li>
+      <li><strong>Additional display languages</strong> beyond English. The string resources are in
+          place; what remains is the translations.</li>
+      <li><strong>Cross-filtering beyond 10,000 entities per bar.</strong> Power BI carries a filter as
+          a list of values, and past roughly that many the query becomes too large to run comfortably —
+          so today the answer is a smaller bin size. A range-based filter would sidestep the list
+          entirely, but only when the ranking field is a column with one row per entity, and the visual
+          cannot currently tell whether that holds.</li>
+      <li><strong>Bin-level color aggregation.</strong> Under an <em>fx</em> rule a bar shows the color of
+          its top-ranked entity. Averaging across the bin would represent it better on a gradient, at the
+          cost of being an approximation rather than an exact mapping.</li>
     </ul>
   </div>
 

@@ -1,0 +1,85 @@
+name: Bug report
+description: Something in the visual behaves incorrectly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. The more of the below you can fill in, the faster this gets fixed.
+        For **licensing or billing** questions, email support@tcviz.com instead — those are not tracked here.
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Which tier are you on?
+      options: ["Free", "Pro (purchased through AppSource)", "Not sure"]
+    validations: { required: true }
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Where does it happen?
+      options:
+        - "Power BI Desktop only"
+        - "Power BI Service only"
+        - "Both Desktop and Service"
+        - "Power BI Report Server"
+        - "Embedded"
+    validations: { required: true }
+
+  - type: input
+    id: visual_version
+    attributes:
+      label: Visual version
+      description: "Format Pane → About, or the version shown on the AppSource page."
+      placeholder: "1.3.0.0"
+    validations: { required: true }
+
+  - type: input
+    id: pbi_version
+    attributes:
+      label: Power BI Desktop version
+      description: "Help → About."
+      placeholder: "2.144.878.0 (September 2026)"
+    validations: { required: false }
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Bind Customer to Entity and Revenue to Value
+        2. Set bin size to 5%
+        3. …
+    validations: { required: true }
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect, and what happened instead?
+    validations: { required: true }
+
+  - type: textarea
+    id: datashape
+    attributes:
+      label: Shape of your data
+      description: This matters more than it sounds — most binning bugs depend on it.
+      placeholder: |
+        - Rows / distinct entities: ~8,000 SKUs
+        - Measure: SUM of Sales, range 0 to 1.2M, no negatives
+        - Slicers or filters active: yes, Year = 2026
+        - Hierarchy in Entity: Category > Subcategory > SKU
+    validations: { required: true }
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or a sample .pbix
+      description: Drag files in. A sample .pbix with dummy data resolves most reports in one round.
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Browser console output
+      description: "Power BI Service only — F12 → Console. Paste anything mentioning ParetoChartPro."
+      render: shell

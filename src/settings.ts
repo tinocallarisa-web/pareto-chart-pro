@@ -18,7 +18,26 @@ export class ParetoCard extends SimpleCard {
     binSizePct  = new NumUpDown({ name: "binSizePct",  displayName: "Bin size % of entities (Pro)", value: 5 });
     trimLower   = new NumUpDown({ name: "trimLower",   displayName: "Exclude bottom % entities (Pro)", value: 0 });
     trimUpper   = new NumUpDown({ name: "trimUpper",   displayName: "Exclude top % entities (Pro)", value: 0 });
-    barColor    = new ColorPicker({ name: "barColor",  displayName: "Bar color",     value: { value: "#4472C4" } });
+    // Conditional formatting needs BOTH of these, and instanceKind alone is the
+    // trap: it makes the fx button appear while Power BI still has no scope to
+    // write the resolved rule into, so nothing ever reaches the dataView.
+    //
+    //   instanceKind 3 = VisualEnumerationInstanceKinds.ConstantOrRule
+    //                    (const enum — cannot be referenced at runtime)
+    //   selector       = dataViewWildcard.createDataViewWildcardSelector(
+    //                        DataViewWildcardMatchingOption.InstancesAndTotals)
+    //                    inlined verbatim so we do not pull in
+    //                    powerbi-visuals-utils-dataviewutils for one object literal.
+    //
+    // With the wildcard selector in place, Power BI resolves the rule per entity
+    // and hands the colors back on categorical.categories[0].objects[i].
+    barColor    = new ColorPicker({
+        name: "barColor",
+        displayName: "Bar color",
+        value: { value: "#4472C4" },
+        selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] } as any,
+        instanceKind: 3,
+    });
     barOpacity  = new NumUpDown({ name: "barOpacity",  displayName: "Bar opacity %", value: 85 });
     borderColor = new ColorPicker({ name: "borderColor", displayName: "Border color (Pro)", value: { value: "#2E5BA8" } });
     borderWidth = new NumUpDown({ name: "borderWidth", displayName: "Border width (Pro)", value: 0 });
@@ -30,6 +49,25 @@ export class ParetoCard extends SimpleCard {
         this.barColor, this.barOpacity,
         this.borderColor, this.borderWidth, this.barGap,
         this.ibcsMode,
+    ];
+}
+
+// ─── Threshold Colors Card ────────────────────────────────────────────────────
+export class ThresholdColorsCard extends SimpleCard {
+    name        = "thresholdColors";
+    displayName = "Threshold Colors";
+
+    show           = new ToggleSwitch({ name: "show",           displayName: "Color bars by threshold", value: false });
+    thresholdValue = new NumUpDown({    name: "thresholdValue", displayName: "Threshold (cumulative %)", value: 80 });
+    withinColor    = new ColorPicker({  name: "withinColor",    displayName: "Within threshold",  value: { value: "#4472C4" } });
+    beyondColor    = new ColorPicker({  name: "beyondColor",    displayName: "Beyond threshold",  value: { value: "#C6CFDF" } });
+    highlightCrossing = new ToggleSwitch({ name: "highlightCrossing", displayName: "Highlight crossing bin", value: true });
+    crossingColor  = new ColorPicker({  name: "crossingColor",  displayName: "Crossing bin color", value: { value: "#ED7D31" } });
+
+    slices = [
+        this.show, this.thresholdValue,
+        this.withinColor, this.beyondColor,
+        this.highlightCrossing, this.crossingColor,
     ];
 }
 
@@ -102,14 +140,16 @@ export class ValueLabelsCard extends SimpleCard {
 
 // ─── Root Model ───────────────────────────────────────────────────────────────
 export class ParetoFormattingSettings extends Model {
-    pareto         = new ParetoCard();
-    axes           = new AxesCard();
+    pareto           = new ParetoCard();
+    thresholdColors  = new ThresholdColorsCard();
+    axes             = new AxesCard();
     cumulativeLine = new CumulativeLineCard();
     referenceLines = new ReferenceLinesCard();
     valueLabels    = new ValueLabelsCard();
 
     cards = [
         this.pareto,
+        this.thresholdColors,
         this.axes,
         this.cumulativeLine,
         this.referenceLines,

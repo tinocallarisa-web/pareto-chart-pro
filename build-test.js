@@ -41,11 +41,16 @@ try {
             `Se esperaba:                     "${ORIGINAL_GUID}"`
         );
     }
-    pbiviz.visual.guid        = TEST_GUID;
-    pbiviz.visual.displayName = "Pareto Chart Pro (TEST)";
+    // --clean-name keeps the real display name, for screen recording: the visuals
+    // panel would otherwise show "Pareto Chart Pro (TEST)" on camera. The GUID
+    // suffix still applies, so it never collides with the AppSource version.
+    const cleanName = process.argv.includes('--clean-name');
+
+    pbiviz.visual.guid = TEST_GUID;
+    if (!cleanName) pbiviz.visual.displayName = "Pareto Chart Pro (TEST)";
     fs.writeFileSync(PBIVIZ_JSON, JSON.stringify(pbiviz, null, 4), 'utf8');
     console.log(`📝  GUID         →  ${TEST_GUID}`);
-    console.log(`📝  displayName  →  Pareto Chart Pro (TEST)`);
+    console.log(`📝  displayName  →  ${pbiviz.visual.displayName}${cleanName ? '  (--clean-name)' : ''}`);
 
     // ── Patch visual.ts (ISPRO_MARKER) ────────────────────────────────────────
     const isProFalse = `private isPro:           boolean = false; ${MARKER}`;

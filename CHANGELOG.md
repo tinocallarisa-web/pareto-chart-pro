@@ -1,5 +1,23 @@
 # Changelog — Pareto Chart Pro
 
+## [1.3.0.0] — unreleased
+
+### Added
+- **Conditional formatting on bar color (`fx`)** — `Format Pane → Pareto → Bar color` now exposes the rule-based dialog. Power BI resolves the rule per entity; each bar takes the color of its top-ranked entity, and falls back to the first entity in the bin that resolves to one.
+- **Threshold Colors card** — color bins by where they fall relative to a cumulative % threshold (default 80): one color within, another beyond, and an optional highlight on the bin where the cumulative line crosses. Available in Free and Pro.
+- **Keyboard navigation and ARIA** — the chart is a single Tab stop with a roving tabindex; `←/→/↑/↓` move between bins, `Home`/`End` jump to the ends, `Enter`/`Space` select (with `Ctrl`/`Cmd` to add), `Escape` clears, `Shift+F10` and `ContextMenu` open the context menu. Bars expose `role="option"`, `aria-selected` and a descriptive `aria-label`; the chart exposes `role="listbox"`. Tooltips now also open on keyboard focus, not only on hover.
+- **Visible focus ring**, injected at runtime with a `forced-colors` variant for high contrast (`style/visual.less` is not emitted into the package, so CSS must come from TypeScript).
+- **`stringResources/en-US/resources.resjson`** — display strings are now localizable.
+
+### Fixed
+- **Cross-filtering is now exact at any bin size.** Clicking a bar applies a `BasicFilter` over every entity in the bin through `applyJsonFilter`, instead of emitting one selection ID per entity. Selection IDs carry a full scope identity each, so a bin of thousands of entities either built thousands of heavy objects or had to be capped; a filter carries plain scalars, which is the mechanism native slicers use for large value lists. There is no cap on this path. When the category's `queryName` yields no table/column target (some drilldown levels and model shapes), the visual falls back to selection IDs, so behavior degrades rather than breaks.
+- **Cross-filtering only filtered one entity per bar.** `getSelIds()` ignored its `max` argument and returned a single selection ID for the bin's first entity, so clicking a bar that represents 40 customers filtered the rest of the report by 1 of them. The bar dimming was driven by local state rather than the real selection, so the chart looked correct while the filter it emitted was not. Selection IDs are now built for every entity in the bin (deduplicated by category value, which was the real cause of the earlier `DataSet 'DS0' contains a filter with duplicate columns` error, and capped at `MAX_SEL_IDS_PER_BIN`). Regression introduced in 1.2.0.0.
+- **Conditional formatting never reached the chart.** The `barColor` slice declared `instanceKind` but no selector, so the *fx* button appeared and the rule was accepted while Power BI had no scope to write the resolved colors into. It now carries the `dataViewWildcard` selector.
+
+### Changed
+- **Adaptive layout** — chart margins, font size and axis chrome now scale with the viewport instead of using a fixed 64px margin. On small tiles the axis titles, the right-hand cumulative axis and the Free badge are dropped, and X tick labels are thinned to what fits, rather than overlapping.
+- **`host.allowInteractions` is honored** before selection, keyboard activation and the context menu.
+
 ## [1.2.0.0] — 2026-08-31
 
 ### Added

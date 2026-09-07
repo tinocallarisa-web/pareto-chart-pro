@@ -19,8 +19,33 @@ import { ParetoFormattingSettings } from "./settings";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PLAN_ID               = "pareto-chart-pro-tcviz";
-const MAX_SEL_IDS_PER_BIN   = 100;   // cap per bin — ensures fast, fluid click response without DAX query lockup
+// Fallback path only (no usable filter target): selection IDs are heavy, so few.
+const MAX_SEL_IDS_PER_BIN   = 100;
+// A BasicFilter becomes a DAX IN() list, and the cost grows with the number of
+// values. Measured on a 500,000-entity model in Power BI Service, integer keys,
+// varying bin size to vary entities per bar:
+//
+//   values   imported model        live connection
+//    5,000   instant               comfortable
+//   10,000   fluid                 slow but works
+//   20,000   perceptible, usable   (not measured)
+//   25,000   unusable              -
+//   50,000   hangs the report      -
+//
+// A live connection sends the query to the remote model instead of resolving it
+// in local memory, so it is the slower of the two — and the one enterprise
+// deployments actually use. The cap follows the live figure, not the imported
+// one. Text keys are heavier per value, so their real ceiling is lower still.
+//
+// The old 500-value filter limit documented for Analysis Services live
+// connections does NOT apply: verified filtering 10,000 values over a live
+// connection to a Power BI semantic model with no error.
+//
+// Filtering a subset instead would be a silently wrong answer, so past this the
+// visual declines and names the lever that fixes it.
+const MAX_FILTER_VALUES     = 10000;
 const FREE_BIN_SIZE_PCT = 20;
+// Base chrome at full size. computeLayout() scales it down for small tiles.
 const MARGIN            = { top: 28, right: 64, bottom: 68, left: 64 };
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
@@ -35,6 +60,13 @@ interface Settings {
     borderWidth:  number;
     barGap:       number;
     ibcsMode:     boolean;
+    // thresholdColors group
+    thShow:              boolean;
+    thValue:             number;
+    thWithinColor:       string;
+    thBeyondColor:       string;
+    thHighlightCrossing: boolean;
+    thCrossingColor:     string;
     // axes group
     axisColor:    string;
     gridColor:    string;
@@ -88,6 +120,13 @@ function readSettings(dv: DataView): Settings {
         barGap:       num("pareto", "barGap",         2),
         ibcsMode:     boo("pareto", "ibcsMode",       false),
 
+        thShow:              boo("thresholdColors", "show",              false),
+        thValue:             num("thresholdColors", "thresholdValue",    80),
+        thWithinColor:       col("thresholdColors", "withinColor",       "#4472C4"),
+        thBeyondColor:       col("thresholdColors", "beyondColor",       "#C6CFDF"),
+        thHighlightCrossing: boo("thresholdColors", "highlightCrossing", true),
+        thCrossingColor:     col("thresholdColors", "crossingColor",     "#ED7D31"),
+
         axisColor:    col("axes", "axisColor",        "#444444"),
         gridColor:    col("axes", "gridColor",        "#e0e0e0"),
         axisFontSize: num("axes", "fontSize",         11),
@@ -132,6 +171,9 @@ interface BinDatum {
     nEntities:      number;
     highlighted:    boolean;
     customTooltips: TooltipSummaryItem[];
+    /** Color resolved by an fx conditional-formatting rule on the bin's
+     *  top-ranked entity, or null when no rule is applied. */
+    ruleColor:      string | null;
 }
 
 // ─── Visual ───────────────────────────────────────────────────────────────────
@@ -151,6 +193,17 @@ export class Visual implements IVisual {
     private isProChecked:    boolean = false;
     private readonly DEV_MODE        = false;
     private renderGeneration: number = 0;   // guards stale async renders
+    /** Roving tabindex: index of the bin that currently owns Tab focus. */
+    private focusedBin: number = 0;
+    private restoreFocusAfterRender = false;
+    /** Entities actually loaded when Power BI stopped feeding us. */
+    private truncatedAt = 0;
+    /** Entities in the last selection that was too large to filter. */
+    private oversizedSelection = 0;
+    /** Segment streaming guards — see the fetch block in update(). */
+    private lastFetchCount = 0;
+    private fetchRounds    = 0;
+    private readonly MAX_FETCH_ROUNDS = 60;   // 60 x 30k is past Power BI's row ceiling
     // Power BI Desktop runs inside Electron; fetchMoreData only works in Service
     private readonly isDesktop: boolean = navigator.userAgent.indexOf('Electron') !== -1;
 
@@ -177,12 +230,17 @@ export class Visual implements IVisual {
         this.svg = this.container.append("svg")
             .style("width", "100%").style("height", "100%");
 
+        this.injectStyles();
+
         this.svg.on("click", () => {
+            if (!this.canInteract) return;
             this.selectedBins.clear();
-            this.selectionManager.clear().then(() => this.applyOpacity([]));
+            this.clearBinFilter();
+            this.selectionManager.clear().then(() => { this.applyOpacity([]); this.syncAria(); });
         });
 
         options.element.addEventListener("contextmenu", (event: MouseEvent) => {
+            if (!this.canInteract) return;
             const target = event.target as Element;
             const datum  = d3.select<Element, BinDatum>(target).datum();
             const selId  = datum?.indices?.length && this.lastCatCol
@@ -213,25 +271,88 @@ export class Visual implements IVisual {
 
             // Fetch more data segments if available (trigger only when chunk capacity of 30,000 is reached)
             const loadedCount = dv.categorical.categories[0].values.length;
-            if (dv.metadata?.segment && loadedCount >= 30000) {
-                this.renderLoadingIndicator(loadedCount);
-                if (this.host.fetchMoreData(true)) {
-                    // aggregateSegments=true: Power BI combines chunks and calls update() again.
-                    this.events.renderingFinished(options);
-                    return;
-                }
+            // metadata.segment means Power BI has more rows than it handed us.
+            // If fetchMoreData then refuses, we are capped and drawing a Pareto of
+            // a partial universe — which looks completely normal, because a Pareto
+            // always spans 0-100%. That has to be visible.
+            //
+            // Power BI's own ceilings: 1,048,576 rows total, and 100 MB of dataView
+            // in segments aggregation mode, at which point fetchMoreData() returns
+            // false. Desktop cannot stream segments at all and stops at 30,000.
+            // operationKind 1 = Append (a segment continuation). Anything else is a
+            // fresh query, so the streaming guards start over.
+            if ((options as any).operationKind !== 1) {
+                this.lastFetchCount = 0;
+                this.fetchRounds    = 0;
             }
+
+            let truncated = false;
+            if (dv.metadata?.segment) {
+                // Three independent brakes. Asking for more data and returning without
+                // rendering is only safe while more data is actually arriving; when it
+                // is not, this loops forever and takes the host down with it.
+                //   - Desktop runs in Electron and cannot stream segments at all.
+                //   - No growth since the previous round means we are being handed the
+                //     same data again. This is the brake that matters, because it does
+                //     not depend on sniffing the user agent.
+                //   - A round ceiling, as a last resort.
+                const grew      = loadedCount > this.lastFetchCount;
+                const canStream = !this.isDesktop && grew && this.fetchRounds < this.MAX_FETCH_ROUNDS;
+
+                if (canStream && loadedCount >= 30000) {
+                    this.lastFetchCount = loadedCount;
+                    this.fetchRounds++;
+                    this.renderLoadingIndicator(loadedCount);
+                    if (this.host.fetchMoreData(true)) {
+                        // aggregateSegments=true: Power BI combines chunks and calls update() again.
+                        this.events.renderingFinished(options);
+                        return;
+                    }
+                }
+                truncated = true;
+                this.truncatedAt = loadedCount;
+            }
+
+            const activeEl = (this.container.node() as HTMLElement)?.ownerDocument?.activeElement;
+            this.restoreFocusAfterRender = !!activeEl
+                && (this.container.node() as HTMLElement).contains(activeEl);
 
             this.container.selectAll(".loading-indicator").remove();
             this.svg.selectAll("*").remove();
             this.container.selectAll(".landing-page").remove();
-            this.selectedBins.clear();
+
+            // Applying a filter persists it into this visual's own general.filter
+            // property, which makes Power BI call update() again. Clearing the
+            // selection here — as this did — wiped the bar's selected state on the
+            // very render that the click caused, so the first click filtered but
+            // left nothing marked and a second click was needed to see it.
+            //
+            // Keep the selection instead, and only drop it when the filter is
+            // genuinely gone (cleared elsewhere, or a bookmark switched it off).
+            const filterActive =
+                (options.jsonFilters?.length ?? 0) > 0 ||
+                !!(dv.metadata?.objects?.["general"]?.["filter"]);
 
             const gen = ++this.renderGeneration;
             this.checkLicense().then(() => {
                 if (gen !== this.renderGeneration) return; // stale update, skip
                 this.buildBins(dv);
-                this.renderChart(options.viewport, false);
+
+                if (!filterActive && !this.selectionManager.hasSelection()) {
+                    this.selectedBins.clear();
+                } else {
+                    // Drop labels that no longer exist (bin count can change).
+                    const labels = new Set(this.bins.map(b => b.label));
+                    Array.from(this.selectedBins).forEach(l => {
+                        if (!labels.has(l)) this.selectedBins.delete(l);
+                    });
+                }
+
+                this.renderChart(options.viewport, truncated);
+                // renderChart sets opacity from highlight state only; re-apply the
+                // selection dimming on top of the fresh nodes.
+                this.applyOpacity();
+                this.syncAria();
                 this.events.renderingFinished(options);
             });
         } catch (e) {
@@ -319,6 +440,15 @@ export class Visual implements IVisual {
             vCol => vCol.source?.roles?.["tooltips"]
         );
 
+        // Conditional formatting: Power BI resolves the fx rule per category and
+        // hands the result back on categories[0].objects[i]. Read it defensively —
+        // with no rule applied the whole chain is undefined.
+        const catObjects = (catCol as any)?.objects as powerbi.DataViewObjects[] | undefined;
+        const ruleColorAt = (rowIndex: number): string | null => {
+            const c = (catObjects?.[rowIndex]?.["pareto"]?.["barColor"] as powerbi.Fill)?.solid?.color;
+            return typeof c === "string" && c.length > 0 ? c : null;
+        };
+
         let cumPct = 0;
         const stepPct = 100 / nBins;
         this.bins = rawBins
@@ -343,6 +473,15 @@ export class Visual implements IVisual {
                     };
                 });
 
+                // Rows are sorted descending, so b[0] is the bin's top-ranked
+                // entity. Its rule color represents the bin; fall back to the
+                // first entity in the bin that resolves to one.
+                let ruleColor: string | null = null;
+                for (const r of b) {
+                    ruleColor = ruleColorAt(r.index);
+                    if (ruleColor) break;
+                }
+
                 return {
                     label:          `${Math.round(binStart)}–${Math.round(binEnd)}%`,
                     pctShare,
@@ -351,8 +490,91 @@ export class Visual implements IVisual {
                     nEntities:      b.length,
                     highlighted,
                     customTooltips,
+                    ruleColor,
                 };
             });
+    }
+
+    /** Toggle a bin's selection. Shared by pointer and keyboard so both behave
+     *  identically. `additive` mirrors Ctrl/Cmd-click. */
+    private toggleBinSelection(b: BinDatum, additive: boolean): void {
+        if (!this.canInteract) return;
+
+        if (additive) {
+            if (this.selectedBins.has(b.label)) this.selectedBins.delete(b.label);
+            else                                this.selectedBins.add(b.label);
+        } else if (this.selectedBins.size === 1 && this.selectedBins.has(b.label)) {
+            this.selectedBins.clear();
+        } else {
+            this.selectedBins.clear();
+            this.selectedBins.add(b.label);
+        }
+
+        if (this.selectedBins.size === 0) {
+            this.clearBinFilter();
+            this.selectionManager.clear().then(() => { this.applyOpacity([]); this.syncAria(); });
+            return;
+        }
+
+        const chosen = this.bins.filter(bin => this.selectedBins.has(bin.label));
+
+        // Refuse rather than filter partially.
+        const entityCount = chosen.reduce((acc, b) => acc + b.nEntities, 0);
+        if (entityCount > MAX_FILTER_VALUES) {
+            this.selectedBins.clear();
+            this.oversizedSelection = entityCount;
+            this.applyOpacity();
+            this.syncAria();
+            this.renderOversizedNotice();
+            return;
+        }
+        this.oversizedSelection = 0;
+
+        // Preferred path: an exact filter over every entity in the bins, no cap.
+        const filter = this.buildBinFilter(chosen);
+        if (filter) {
+            this.host.applyJsonFilter(filter, "general", "filter", this.FILTER_MERGE);
+            this.applyOpacity([]);
+            this.syncAria();
+            return;
+        }
+
+        // Fallback: no usable filter target (drilldown level, unusual model
+        // shape). Selection IDs still work, capped at MAX_SEL_IDS_PER_BIN.
+        const allIds = chosen.reduce(
+            (acc, bin) => acc.concat(this.getSelIds(bin.indices)), [] as ISelectionId[]);
+        this.selectionManager.select(allIds, false)
+            .then((ids: ISelectionId[]) => { this.applyOpacity(ids); this.syncAria(); });
+    }
+
+    /** Keep aria-selected in step with the visual selection state. */
+    private syncAria(): void {
+        this.svg.selectAll<SVGRectElement, BinDatum>(".bar")
+            .attr("aria-selected", b => (this.selectedBins.has(b.label) ? "true" : "false"));
+    }
+
+    /** style/visual.less is not emitted into the .pbiviz by pbiviz, so any CSS the
+     *  visual actually needs has to be injected at runtime. */
+    private injectStyles(): void {
+        const ID  = "pareto-chart-pro-styles";
+        const doc = (this.container.node() as HTMLElement).ownerDocument ?? document;
+        if (doc.getElementById(ID)) return;
+        const st = doc.createElement("style");
+        st.id = ID;
+        st.textContent = [
+            ".pareto-visual .bar:focus{outline:none}",
+            ".pareto-visual .bar:focus-visible{outline:none;stroke:#000;stroke-width:3px;",
+            "paint-order:stroke;filter:drop-shadow(0 0 0 2px #fff)}",
+            "@media (forced-colors: active){",
+            ".pareto-visual .bar:focus-visible{stroke:Highlight;stroke-width:3px}}",
+        ].join("");
+        (doc.head ?? (this.container.node() as HTMLElement)).appendChild(st);
+    }
+
+    /** Power BI can disable all interaction (e.g. in some embed scenarios).
+     *  Not present in the powerbi-visuals-api 5.x types, hence the cast. */
+    private get canInteract(): boolean {
+        return (this.host as any).allowInteractions !== false;
     }
 
     // ── Resolve color (high contrast aware) ───────────────────────────────────
@@ -363,8 +585,31 @@ export class Visual implements IVisual {
     // ── Render chart ──────────────────────────────────────────────────────────
     private renderChart(viewport: powerbi.IViewport, isTruncated = false): void {
         const s  = this.settings;
-        const W  = viewport.width  - MARGIN.left - MARGIN.right;
-        const H  = viewport.height - MARGIN.top  - MARGIN.bottom;
+        // ── Adaptive layout ────────────────────────────────────────────────────
+        // A fixed margin spends most of a small dashboard tile on chrome. Scale the
+        // chrome with the viewport and drop whatever no longer earns its space.
+        const VW = viewport.width, VH = viewport.height;
+        const compact = VW < 360 || VH < 240;
+        const tiny    = VW < 240 || VH < 170;
+
+        const fs = tiny    ? Math.max(8, s.axisFontSize - 3)
+                 : compact ? Math.max(9, s.axisFontSize - 2)
+                 : s.axisFontSize;
+
+        const showXLabel    = s.showXLabel && !compact;
+        const showYLabel    = s.showYLabel && !compact;
+        const showRightAxis = !tiny;
+        const showBadge     = !compact;
+
+        const M = {
+            top:    tiny ? 10 : compact ? 16 : MARGIN.top,
+            right:  tiny ?  8 : compact ? 34 : MARGIN.right,
+            bottom: (tiny ? 26 : compact ? 40 : 52) + (showXLabel ? 16 : 0),
+            left:   (tiny ? 28 : compact ? 38 : 48) + (showYLabel ? 16 : 0),
+        };
+
+        const W  = VW - M.left - M.right;
+        const H  = VH - M.top  - M.bottom;
         if (W <= 0 || H <= 0 || !this.bins.length) return;
 
         // ── High contrast support ──────────────────────────────────────────────
@@ -395,7 +640,7 @@ export class Visual implements IVisual {
 
         this.svg.attr("width", viewport.width).attr("height", viewport.height);
         const g = this.svg.append("g")
-            .attr("transform", `translate(${MARGIN.left},${MARGIN.top})`);
+            .attr("transform", `translate(${M.left},${M.top})`);
 
         // Scales
         const xScale = d3.scaleBand()
@@ -423,46 +668,74 @@ export class Visual implements IVisual {
         const xAxis = g.append("g").classed("axis", true)
             .attr("transform", `translate(0,${H})`)
             .call(d3.axisBottom(xScale));
+        // Thin the tick labels when the bands get too narrow to read them.
+        const bandPx   = xScale.step();   // band + gap: the space one label owns
+        const everyNth = Math.max(1, Math.ceil((fs * 2.6) / Math.max(1, bandPx)));
         xAxis.selectAll("text")
             .attr("transform", "rotate(-40)")
             .style("text-anchor", "end")
-            .style("font-size", s.axisFontSize + "px")
-            .style("fill", axisColor);
+            .style("font-size", fs + "px")
+            .style("fill", axisColor)
+            .style("display", (_d, i) => (i % everyNth === 0 ? null : "none"));
         xAxis.selectAll("line, path").style("stroke", axisColor);
 
         const yAxisL = g.append("g").classed("axis", true)
             .call(d3.axisLeft(yL).ticks(6).tickFormat(d => `${d}%`));
-        yAxisL.selectAll("text").style("fill", axisColor).style("font-size", s.axisFontSize + "px");
+        yAxisL.selectAll("text").style("fill", axisColor).style("font-size", fs + "px");
         yAxisL.selectAll("line, path").style("stroke", axisColor);
 
-        const yAxisR = g.append("g").classed("axis", true)
-            .attr("transform", `translate(${W},0)`)
-            .call(d3.axisRight(yR).ticks(5).tickFormat(d => `${d}%`));
-        yAxisR.selectAll("text").style("fill", axisColor).style("font-size", s.axisFontSize + "px");
-        yAxisR.selectAll("line, path").style("stroke", axisColor);
+        if (showRightAxis) {
+            const yAxisR = g.append("g").classed("axis", true)
+                .attr("transform", `translate(${W},0)`)
+                .call(d3.axisRight(yR).ticks(compact ? 3 : 5).tickFormat(d => `${d}%`));
+            yAxisR.selectAll("text").style("fill", axisColor).style("font-size", fs + "px");
+            yAxisR.selectAll("line, path").style("stroke", axisColor);
+        }
 
         // Axis labels
-        if (s.showYLabel) {
+        if (showYLabel) {
             g.append("text")
                 .attr("transform", `rotate(-90)`)
-                .attr("x", -H / 2).attr("y", -50)
+                .attr("x", -H / 2).attr("y", -(M.left - 14))
                 .attr("text-anchor", "middle")
-                .style("font-size", s.axisFontSize + "px").style("fill", axisColor)
+                .style("font-size", fs + "px").style("fill", axisColor)
                 .text("% of total value");
         }
-        if (s.showXLabel) {
+        if (showXLabel) {
             g.append("text")
-                .attr("x", W / 2).attr("y", H + 58)
+                .attr("x", W / 2).attr("y", H + M.bottom - 10)
                 .attr("text-anchor", "middle")
-                .style("font-size", s.axisFontSize + "px").style("fill", axisColor)
+                .style("font-size", fs + "px").style("fill", axisColor)
                 .text("% of entities (best → worst)");
         }
+
+        // ── Bar fill resolution ────────────────────────────────────────────────
+        // Precedence, highest first:
+        //   1. high contrast   — meaning may not be encoded in fill
+        //   2. IBCS mode       — standardized neutral palette
+        //   3. threshold colors — explicit opt-in, applies to every bar
+        //   4. fx rule color   — resolved per bin from its top-ranked entity
+        //   5. the constant Bar color
+        const crossingIdx = s.thShow
+            ? this.bins.findIndex(b => b.cumPct >= Math.min(100, Math.max(0, s.thValue)))
+            : -1;
+
+        const binFill = (b: BinDatum, i: number): string => {
+            if (isHC) return barColor;
+            if (s.ibcsMode) return barColor;
+            if (s.thShow) {
+                if (s.thHighlightCrossing && i === crossingIdx) return s.thCrossingColor;
+                if (crossingIdx === -1) return s.thWithinColor;
+                return i <= crossingIdx ? s.thWithinColor : s.thBeyondColor;
+            }
+            return b.ruleColor ?? barColor;
+        };
 
         // Bars
         const bw = s.borderWidth > 0 ? s.borderWidth : 0;
         const borderStroke = this.resolveColor(s.borderColor, hcFg, isHC);
 
-        g.selectAll(".bar")
+        const barSel = g.selectAll(".bar")
             .data(this.bins)
             .enter().append("rect")
             .classed("bar", true)
@@ -470,37 +743,14 @@ export class Visual implements IVisual {
             .attr("y",      b => yL(b.pctShare))
             .attr("width",  xScale.bandwidth())
             .attr("height", b => Math.max(0, H - yL(b.pctShare)))
-            .attr("fill",   barColor)
+            .attr("fill",   (b, i) => binFill(b, i))
             .attr("opacity", b => hasHL ? (b.highlighted ? s.barOpacity : s.barOpacity * 0.25) : s.barOpacity)
             .attr("stroke",       (bw > 0 || isHC) ? borderStroke : "none")
             .attr("stroke-width", isHC ? 2 : bw)
             .style("cursor", "pointer")
             .on("click", (event: MouseEvent, b: BinDatum) => {
                 event.stopPropagation();
-                if (event.ctrlKey) {
-                    if (this.selectedBins.has(b.label)) {
-                        this.selectedBins.delete(b.label);
-                    } else {
-                        this.selectedBins.add(b.label);
-                    }
-                } else {
-                    if (this.selectedBins.size === 1 && this.selectedBins.has(b.label)) {
-                        this.selectedBins.clear();
-                    } else {
-                        this.selectedBins.clear();
-                        this.selectedBins.add(b.label);
-                    }
-                }
-
-                if (this.selectedBins.size === 0) {
-                    this.selectionManager.clear().then(() => this.applyOpacity([]));
-                } else {
-                    const allIds = this.bins
-                        .filter(bin => this.selectedBins.has(bin.label))
-                        .reduce((acc, bin) => acc.concat(this.getSelIds(bin.indices)), [] as ISelectionId[]);
-                    this.selectionManager.select(allIds, false)
-                        .then((ids: ISelectionId[]) => this.applyOpacity(ids));
-                }
+                this.toggleBinSelection(b, event.ctrlKey || event.metaKey);
             })
             .on("mouseover", (event: MouseEvent, b: BinDatum) => {
                 this.host.tooltipService?.show({
@@ -532,6 +782,99 @@ export class Visual implements IVisual {
             .on("mouseout", () =>
                 this.host.tooltipService?.hide({ immediately: false, isTouchEvent: false })
             );
+
+        // ── Accessibility ──────────────────────────────────────────────────────
+        // The chart is a single Tab stop (roving tabindex); arrows move between
+        // bins. capabilities.supportsKeyboardFocus is only honest with this here.
+        this.svg
+            .attr("role", "listbox")
+            .attr("aria-multiselectable", "true")
+            .attr("aria-label",
+                `Pareto chart. ${this.bins.length} bins of ranked entities, ` +
+                `highest contribution first.`);
+
+        this.focusedBin = Math.max(0, Math.min(this.focusedBin, this.bins.length - 1));
+
+        barSel
+            .attr("role", "option")
+            .attr("tabindex", (_d, i) => (i === this.focusedBin ? 0 : -1))
+            .attr("aria-selected", b => (this.selectedBins.has(b.label) ? "true" : "false"))
+            .attr("aria-label", (b, i) =>
+                `Bin ${i + 1} of ${this.bins.length}. Entities ${b.label}. ` +
+                `${b.pctShare.toFixed(1)} percent of total value. ` +
+                `Cumulative ${b.cumPct.toFixed(1)} percent. ` +
+                `${b.nEntities} ${b.nEntities === 1 ? "entity" : "entities"}.`);
+
+        const focusBin = (i: number): void => {
+            const clamped = Math.max(0, Math.min(this.bins.length - 1, i));
+            this.focusedBin = clamped;
+            barSel.attr("tabindex", (_d, j) => (j === clamped ? 0 : -1));
+            (barSel.nodes()[clamped] as SVGRectElement | undefined)?.focus();
+        };
+
+        const openMenu = (event: Event, b: BinDatum): void => {
+            const rect = (event.currentTarget as SVGRectElement).getBoundingClientRect();
+            const selId = b.indices.length && this.lastCatCol
+                ? (this.getSelIds(b.indices, 1)[0] ?? null)
+                : null;
+            this.selectionManager.showContextMenu(selId, {
+                x: rect.left + rect.width / 2,
+                y: rect.top,
+            });
+        };
+
+        barSel
+            .on("keydown", (event: KeyboardEvent, b: BinDatum) => {
+                if (!this.canInteract) return;
+                const i = this.bins.indexOf(b);
+                let handled = true;
+                switch (event.key) {
+                    case "ArrowRight": case "ArrowDown": focusBin(i + 1); break;
+                    case "ArrowLeft":  case "ArrowUp":   focusBin(i - 1); break;
+                    case "Home":                         focusBin(0); break;
+                    case "End":                          focusBin(this.bins.length - 1); break;
+                    case "Enter": case " ": case "Spacebar":
+                        this.toggleBinSelection(b, event.ctrlKey || event.metaKey);
+                        break;
+                    case "Escape":
+                        this.selectedBins.clear();
+                        this.clearBinFilter();
+                        this.selectionManager.clear()
+                            .then(() => { this.applyOpacity([]); this.syncAria(); });
+                        break;
+                    case "ContextMenu":  openMenu(event, b); break;
+                    case "F10":
+                        if (event.shiftKey) openMenu(event, b); else handled = false;
+                        break;
+                    default: handled = false;
+                }
+                if (handled) { event.preventDefault(); event.stopPropagation(); }
+            })
+            // A tooltip that only appears on hover is invisible to keyboard users.
+            .on("focus", (event: FocusEvent, b: BinDatum) => {
+                const rect = (event.currentTarget as SVGRectElement).getBoundingClientRect();
+                this.host.tooltipService?.show({
+                    dataItems: [
+                        { displayName: "Entities",         value: b.label },
+                        { displayName: "Count",            value: String(b.nEntities) },
+                        { displayName: "% of total value", value: `${b.pctShare.toFixed(2)}%` },
+                        { displayName: "Cumulative",       value: `${b.cumPct.toFixed(2)}%` },
+                        ...(b.customTooltips || [])
+                    ],
+                    identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
+                    coordinates: [rect.left + rect.width / 2, rect.top],
+                    isTouchEvent: false,
+                });
+            })
+            .on("blur", () =>
+                this.host.tooltipService?.hide({ immediately: false, isTouchEvent: false })
+            );
+
+        // A re-render destroys the focused node; put focus back where it was.
+        if (this.restoreFocusAfterRender) {
+            this.restoreFocusAfterRender = false;
+            (barSel.nodes()[this.focusedBin] as SVGRectElement | undefined)?.focus();
+        }
 
         // Value labels (Pro)
         if (s.showLabels && this.isPro) {
@@ -637,8 +980,8 @@ export class Visual implements IVisual {
             }
         });
 
-        // Free tier badge
-        if (!this.isPro) {
+        // Free tier badge — needs top margin to sit in; hidden on small tiles.
+        if (!this.isPro && showBadge) {
             g.append("text")
                 .attr("x", W).attr("y", -10)
                 .attr("text-anchor", "end")
@@ -648,11 +991,14 @@ export class Visual implements IVisual {
 
         // Truncation notice (Desktop only, when ≥30k rows)
         if (isTruncated) {
+            const shown = this.truncatedAt.toLocaleString();
             g.append("text")
                 .attr("x", 0).attr("y", -10)
                 .attr("text-anchor", "start")
                 .style("font-size", "10px").style("fill", isHC ? hcFgNeutral : "#E8A020")
-                .text("⚠ Data limited to 30,000 rows. Use Power BI Service for full dataset.");
+                .text(this.isDesktop
+                    ? `⚠ Partial data: ${shown} rows. Power BI Desktop cannot load more — publish to the Service for the full dataset.`
+                    : `⚠ Partial data: ${shown} rows. Power BI's 100 MB data limit was reached — reduce bound tooltip measures or narrow the filter.`);
         }
     }
 
@@ -679,23 +1025,150 @@ export class Visual implements IVisual {
     // ── Filter-in opacity ─────────────────────────────────────────────────────
 
     // ── On-demand selId factory (1 SelectionId per category selection action to prevent DS0 query errors) ──
-    private getSelIds(indices: number[], max: number = 1): ISelectionId[] {
-        if (!this.lastCatCol || !indices.length) return [];
+    /**
+     * A BasicFilter over every entity in the given bins.
+     *
+     * This is what makes bin filtering exact. selectionManager.select() needs one
+     * selection ID per entity — each carrying a full scope identity — so a bin of
+     * 3,000 customers either builds 3,000 heavy objects or gets capped and filters
+     * a subset. A BasicFilter carries plain scalars instead, which is the same
+     * mechanism native slicers use for large value lists, so there is no cap.
+     *
+     * Returns null when the category's queryName cannot be split into a
+     * table/column target — drilldown levels and some model shapes do not expose
+     * one. The caller falls back to selection IDs in that case, so behavior
+     * degrades to the previous mechanism instead of breaking.
+     */
+    private buildBinFilter(bins: BinDatum[]): powerbi.IFilter | null {
         const cat = this.lastCatCol;
-        const builder = this.host.createSelectionIdBuilder();
-        const selId = builder.withCategory(cat, indices[0]).createSelectionId();
-        return [selId];
+        if (!cat) return null;
+
+        // Require exactly one dot. "table.column" is a usable target; a hierarchy
+        // level arrives as "table.hierarchy.level", and splitting that on the
+        // first dot would build a target for a column that does not exist —
+        // a wrong filter rather than no filter. Anything else falls back.
+        const queryName = cat.source?.queryName ?? "";
+        const parts = queryName.split(".");
+        if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+        const dot = parts[0].length;
+
+        const values: powerbi.PrimitiveValue[] = [];
+        const seen = new Set<string>();
+        for (const b of bins) {
+            for (const i of b.indices) {
+                const v = cat.values[i];
+                if (v === null || v === undefined) continue;
+                const key = String(v);
+                if (seen.has(key)) continue;
+                seen.add(key);
+                values.push(v);
+            }
+        }
+        if (!values.length) return null;
+
+        return {
+            $schema: "https://powerbi.com/product/schema#basic",
+            filterType: 1,                    // FilterType.Basic
+            target: {
+                table:  queryName.slice(0, dot),
+                column: queryName.slice(dot + 1),
+            },
+            operator: "In",
+            values,
+        } as unknown as powerbi.IFilter;
     }
 
+    /** FilterAction is a const enum — the literals are required at runtime. */
+    private readonly FILTER_MERGE  = 0;
+    private readonly FILTER_REMOVE = 1;
+
+    private clearBinFilter(): void {
+        this.host.applyJsonFilter(null, "general", "filter", this.FILTER_REMOVE);
+    }
+
+    /**
+     * Selection IDs for the entities of a bin, built on demand.
+     *
+     * History, because this function has been wrong in both directions:
+     *   1.1.0.0 built one ID per row eagerly at parse time — 30k+ objects per
+     *           update, and no deduplication, which is what produced
+     *           "The DataSet 'DS0' contains a filter with duplicate columns".
+     *   1.2.0.0 fixed the cost and the duplicates by returning a single ID for
+     *           indices[0], ignoring `max` entirely. That traded a visible error
+     *           for silently filtering one entity instead of the whole bin.
+     *
+     * This version keeps the laziness, deduplicates by category value (the
+     * actual DS0 cause), builds a fresh builder per ID — reusing one across
+     * categories accumulates selectors — and honors the cap.
+     *
+     * NOTE: the cap means a bin holding more entities than `max` cross-filters
+     * only the first `max` of them. Pre-grouping entities with a DAX quantile
+     * column keeps bins well under it; see docs/TIPS-AND-HINTS.md.
+     */
+    private getSelIds(indices: number[], max: number = MAX_SEL_IDS_PER_BIN): ISelectionId[] {
+        if (!this.lastCatCol || !indices.length) return [];
+        const cat  = this.lastCatCol;
+        const out  = [] as ISelectionId[];
+        const seen = new Set<string>();
+
+        for (const i of indices) {
+            if (out.length >= max) break;
+            const key = String(cat.values[i]);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            out.push(
+                this.host.createSelectionIdBuilder()
+                    .withCategory(cat, i)
+                    .createSelectionId()
+            );
+        }
+        return out;
+    }
+
+    /**
+     * Bar opacity from two independent sources, in precedence order:
+     *   1. our own bin selection
+     *   2. highlights pushed in by other visuals (filter-in)
+     * Without the second branch, calling this with an empty selection erased the
+     * incoming highlight dimming that renderChart had just applied.
+     */
     private applyOpacity(_selectedIds?: ISelectionId[]): void {
         const opacity = this.settings.barOpacity;
+        const hasSel  = this.selectedBins.size > 0;
+        const hasHL   = this.bins.some(b => b.highlighted);
+
         this.svg.selectAll<SVGRectElement, BinDatum>(".bar")
             .attr("opacity", b => {
-                if (!this.selectedBins.size) return opacity;
-                return this.selectedBins.has(b.label) ? opacity : opacity * 0.25;
+                if (hasSel) return this.selectedBins.has(b.label) ? opacity : opacity * 0.25;
+                if (hasHL)  return b.highlighted                  ? opacity : opacity * 0.25;
+                return opacity;
             });
     }
 
+
+    /** Says why a click did nothing, and what lever fixes it. */
+    private renderOversizedNotice(): void {
+        this.container.selectAll(".oversized-notice").remove();
+        const n   = this.oversizedSelection.toLocaleString();
+        const cap = MAX_FILTER_VALUES.toLocaleString();
+
+        const note = this.container.append("div")
+            .classed("oversized-notice", true)
+            .style("position", "absolute").style("left", "0").style("right", "0")
+            .style("bottom", "0").style("padding", "8px 12px")
+            .style("background", "#FDF3E7").style("border-top", "1px solid #E8A020")
+            .style("font-size", "11px").style("color", "#7A4E12")
+            .style("line-height", "1.4");
+
+        note.append("div").text(
+            `This bin holds ${n} entities — more than the ${cap} Power BI can cross-filter at once.`);
+        note.append("div").text(
+            this.isPro
+                ? "Reduce the bin size (Pareto → Bin size %) so each bar covers fewer entities."
+                : "Pro lets you reduce the bin size so each bar covers fewer entities.");
+
+        setTimeout(() => this.container.selectAll(".oversized-notice").remove(), 6000);
+    }
 
     // ── Loading indicator (shown while fetchMoreData segments arrive) ──────────
     private renderLoadingIndicator(loadedCount: number): void {
@@ -781,6 +1254,14 @@ export class Visual implements IVisual {
         model.referenceLines.ref3Label.visible = this.isPro;
 
         model.valueLabels.visible = this.isPro;
+
+        // Threshold color slices are noise until the toggle is on.
+        const th = model.thresholdColors;
+        th.thresholdValue.visible    = th.show.value;
+        th.withinColor.visible       = th.show.value;
+        th.beyondColor.visible       = th.show.value;
+        th.highlightCrossing.visible = th.show.value;
+        th.crossingColor.visible     = th.show.value && th.highlightCrossing.value;
 
         return this.formattingSettingsService.buildFormattingModel(model);
     }

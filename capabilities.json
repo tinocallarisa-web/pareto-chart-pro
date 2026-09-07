@@ -22,65 +22,192 @@
     "dataViewMappings": [
         {
             "conditions": [
-                { "category": { "max": 1 }, "measure": { "max": 1 }, "tooltips": { "max": 10 } }
+                {
+                    "category": {
+                        "max": 1
+                    },
+                    "measure": {
+                        "max": 1
+                    },
+                    "tooltips": {
+                        "max": 10
+                    }
+                }
             ],
             "categorical": {
                 "categories": {
-                    "for": { "in": "category" },
-                    "dataReductionAlgorithm": { "window": { "count": 30000 } }
+                    "for": {
+                        "in": "category"
+                    },
+                    "dataReductionAlgorithm": {
+                        "window": {
+                            "count": 30000
+                        }
+                    }
                 },
                 "values": {
                     "select": [
-                        { "bind": { "to": "measure" } },
-                        { "bind": { "to": "tooltips" } }
+                        {
+                            "bind": {
+                                "to": "measure"
+                            }
+                        },
+                        {
+                            "bind": {
+                                "to": "tooltips"
+                            }
+                        }
                     ]
                 }
             }
         }
     ],
     "objects": {
+        "general": {
+            "displayName": "General",
+            "properties": {
+                "filter": {
+                    "type": {
+                        "filter": true
+                    }
+                }
+            }
+        },
         "pareto": {
             "displayName": "Pareto",
             "properties": {
                 "binSizePct": {
                     "displayName": "Bin size % of entities (Pro)",
                     "description": "Each bar represents this % of entities. Free tier fixed at 20% (5 bins). Pro: 1–20%.",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "trimLower": {
                     "displayName": "Exclude bottom % entities (Pro)",
                     "description": "Remove the bottom N% of entities (outliers) before calculating bins.",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "trimUpper": {
                     "displayName": "Exclude top % entities (Pro)",
                     "description": "Remove the top N% of entities (outliers) before calculating bins.",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "barColor": {
                     "displayName": "Bar color",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    },
+                    "description": "Fill color for all bars. Supports rule-based conditional formatting (fx): each bar takes the resolved color of its top-ranked entity.",
+                    "rule": {
+                        "inputRole": "measure",
+                        "output": {
+                            "property": "barColor",
+                            "selector": [
+                                "category"
+                            ]
+                        }
+                    }
                 },
                 "barOpacity": {
                     "displayName": "Bar opacity %",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "borderColor": {
                     "displayName": "Border color (Pro)",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 },
                 "borderWidth": {
                     "displayName": "Border width (Pro)",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "barGap": {
                     "displayName": "Bar gap px (Pro)",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "ibcsMode": {
                     "displayName": "IBCS Mode (Standardized)",
                     "description": "Apply International Business Communication Standards styling (neutral colors, clean contrast, standardized IBCS palette)",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },
+        "thresholdColors": {
+            "displayName": "Threshold Colors",
+            "description": "Color bins by where they fall relative to a cumulative % threshold.",
+            "properties": {
+                "show": {
+                    "displayName": "Color bars by threshold",
+                    "description": "Overrides Bar color. Bins are colored by whether their cumulative % is within the threshold.",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "thresholdValue": {
+                    "displayName": "Threshold (cumulative %)",
+                    "description": "Cumulative percentage that separates the vital few from the trivial many. Defaults to 80.",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "withinColor": {
+                    "displayName": "Within threshold",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "beyondColor": {
+                    "displayName": "Beyond threshold",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "highlightCrossing": {
+                    "displayName": "Highlight crossing bin",
+                    "description": "Emphasize the bin in which the cumulative line crosses the threshold.",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "crossingColor": {
+                    "displayName": "Crossing bin color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 }
             }
         },
@@ -89,23 +216,43 @@
             "properties": {
                 "axisColor": {
                     "displayName": "Axis text color",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 },
                 "gridColor": {
                     "displayName": "Grid color",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 },
                 "fontSize": {
                     "displayName": "Font size",
-                    "type": { "formatting": { "fontSize": true } }
+                    "type": {
+                        "formatting": {
+                            "fontSize": true
+                        }
+                    }
                 },
                 "showXLabel": {
                     "displayName": "Show X axis label",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
                 },
                 "showYLabel": {
                     "displayName": "Show Y axis label",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
                 }
             }
         },
@@ -114,19 +261,31 @@
             "properties": {
                 "lineColor": {
                     "displayName": "Line color",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 },
                 "lineWidth": {
                     "displayName": "Line width",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "showDots": {
                     "displayName": "Show dots",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
                 },
                 "dotRadius": {
                     "displayName": "Dot radius",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 }
             }
         },
@@ -135,52 +294,88 @@
             "properties": {
                 "showRef1": {
                     "displayName": "Show line 1",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
                 },
                 "ref1Value": {
                     "displayName": "Line 1 — cumulative % threshold",
                     "description": "Draw a reference line where cumulative value reaches this %.",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "ref1Color": {
                     "displayName": "Line 1 color",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 },
                 "ref1Label": {
                     "displayName": "Line 1 label",
-                    "type": { "text": true }
+                    "type": {
+                        "text": true
+                    }
                 },
                 "showRef2": {
                     "displayName": "Show line 2",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
                 },
                 "ref2Value": {
                     "displayName": "Line 2 — cumulative % threshold",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "ref2Color": {
                     "displayName": "Line 2 color",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 },
                 "ref2Label": {
                     "displayName": "Line 2 label",
-                    "type": { "text": true }
+                    "type": {
+                        "text": true
+                    }
                 },
                 "showRef3": {
                     "displayName": "Show line 3 (Pro)",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
                 },
                 "ref3Value": {
                     "displayName": "Line 3 — cumulative % threshold (Pro)",
-                    "type": { "numeric": true }
+                    "type": {
+                        "numeric": true
+                    }
                 },
                 "ref3Color": {
                     "displayName": "Line 3 color (Pro)",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 },
                 "ref3Label": {
                     "displayName": "Line 3 label (Pro)",
-                    "type": { "text": true }
+                    "type": {
+                        "text": true
+                    }
                 }
             }
         },
@@ -189,19 +384,33 @@
             "properties": {
                 "show": {
                     "displayName": "Show",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
                 },
                 "fontSize": {
                     "displayName": "Font size",
-                    "type": { "formatting": { "fontSize": true } }
+                    "type": {
+                        "formatting": {
+                            "fontSize": true
+                        }
+                    }
                 },
                 "color": {
                     "displayName": "Color",
-                    "type": { "fill": { "solid": { "color": true } } }
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 },
                 "showPercent": {
                     "displayName": "Show % sign",
-                    "type": { "bool": true }
+                    "type": {
+                        "bool": true
+                    }
                 }
             }
         }
@@ -212,13 +421,23 @@
     "supportsKeyboardFocus": true,
     "supportsMultiVisualSelection": true,
     "tooltips": {
-        "supportedTypes": { "default": true, "canvas": true },
-        "roles": ["category", "tooltips"],
+        "supportedTypes": {
+            "default": true,
+            "canvas": true
+        },
+        "roles": [
+            "category",
+            "tooltips"
+        ],
         "supportEnhancedTooltips": true
     },
     "drilldown": {
-        "roles": ["category"]
+        "roles": [
+            "category"
+        ]
     },
-    "sorting": { "default": {} },
+    "sorting": {
+        "default": {}
+    },
     "privileges": []
 }
