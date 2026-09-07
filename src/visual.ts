@@ -239,6 +239,19 @@ export class Visual implements IVisual {
             this.selectionManager.clear().then(() => { this.applyOpacity([]); this.syncAria(); });
         });
 
+        // Bookmarks and external "clear selections" also travel through the selection
+        // manager on the fallback path. Not present in the 5.x types, hence the cast.
+        const sm = this.selectionManager as any;
+        if (typeof sm.registerOnSelectCallback === "function") {
+            sm.registerOnSelectCallback(() => {
+                if (!sm.hasSelection || !sm.hasSelection()) {
+                    this.selectedBins.clear();
+                    this.applyOpacity();
+                    this.syncAria();
+                }
+            });
+        }
+
         options.element.addEventListener("contextmenu", (event: MouseEvent) => {
             if (!this.canInteract) return;
             const target = event.target as Element;
@@ -338,15 +351,20 @@ export class Visual implements IVisual {
                 if (gen !== this.renderGeneration) return; // stale update, skip
                 this.buildBins(dv);
 
-                if (!filterActive && !this.selectionManager.hasSelection()) {
-                    this.selectedBins.clear();
-                } else {
-                    // Drop labels that no longer exist (bin count can change).
-                    const labels = new Set(this.bins.map(b => b.label));
-                    Array.from(this.selectedBins).forEach(l => {
-                        if (!labels.has(l)) this.selectedBins.delete(l);
-                    });
+                // Derive the selection from the filter Power BI actually holds, so a
+                // bookmark switch lands on the right bars. If the filter is unreadable,
+                // keep what we have rather than guessing.
+                if (!this.restoreSelectionFromFilter(options, filterActive)) {
+                    if (!filterActive && !this.selectionManager.hasSelection()) {
+                        this.selectedBins.clear();
+                    }
                 }
+
+                // Drop labels that no longer exist (bin count can change).
+                const labels = new Set(this.bins.map(b => b.label));
+                Array.from(this.selectedBins).forEach(l => {
+                    if (!labels.has(l)) this.selectedBins.delete(l);
+                });
 
                 this.renderChart(options.viewport, truncated);
                 // renderChart sets opacity from highlight state only; re-apply the
@@ -545,6 +563,52 @@ export class Visual implements IVisual {
             (acc, bin) => acc.concat(this.getSelIds(bin.indices)), [] as ISelectionId[]);
         this.selectionManager.select(allIds, false)
             .then((ids: ISelectionId[]) => { this.applyOpacity(ids); this.syncAria(); });
+    }
+
+    /**
+     * Rebuild the bin selection from whatever filter Power BI currently has.
+     *
+     * The visual's selection lives in memory, but a bookmark restores a *filter*.
+     * Coming back to a bookmark that had bin 1 selected, the filter returns and the
+     * report filters correctly while selectedBins is still empty from wherever the
+     * user had been — so no bar is marked. Reading the selection back out of the
+     * filter is what keeps the chart honest about what is filtered.
+     *
+     * Returns false when the filter exists but its values cannot be read, so the
+     * caller can leave the current selection alone rather than wrongly clearing it.
+     */
+    private restoreSelectionFromFilter(options: VisualUpdateOptions, filterActive: boolean): boolean {
+        const filters = (options as any).jsonFilters as any[] | undefined;
+        if (!filters || !filters.length) {
+            // No readable filter. Only clear when nothing says one is applied —
+            // otherwise this would wipe the selection on the very update our own
+            // click caused, which is the double-click bug all over again.
+            if (filterActive) return false;
+            this.selectedBins.clear();
+            return true;
+        }
+
+        const values = new Set<string>();
+        for (const f of filters) {
+            const vs = (f as any)?.values;
+            if (Array.isArray(vs)) for (const v of vs) values.add(String(v));
+        }
+        if (!values.size) return false;   // a filter we cannot read — do not clear
+
+        const cat = this.lastCatCol;
+        if (!cat) return false;
+
+        this.selectedBins.clear();
+        for (const b of this.bins) {
+            // A bin cannot be fully contained in a smaller value set.
+            if (!b.indices.length || b.nEntities > values.size) continue;
+            let all = true;
+            for (const i of b.indices) {
+                if (!values.has(String(cat.values[i]))) { all = false; break; }
+            }
+            if (all) this.selectedBins.add(b.label);
+        }
+        return true;
     }
 
     /** Keep aria-selected in step with the visual selection state. */
