@@ -1,75 +1,46 @@
-Pareto Chart Pro v1.4.0.0 — GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-Source: https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
+Pareto Chart Pro v1.4.0.0 - GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
+Repo (certification branch), full notes in docs/:
+https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
 Support: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 Privacy: https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
 Terms:   https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
 Video:   https://www.youtube.com/watch?v=qtN0ckSXNZQ
 
-RESUBMISSION — 1200.1.1.4 (Code Repository / package.json)
-1.3.0.1 was rejected with "typescript v3.0.0 or higher does not appear to be present".
-The project compiled because npx fetches TypeScript on demand, but it was not declared
-in the manifest. typescript ^5.9.3 is now a devDependency and package-lock.json was
-regenerated to match. Build with npm install && npm run package.
+RESUBMISSION - 1200.1.1.4 (package.json)
+1.3.0.1 was rejected with "typescript v3.0.0 or higher does not appear to be
+present". It compiled because npx fetches TypeScript on demand, but it was not
+declared. typescript ^5.9.3 is now a devDependency, package-lock regenerated.
+Build: npm install && npm run package.
 
-LICENSING CHANGES IN 1.4.0.0
-The visual no longer draws any licensing UI of its own: a caption reading
-"Free: 20% bins - upgrade to Pro..." has been removed. Pro settings are now listed in
-the format pane for every user, each marked "(Pro)"; they were hidden from Free users
-before. Changing one without a licence leaves the chart on the Free result and calls
-notifyFeatureBlocked(), so Power BI shows its own predefined banner. Intent is read
-from metadata.objects, so the notification never fires on default values.
-Licences in the Warning state (payment grace period) are now honoured alongside Active,
-and isLicenseUnsupportedEnv / isLicenseInfoAvailable are respected, so a Pro customer
-in Publish to Web, embedded or PDF export is never prompted to buy what they own.
+TESTING - FREE (no licence)
+1. Bind a dimension to Entity and a measure to Value: 5 bars, cumulative line,
+   80% reference line.
+2. Click a bar to cross-filter; Ctrl+click adds.
+3. Tab in, arrows move, Enter selects, Escape clears, Shift+F10 opens the menu.
+4. Pareto > Bar color > fx opens conditional formatting; the Threshold Colors
+   card colours bars by cumulative threshold.
+5. Change any setting marked "(Pro)", e.g. Bin size %: the chart keeps the Free
+   result and Power BI's "feature blocked" banner appears. A licence icon also
+   shows while Pro settings are set without one. Both clear once it resolves.
+
+TESTING - PRO (active plan)
+6. Bin size % to 5 gives 20 bars. Check outlier trimming, value labels, the 3rd
+   reference line, bar border and gap. No banner or icon appears.
 
 PRIVACY / NETWORK
-No external network calls. No telemetry, no analytics, no CDN, no custom endpoints.
-All calculation and rendering is local. The only host API used is Microsoft's own
-IVisualLicenseManager (getAvailableServicePlans), which carries no report data.
-No local file access, no localStorage, no cookies. The visual persists one property,
-general.filter, through the standard host.applyJsonFilter mechanism.
+No external calls: no telemetry, analytics, CDN or endpoints. Rendering is all
+local. The only host API is IVisualLicenseManager (getAvailableServicePlans),
+carrying no report data. No file access, localStorage or cookies. One property
+is persisted, general.filter, via host.applyJsonFilter.
 
 LICENSING
-Plan ID: pareto-chart-pro-tcviz. Resolution is deferred with setTimeout(0) after the
-first render, so it never blocks painting; on failure the visual stays on Free.
-Source is in production state: isPro resolved by the licence manager, DEV_MODE false,
-GUID without suffix.
+Plan ID pareto-chart-pro-tcviz. Deferred with setTimeout(0) after first render,
+so it never blocks painting; on failure the visual stays Free. Active and
+Warning are both accepted. isLicenseUnsupportedEnv and isLicenseInfoAvailable
+are respected, so a Pro user in Publish to Web, embedded or PDF export is never
+prompted to buy. No licensing UI of our own, only platform notifications.
+Production state: isPro from the licence manager, DEV_MODE false.
 
-FREE: full Pareto with cumulative line; 20% bins (5 bars); 2 reference lines;
-conditional formatting (fx) and Threshold Colors; Tooltips field well (10 measures);
-IBCS Mode; drilldown; cross-filtering and multi-select; keyboard navigation and
-screen-reader labels; high contrast.
-
-PRO: bin size 1-20% (up to 100 bars); outlier trimming; value labels; 3rd reference
-line; bar border and gap styling.
-
-ACCESSIBILITY
-supportsKeyboardFocus is declared and implemented. Roving tabindex (the chart is one
-Tab stop), arrows move between bins, Home/End, Enter/Space select, Ctrl+Enter adds,
-Escape clears, Shift+F10 opens the context menu. role=listbox / role=option,
-aria-selected, descriptive aria-labels. Tooltips open on focus as well as hover.
-Visible focus ring with a forced-colors variant. High contrast via colorPalette.
-
-DATA VOLUME
-capabilities declares window count 30000; Power BI Service streams further segments
-with fetchMoreData(true), verified at 500,000 entities with slicers re-ranking.
-Desktop cannot stream segments and stops at 30,000. When Power BI stops short, the
-visual shows an amber notice with the exact row count received — a Pareto always
-spans 0-100%, so partial data would otherwise look normal.
-
-CROSS-FILTERING
-Clicking a bar applies a BasicFilter over every entity in the bin. Measured ceiling
-is 10,000 entities per bar over a live connection; past that the visual declines and
-asks the user to reduce the bin size, rather than filtering a subset silently.
-
-RENDERING EVENTS
-renderingStarted at the top of update(); every exit path calls renderingFinished or
-renderingFailed, including the empty-data-view and segment-continuation returns.
-
-TESTING
-Free: bind a dimension to Entity and a numeric measure to Value; 5 bars render with
-the cumulative line and an 80% reference. Click a bar to cross-filter. Tab in, use
-arrows, press Enter. Format Pane > Pareto > Bar color > fx opens conditional
-formatting. Format Pane > Threshold Colors colors bars by cumulative threshold.
-Pro: with an active plan, set Bin size % to 5 (20 bars), then check outlier trimming,
-value labels, the third reference line, and bar border/gap.
+FREE: the complete Pareto, minus the Pro items.
+PRO: bin size 1-20%, outlier trimming, value labels, 3rd reference line, bar
+border and gap.
