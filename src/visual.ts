@@ -429,20 +429,34 @@ export class Visual implements IVisual {
      * and `valueLabels.show` even defaults to true. Presence here is a
      * deliberate action, and therefore a genuine moment of purchase intent.
      */
-    private attemptedProFeatures(): string[] {
+    private attemptedProFeatures(): { labels: string[]; signature: string } {
         const objs = this.lastDataView?.metadata?.objects as any;
-        if (!objs) return [];
+        if (!objs) return { labels: [], signature: "" };
 
-        const touched = (card: string, props: string[]) =>
-            props.some(p => objs?.[card]?.[p] !== undefined);
+        const groups: [string, string, string[]][] = [
+            ["custom bin size",         "pareto",         ["binSizePct"]],
+            ["outlier filtering",       "pareto",         ["trimLower", "trimUpper"]],
+            ["bar styling",             "pareto",         ["borderColor", "borderWidth", "barGap"]],
+            ["a third reference line",  "referenceLines", ["showRef3", "ref3Value", "ref3Color", "ref3Label"]],
+            ["value labels",            "valueLabels",    ["show", "fontSize", "color", "showPercent"]],
+        ];
 
-        const out: string[] = [];
-        if (touched("pareto", ["binSizePct"]))                 out.push("custom bin size");
-        if (touched("pareto", ["trimLower", "trimUpper"]))     out.push("outlier filtering");
-        if (touched("pareto", ["borderColor", "borderWidth", "barGap"])) out.push("bar styling");
-        if (touched("referenceLines", ["showRef3", "ref3Value", "ref3Color", "ref3Label"])) out.push("a third reference line");
-        if (touched("valueLabels", ["show", "fontSize", "color", "showPercent"])) out.push("value labels");
-        return out;
+        const labels: string[] = [];
+        const parts:  string[] = [];
+        for (const [label, card, props] of groups) {
+            let touched = false;
+            for (const p of props) {
+                const v = objs?.[card]?.[p];
+                if (v === undefined) continue;
+                touched = true;
+                // The value, not just the property name: changing bin size from 10
+                // to 15 is a fresh attempt at the same feature and deserves the
+                // banner again. A resize or a data refresh changes neither.
+                parts.push(`${card}.${p}=${JSON.stringify(v)}`);
+            }
+            if (touched) labels.push(label);
+        }
+        return { labels, signature: parts.join("|") };
     }
 
     /**
@@ -454,16 +468,18 @@ export class Visual implements IVisual {
     private notifyProFeatureBlocked(): void {
         if (this.isPro || this.DEV_MODE) { this.lastBlockedNotice = ""; return; }
 
-        const wanted = this.attemptedProFeatures();
+        const { labels: wanted, signature } = this.attemptedProFeatures();
         if (wanted.length === 0) { this.lastBlockedNotice = ""; return; }
 
         // Licence unreadable, or an environment without licence enforcement:
         // a Pro customer would land here too, so never ask them to buy.
         if (!this.licenseEnvSupported || !this.licenseInfoAvailable) return;
 
-        const key = wanted.join("|");
-        if (key === this.lastBlockedNotice) return;   // banner lasts 10s; don't loop
-        this.lastBlockedNotice = key;
+        // Fires on every fresh change to a Pro setting, and only then: update()
+        // also runs on resize, selection and data refresh, and the banner has no
+        // business reappearing for those.
+        if (signature === this.lastBlockedNotice) return;
+        this.lastBlockedNotice = signature;
 
         const list = wanted.length === 1
             ? wanted[0]
