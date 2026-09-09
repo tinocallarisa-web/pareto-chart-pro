@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "powerbi-visuals-tools": "^7.0.3",
-    "powerbi-visuals-utils-formattingmodel": "^7.1.0"
+    "powerbi-visuals-utils-formattingmodel": "^7.1.0",
+    "typescript": "^5.9.3"
   }
 }
