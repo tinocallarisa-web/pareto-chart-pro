@@ -1388,6 +1388,32 @@ export class Visual implements IVisual {
         // "(Pro)" in its display name, and using one triggers Power BI's own
         // "feature blocked" banner, which carries the purchase path.
 
+        // Show the bar colour the chart is actually painting.
+        //
+        // barColor carries a dataViewWildcard selector so Power BI has a scope to
+        // write fx-resolved colours into. The side effect is that a plain colour
+        // picked by the user is persisted under that wildcard too, landing in
+        // categorical.categories[0].objects rather than in metadata.objects — and
+        // populateFormattingSettingsModel only reads the latter. The chart honoured
+        // the new colour while the swatch kept showing the default, which reads as
+        // the setting not having been applied.
+        //
+        // A single distinct colour across every category is a constant the user
+        // chose. Several distinct colours mean an fx rule is driving them, and then
+        // the rule dialog — not the swatch — is what represents the state.
+        const catObjs = this.lastDataView?.categorical?.categories?.[0]?.objects;
+        if (catObjs?.length) {
+            const seen = new Set<string>();
+            for (const o of catObjs) {
+                const c = (o?.["pareto"]?.["barColor"] as powerbi.Fill)?.solid?.color;
+                if (c) seen.add(c);
+                if (seen.size > 1) break;
+            }
+            if (seen.size === 1) {
+                model.pareto.barColor.value = { value: seen.values().next().value };
+            }
+        }
+
         // Threshold color slices are noise until the toggle is on.
         const th = model.thresholdColors;
         th.thresholdValue.visible    = th.show.value;

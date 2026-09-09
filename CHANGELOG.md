@@ -14,6 +14,7 @@
 - **The Free-tier caption drawn inside the chart** (`Free: 20% bins — upgrade to Pro...`). Microsoft's guidance is explicit that a visual "shouldn't display its own licensing UX, instead use one of Power BI supported predefined notifications", and the caption was a dead end: 10px grey text with no way to act on it. The platform banner replaces it.
 
 ### Fixed
+- **The bar colour swatch showed the default after the user changed it.** `barColor` carries a `dataViewWildcard` selector so Power BI has a scope to write fx-resolved colours into; the side effect is that a plain colour picked by the user is persisted under that wildcard as well, landing in `categorical.categories[0].objects` instead of `metadata.objects`. `populateFormattingSettingsModel` only reads the latter, so the chart honoured the new colour while the picker kept displaying `#4472C4` — which reads as the setting not having applied. The format pane now reflects the colour actually being painted when a single colour is in force; when several are, an fx rule is driving them and the rule dialog represents the state. Introduced in 1.3.0.0 with conditional formatting, never released.
 - **`package.json` did not declare `typescript`**, which failed certification policy 1200.1.1.4 (*Code Repository — Required files*): "typescript v3.0.0 or higher does not appear to be present". The build worked because `npx` fetches TypeScript on demand, but the reviewer reads the repository manifest, not the build. Added `typescript ^5.9.3` and regenerated `package-lock.json`.
 
 ## [1.3.0.1] — 2026-09-09
