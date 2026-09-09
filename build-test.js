@@ -103,7 +103,7 @@ try {
     execSync('npx pbiviz package', { stdio: 'inherit', cwd: ROOT, shell: true });
 
     console.log('\n✅  Build de TEST completado.');
-    console.log(`    GUID del test: ${TEST_GUID}`);
+    console.log(`    GUID del test: ${guid}`);
     console.log('    Importa el .pbiviz de /dist/ en Power BI Desktop.');
     console.log('    Power BI lo verá como visual distinto al de AppSource.\n');
 
