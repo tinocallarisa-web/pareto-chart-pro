@@ -1,5 +1,5 @@
 =========================================================
-NOTAS DE CERTIFICACIÓN — PARETO CHART PRO v1.1.0.0
+NOTAS DE CERTIFICACIÓN — PARETO CHART PRO v1.4.0.0
 Copiar SIEMPRE antes de hacer Submit en Partner Center
 (Microsoft borra este campo en cada reenvío)
 =========================================================
@@ -23,6 +23,16 @@ License validation:
 Uses official Microsoft IVisualLicenseManager API. No external server.
 Plan ID: pareto-chart-pro-tcviz
 Resolution is async and does not block initial render.
+
+Both Active and Warning states are accepted as a usable licence, per the
+licensing API documentation ("only the active and warning states represent a
+usable license"). Warning is a grace period, so a paying customer keeps their
+features while a payment issue is resolved.
+
+isLicenseUnsupportedEnv and isLicenseInfoAvailable are both honoured. In
+Publish to Web, embedded, national clouds, PDF/PPT export, or when the user is
+offline or not signed in, a Pro customer legitimately reads as Free — in those
+cases the visual renders the Free experience but never prompts to purchase.
 
 Free tier (no license required):
 - Fixed 20% bins (5 bars showing top to bottom entities)
@@ -52,7 +62,19 @@ Network access:
 
 Formatting Pane:
 - Migrated to getFormattingModel() using powerbi-visuals-utils-formattingmodel
-- Pro-only slices hidden via slice.visible = false when Free tier
+- Pro slices are visible to every user and each carries "(Pro)" in its display
+  name. They were previously hidden from Free users, which meant the paid
+  features could not be discovered at all.
+
+Licensing UX:
+- The visual displays no licensing UI of its own. A Free-tier caption that read
+  "upgrade to Pro..." was removed in 1.4.0.0.
+- When a Free user explicitly sets a Pro property, the visual calls
+  notifyFeatureBlocked() so Power BI shows its own predefined banner, as
+  required by the licensing API guidance.
+- Intent is detected from dataView.metadata.objects, which carries only
+  properties the user set explicitly, so the notification never fires on
+  defaults. It is raised once per distinct set of attempted features.
 
 =========================================================
 TESTING INSTRUCTIONS
@@ -62,9 +84,10 @@ TESTING INSTRUCTIONS
 2. Add an Entity field (e.g. customer_id) and a Value field (e.g. sales)
 
 FREE TIER TESTS (no license):
-3. Verify 5 bars appear (20% bins)
-   Badge shows "Free: 20% bins - upgrade to Pro for custom bin size..."
-   Pro-only settings do NOT appear in Format Pane
+3. Verify 5 bars appear (20% bins). No licensing caption is drawn in the chart.
+   Format Pane DOES show the Pro settings, each labelled "(Pro)": Bin size %,
+   Exclude bottom/top %, Border colour and width, Bar gap, Value Labels,
+   and reference line 3.
 4. Hover a bar: tooltip shows Entity range, Count, % of total, Cumulative %
 5. Hover a cumulative dot: tooltip shows Entity range, Cumulative %, Bin share %
 6. Click a bar: cross-filter applied to other visuals
@@ -75,15 +98,19 @@ FREE TIER TESTS (no license):
     Drill down one level: Pareto recalculates for drilled data
 11. Reference line at 80% (default): horizontal + vertical dashed crosshair,
     label "80%" on left Y-axis, bin label shown at top of vertical line
+12. Change any "(Pro)" setting — for example set Bin size % to 10, or switch on
+    "Show line 3". The chart keeps rendering the Free result, and Power BI's own
+    "feature blocked" banner appears with the purchase path. Changing a non-Pro
+    setting afterwards does not re-raise it.
 
 PRO TIER TESTS (use 30-day AppSource trial):
-12. Format Pane shows: Bin size %, Exclude bottom/top %, Border, Bar gap, Value Labels
-13. Change bin size to 5%: 20 bars appear, correctly decreasing
-14. Enable Value Labels: percentage shown above each bar
-15. Enable line 3 (Pro): third reference line appears
-16. Set Exclude top % to 10: top 10% of entities removed before binning
+13. With a licence, the same "(Pro)" settings now take effect and no banner appears
+14. Change bin size to 5%: 20 bars appear, correctly decreasing
+15. Enable Value Labels: percentage shown above each bar
+16. Enable line 3 (Pro): third reference line appears
+17. Set Exclude top % to 10: top 10% of entities removed before binning
 
 HIGH CONTRAST:
-17. Enable high contrast in Windows/Power BI: all colors use system palette
+18. Enable high contrast in Windows/Power BI: all colors use system palette
 
 =========================================================

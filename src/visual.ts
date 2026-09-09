@@ -743,7 +743,6 @@ export class Visual implements IVisual {
         const showXLabel    = s.showXLabel && !compact;
         const showYLabel    = s.showYLabel && !compact;
         const showRightAxis = !tiny;
-        const showBadge     = !compact;
 
         const M = {
             top:    tiny ? 10 : compact ? 16 : MARGIN.top,
@@ -1124,14 +1123,12 @@ export class Visual implements IVisual {
             }
         });
 
-        // Free tier badge — needs top margin to sit in; hidden on small tiles.
-        if (!this.isPro && showBadge) {
-            g.append("text")
-                .attr("x", W).attr("y", -10)
-                .attr("text-anchor", "end")
-                .style("font-size", "10px").style("fill", isHC ? hcFgNeutral : "#aaa")
-                .text(`Free: ${FREE_BIN_SIZE_PCT}% bins — upgrade to Pro for custom bin size, outlier filter & labels`);
-        }
+        // The Free tier upsell caption used to live here. Removed: Microsoft is
+        // explicit that a visual "shouldn't display its own licensing UX, instead
+        // use one of Power BI supported predefined notifications". The Pro
+        // settings now carry "(Pro)" in the format pane and reaching for one
+        // raises the platform's own banner, which — unlike a grey caption in a
+        // corner — the user can actually act on.
 
         // Truncation notice (Desktop only, when ≥30k rows)
         if (isTruncated) {

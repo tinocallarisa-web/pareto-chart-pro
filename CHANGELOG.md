@@ -1,5 +1,21 @@
 # Changelog — Pareto Chart Pro
 
+## [1.4.0.0] — 2026-09-09
+
+### Added
+- **Power BI's own "feature blocked" banner when a Free user reaches for a Pro setting.** Changing a `(Pro)` property now calls `notifyFeatureBlocked()`, so the platform shows its predefined notification with the purchase path. Intent is read from `dataView.metadata.objects`, which carries only properties the user set explicitly, so the banner never fires on defaults; it is raised once per distinct set of attempted features.
+
+### Changed
+- **Pro settings are visible to everyone.** `getFormattingModel()` previously set `visible = isPro` on bin size, outlier filtering, bar border, bar gap, the third reference line and value labels, so a Free user could not discover that those features existed. They are now always listed, each already labelled `(Pro)` in its display name.
+- **A licence in the `Warning` state is honoured.** The check accepted only `Active`; per the licensing API, "only the active and warning states represent a usable license". `Warning` is a grace period, so a paying customer no longer loses their features while a payment issue is resolved.
+- **`isLicenseUnsupportedEnv` and `isLicenseInfoAvailable` are honoured.** In Publish to Web, embedded, national clouds, PDF/PPT export, or when the user is offline or not signed in, a Pro customer reads as Free. The visual now renders the Free experience there without prompting anyone to buy what they may already own.
+
+### Removed
+- **The Free-tier caption drawn inside the chart** (`Free: 20% bins — upgrade to Pro...`). Microsoft's guidance is explicit that a visual "shouldn't display its own licensing UX, instead use one of Power BI supported predefined notifications", and the caption was a dead end: 10px grey text with no way to act on it. The platform banner replaces it.
+
+### Fixed
+- **`package.json` did not declare `typescript`**, which failed certification policy 1200.1.1.4 (*Code Repository — Required files*): "typescript v3.0.0 or higher does not appear to be present". The build worked because `npx` fetches TypeScript on demand, but the reviewer reads the repository manifest, not the build. Added `typescript ^5.9.3` and regenerated `package-lock.json`.
+
 ## [1.3.0.1] — 2026-09-09
 
 ### Fixed
