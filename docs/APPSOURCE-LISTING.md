@@ -1,4 +1,4 @@
-# AppSource listing copy — Pareto Chart Pro v1.3.0.0
+# AppSource listing copy — Pareto Chart Pro v1.4.0.0
 
 Paste-ready text for Partner Center. The marketplace listing is the documentation the
 largest number of people read and the one that goes stale fastest — update it with every
@@ -77,6 +77,21 @@ styling. Bin size also governs how many entities sit behind a bar, which matters
 cross-filtering large models — the documentation has the measured figures.
 
 30-day free trial on AppSource.
+```
+
+---
+
+## What's new — v1.4.0.0
+
+```
+• The Pro settings are now listed in the format pane for everyone, each marked (Pro), so you
+  can see what the plan includes before deciding. Changing one without a licence leaves the
+  chart on the free result and shows Power BI's own notification with a link to get a licence.
+• A licence in its payment grace period keeps working instead of dropping to the free tier.
+• Environments that cannot enforce licences — Publish to Web, embedded, PDF and PowerPoint
+  export — no longer prompt anyone to buy what they may already own.
+• Fixed: the bar colour swatch went back to showing the default after you changed the colour,
+  even though the chart had applied it.
 ```
 
 ---

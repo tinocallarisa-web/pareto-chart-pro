@@ -1,58 +1,130 @@
 # Pareto Chart Pro — TCViz Web Product Page Content
 
+Content for the four tabs of the TCViz product page. Current visual version: **1.4.0.0**.
+
 ## TAB 1: OVERVIEW
 
-### Focus Your Analysis on What Truly Drives Results
-Pareto Chart Pro brings true 80/20 ABC concentration analysis to Power BI. Instantly identify top-performing customers, key revenue-generating SKUs, or critical defect root causes—scaled to support over 150,000+ rows with zero performance lag.
+### Focus your analysis on what truly drives results
 
-### Key Highlights
-- **High-Performance 150,000+ Row Streaming**: Engineered with window data reduction and instant <1ms cross-filtering across report pages.
-- **IBCS Mode**: One-click compliance with International Business Communication Standards for clean, executive-ready corporate reporting.
-- **Custom Tooltips Field Well**: Bind up to 10 additional measures (Profit, Margin %, Quantity, Order Count) to display inside hover tooltips.
-- **Strict Monotonic Pareto Math**: Mathematically guaranteed descending bar heights and clean 10% interval labels (`0–10%`, `10–20%`... `90–100%`).
-- **Drilldown & Hierarchies**: Navigate seamlessly from Category down to Subcategory and individual SKUs.
+Pareto Chart Pro brings 80/20 ABC concentration analysis to Power BI. Identify the
+customers, SKUs or defect causes that account for most of your total — and act on them.
+Built to stay responsive on large models: window data reduction streams well past 150,000
+rows, and clicking a bar filters the rest of the report through a native filter rather
+than thousands of selection objects.
+
+### Key highlights
+- **Exact cross-filtering at any bin size.** Clicking a bar filters every entity in that
+  bin, using the same mechanism native slicers use for large value lists.
+- **Conditional formatting on bar colour.** The *fx* dialog works as it does on a native
+  visual: gradient, rules or field value.
+- **Threshold colours.** Colour bins by where they fall relative to a cumulative %
+  threshold, with an optional highlight on the bin where the line crosses.
+- **Keyboard and screen-reader support.** One Tab stop with a roving focus, arrow-key
+  navigation, and bars that announce their range, share and cumulative percentage.
+- **IBCS mode.** One click for International Business Communication Standards styling.
+- **Drilldown and hierarchies.** Navigate from category to subcategory to individual SKU.
 
 ---
 
 ## TAB 2: FEATURES
 
-### Core Features (Free Tier)
-- Native Pareto chart with ranked bars and cumulative percentage line
-- Fixed 20% bin size (5 bars)
-- Up to 2 configurable reference lines (default 80% threshold)
-- Full drilldown & hierarchy navigation
-- Instant cross-filtering with filter-in opacity dimming
-- High contrast accessibility mode
-- Native Power BI tooltip support
+Everything below is included without a licence except the six items marked **(Pro)**.
 
-### Pro Features (Plan: `pareto-chart-pro-tcviz`)
-- **Custom Bin Size (1–20%)**: Render up to 100 granular Pareto bars
-- **IBCS Mode**: Neutral charcoal `#404040` palette with solid black `#000000` axis typography
-- **Tooltips Field Well**: Up to 10 custom measures in hover tooltips
-- **Outlier Exclusion**: Filter top and bottom % of extreme entities before binning
-- **Value Labels on Bars**: Configurable font size, color, and % formatting
-- **3rd Reference Line**: Add custom target thresholds (e.g. 50%, 80%, 95%)
-- **Bar Border & Gap Styling**: Custom border width, color, and gap spacing
+### Chart and analysis
+- Ranked bars with a cumulative percentage line and interactive dots
+- Strictly monotonic Pareto maths — guaranteed descending bars and clean interval labels
+- Up to two configurable reference lines (default 80%), plus a **third (Pro)**
+- **Custom bin size, 1–20% (Pro)** — up to 100 bars. Free renders fixed 20% bins (5 bars).
+- **Outlier exclusion (Pro)** — drop the top and/or bottom % of entities before binning
+
+### Colour and styling
+- Bar colour, opacity, axis and cumulative line styling
+- **Conditional formatting on bar colour** via the *fx* rule dialog
+- **Threshold colours** — one colour within the threshold, another beyond, and an optional
+  highlight on the crossing bin
+- **IBCS mode** — neutral charcoal palette with black axis typography
+- **Bar border colour and width, and bar gap (Pro)**
+- **Value labels on bars (Pro)** — font size, colour and % formatting
+
+### Interaction
+- Exact cross-filtering with filter-in dimming
+- Multi-select, drilldown and hierarchy navigation
+- Custom tooltips field well — bind additional measures shown on hover
+- Report and canvas tooltip pages
+- Bookmarks: selection is restored when a bookmark is applied
+- Right-click context menu
+
+### Accessibility
+- Full keyboard navigation: arrow keys between bins, `Home`/`End`, `Enter`/`Space` to
+  select, `Ctrl`/`Cmd` to add, `Escape` to clear, `Shift+F10` for the context menu
+- Visible focus ring, including a high-contrast variant
+- ARIA labels announcing entity range, share and cumulative percentage
+- Tooltips open on keyboard focus, not only on hover
+- High contrast themes follow the Power BI palette
+
+### Free vs Pro
+
+| Feature | Free | Pro |
+|---|---|---|
+| Pareto chart, cumulative line, reference lines 1 and 2 | ✓ | ✓ |
+| Conditional formatting, threshold colours, IBCS mode | ✓ | ✓ |
+| Cross-filtering, drilldown, bookmarks, custom tooltips | ✓ | ✓ |
+| Keyboard navigation and high contrast | ✓ | ✓ |
+| Bin size | Fixed 20% (5 bars) | **1–20%, up to 100 bars** |
+| Outlier exclusion (top/bottom %) | — | **✓** |
+| Value labels on bars | — | **✓** |
+| Third reference line | — | **✓** |
+| Bar border colour and width | — | **✓** |
+| Bar gap | — | **✓** |
+
+Pro settings are listed in the format pane for everyone, each marked `(Pro)`. Changing one
+without a licence leaves the chart on the Free result and raises Power BI's own
+notification with a link to get a licence.
 
 ---
 
 ## TAB 3: TECHNICAL
 
-- **API Version**: `5.10.0`
-- **Data Reduction**: `"window": { "count": 30000 }` with `fetchMoreData(true)`
-- **Capacity**: Tested up to 150,000+ rows in Power BI Desktop & Service
-- **Licensing**: Native `IVisualLicenseManager` via Microsoft AppSource (30-day free trial)
-- **Privacy & Security**: 100% local in-memory rendering. No external servers or network requests.
-- **Accessibility**: High contrast mode support (`colorPalette.isHighContrast`)
+- **API version**: `5.10.0`
+- **Field wells**: Entity (grouping, required) · Value (measure, required) · Tooltips
+  (measures, optional)
+- **Data reduction**: `window` of 30,000 with `fetchMoreData(true)`; tested past 150,000 rows
+- **Cross-filtering**: applies a `BasicFilter` over every entity in the bin, capped at
+  10,000 values — the point past which a live connection degrades. Beyond it the visual
+  declines and says so rather than filtering a subset and returning a silently wrong answer.
+- **Licensing**: native `IVisualLicenseManager` through Microsoft AppSource. Plan
+  `pareto-chart-pro-tcviz`. Resolution is asynchronous and never blocks rendering; both
+  Active and Warning licence states are honoured.
+- **Privacy and security**: all rendering is local and in memory. No external servers, no
+  network requests, nothing stored outside the report.
+- **Accessibility**: keyboard navigation, ARIA labels, visible focus ring, high contrast
+- **Localization**: `en-US`
 
 ---
 
 ## TAB 4: CHANGELOG
 
+### Version 1.4.0.0 (September 2026)
+- **Added**: Power BI's own "feature blocked" notification when a Free user changes a Pro
+  setting, with a link to get a licence
+- **Changed**: Pro settings are now visible to everyone, each marked `(Pro)`. They were
+  hidden from Free users, so the paid features could not be discovered.
+- **Changed**: a licence in the `Warning` state (payment grace period) is honoured
+- **Changed**: environments without licence enforcement no longer prompt anyone to buy
+- **Removed**: the "Free: 20% bins — upgrade to Pro" caption drawn inside the chart
+- **Fixed**: the bar colour swatch showed the default after the colour had been changed
+
+### Version 1.3.0.0 (September 2026)
+- **Added**: Conditional formatting on bar colour through the *fx* rule dialog
+- **Added**: Threshold Colors card — colour bins relative to a cumulative % threshold
+- **Added**: Full keyboard navigation and ARIA, with a visible focus ring
+- **Added**: Localizable display strings
+- **Fixed**: Cross-filtering is now exact at any bin size, and no longer filtered by a
+  single entity per bar
+
 ### Version 1.2.0.0 (August 2026)
-- **Added**: Tooltips field well for up to 10 custom measures
-- **Added**: One-click IBCS Mode toggle switch
-- **Added**: High-performance 150,000+ row streaming & 0 DS0 query errors
+- **Added**: Tooltips field well for custom measures
+- **Added**: One-click IBCS mode
+- **Added**: 150,000+ row streaming
 - **Added**: Monotonic remainder distribution (strictly descending bars)
-- **Changed**: Dynamic bin adaptation when slicers filter row count
-- **Fixed**: SelectionId key deduplication for instant <1ms cross-filtering
+- **Changed**: Dynamic bin adaptation when slicers filter the row count

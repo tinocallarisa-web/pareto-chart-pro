@@ -174,7 +174,7 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.3.0.0 &nbsp;·&nbsp; docs updated 7 Sep 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.4.0.0 &nbsp;·&nbsp; docs updated 9 Sep 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <!-- Quick Start -->
   <h2 id="quickstart">Quick Start</h2>
@@ -447,14 +447,22 @@
   </details>
 
   <details>
-    <summary>Why does the visual show "Free: 20% bins" even after buying Pro?</summary>
+    <summary>I bought Pro, but the Pro settings still have no effect</summary>
     <div class="faq-body">
-      <p>License validation happens asynchronously after the visual first renders. Wait a moment after opening the report — the badge should disappear automatically once the license is confirmed. If it persists:</p>
+      <p>License validation happens asynchronously after the visual first renders, so for a moment after opening a report the chart is drawn on the Free tier. Give it a second and it re-renders with your Pro settings applied. If it persists:</p>
       <ul>
         <li>Make sure you are signed into Power BI with the Microsoft account that purchased the license.</li>
         <li>Check that the license is active in <strong>My Account → Licenses</strong> in the Microsoft 365 admin center.</li>
         <li>Try closing and reopening the report.</li>
       </ul>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why do I see "(Pro)" settings I cannot use?</summary>
+    <div class="faq-body">
+      <p>Every setting in the format pane is listed for all users, and the ones included in the Pro plan carry <strong>(Pro)</strong> in their name — bin size, outlier exclusion, bar border, bar gap, value labels and the third reference line. They are shown rather than hidden so you can see what the plan includes before deciding.</p>
+      <p>If you change one without a licence, the chart keeps rendering the Free result and Power BI shows its own notification with a link to get a licence. Nothing is lost: your setting is stored and takes effect as soon as the licence is active.</p>
     </div>
   </details>
 

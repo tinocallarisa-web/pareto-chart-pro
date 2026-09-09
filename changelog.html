@@ -128,6 +128,7 @@
   .tag-add { background:#2E7D5B; color:#fff; }
   .tag-chg { background:#8A6D1F; color:#fff; }
   .tag-fix { background:#2E5BA8; color:#fff; }
+  .tag-rem { background:#8C3A3A; color:#fff; }
   .tag-plan{ background:var(--bg2); color:var(--t2); border:1px solid var(--line); }
   .rel h4 { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.6px;
             color:var(--t3); margin:16px 0 6px; }
@@ -205,8 +206,56 @@
 
   <div class="rel">
     <div class="rel-head">
-      <span class="rel-ver">1.3.0.0</span>
+      <span class="rel-ver">1.4.0.0</span>
       <span class="tag tag-cur">Current</span>
+      <span class="rel-date">September 2026</span>
+    </div>
+
+    <h4><span class="tag tag-add">Added</span></h4>
+    <ul>
+      <li><strong>A way to act on the Pro features.</strong> Changing a setting marked
+          <strong>(Pro)</strong> without a licence now raises Power BI's own notification, which
+          carries a link to get one. It appears on each fresh change and not on a resize, a
+          selection or a data refresh.</li>
+    </ul>
+
+    <h4><span class="tag tag-chg">Changed</span></h4>
+    <ul>
+      <li><strong>Pro settings are visible to everyone</strong>, each marked <strong>(Pro)</strong>
+          in the format pane — bin size, outlier exclusion, bar border, bar gap, value labels and
+          the third reference line. They used to be hidden from Free users, so there was no way to
+          discover that the paid features existed. Setting one without a licence is stored and takes
+          effect as soon as the licence is active.</li>
+      <li><strong>A licence in its payment grace period keeps working.</strong> The check accepted
+          only the <code>Active</code> state; the <code>Warning</code> state is equally usable, so a
+          paying customer no longer drops to the Free tier while a payment issue is resolved.</li>
+      <li><strong>Environments that cannot enforce licences no longer prompt to buy.</strong> In
+          Publish to Web, embedded, national clouds and PDF/PowerPoint export a Pro customer reads
+          as Free; there the chart renders the Free result without asking anyone to purchase what
+          they may already own.</li>
+    </ul>
+
+    <h4><span class="tag tag-rem">Removed</span></h4>
+    <ul>
+      <li><strong>The <code>Free: 20% bins — upgrade to Pro</code> caption drawn inside the
+          chart.</strong> Microsoft's guidance is that a visual should not display its own licensing
+          UI, and the caption was a dead end: small grey text with nothing to click. The platform
+          notification replaces it.</li>
+    </ul>
+
+    <h4><span class="tag tag-fix">Fixed</span></h4>
+    <ul>
+      <li><strong>The bar colour swatch went back to the default after you changed it.</strong> The
+          chart applied the new colour while the picker kept showing <code>#4472C4</code>, which read
+          as the setting not having been saved. The pane now shows the colour actually in force.</li>
+      <li><strong>Repository manifest.</strong> <code>package.json</code> did not declare
+          <code>typescript</code>, which failed AppSource certification policy 1200.1.1.4.</li>
+    </ul>
+  </div>
+
+  <div class="rel">
+    <div class="rel-head">
+      <span class="rel-ver">1.3.0.0</span>
       <span class="rel-date">September 2026</span>
     </div>
 

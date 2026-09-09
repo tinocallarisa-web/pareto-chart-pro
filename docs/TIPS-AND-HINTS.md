@@ -1,4 +1,4 @@
-# Tips & Hints — Pareto Chart Pro (v1.3.0.0)
+# Tips & Hints — Pareto Chart Pro (v1.4.0.0)
 
 ## Getting started
 1. **Entity** — a categorical dimension (Customer, Product, SKU, Supplier). A hierarchy here enables drilldown.

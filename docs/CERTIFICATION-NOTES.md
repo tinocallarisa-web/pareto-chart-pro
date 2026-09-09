@@ -1,9 +1,9 @@
-# Certification Notes — Pareto Chart Pro v1.3.0.1
+# Certification Notes — Pareto Chart Pro v1.4.0.0
 
 ## General Information
 - **Visual Name:** Pareto Chart Pro
 - **GUID:** ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-- **Version:** 1.3.0.1
+- **Version:** 1.4.0.0
 - **Plan ID / spIdentifier:** pareto-chart-pro-tcviz
 - **Certification Branch:** https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
 - **Support URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
@@ -33,6 +33,25 @@ names, which is what keeps the chart readable from tens to hundreds of thousands
   check never blocks painting. On failure the visual stays on the Free tier and does not touch the DOM.
 - The source in this branch is in production state: `isPro` is resolved by the licence manager and is
   not forced, `DEV_MODE` is `false`, and the GUID carries no suffix.
+- Both `Active` and `Warning` states are accepted, per the licensing API: "only the active and warning
+  states represent a usable license". `Warning` is a payment grace period, so a paying customer keeps
+  their features while the issue is resolved.
+- `isLicenseUnsupportedEnv` and `isLicenseInfoAvailable` are honoured. In Publish to Web, embedded,
+  national clouds, PDF/PPT export, or when the user is offline or not signed in, a Pro customer reads
+  as Free; there the visual renders the Free experience and prompts no one to purchase.
+
+### Licensing UX (changed in 1.4.0.0)
+- The visual displays **no licensing UI of its own**. A caption reading
+  `Free: 20% bins — upgrade to Pro...` was drawn inside the chart in earlier versions and has been
+  removed, per the guidance that a visual "shouldn't display its own licensing UX, instead use one of
+  Power BI supported predefined notifications".
+- Pro slices are now visible to every user, each already carrying `(Pro)` in its display name. They
+  were previously hidden from Free users via `slice.visible = isPro`, which meant the paid features
+  could not be discovered at all.
+- When a Free user explicitly sets a Pro property, the visual calls `notifyFeatureBlocked()` so Power
+  BI shows its own predefined banner. Intent is read from `dataView.metadata.objects`, which carries
+  only properties the user set explicitly, so the notification never fires on defaults; it is raised
+  again whenever the value changes, and not on resize, selection or data refresh.
 
 ## Free vs Pro
 Free tier:
