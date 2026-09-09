@@ -191,6 +191,12 @@ export class Visual implements IVisual {
 
     private isPro:           boolean = false; // ISPRO_MARKER
     private isProChecked:    boolean = false;
+    /** False in Publish-to-Web, embedded, national clouds and PDF/PPT export. */
+    private licenseEnvSupported = true;
+    /** False when the license could not be read (offline, not signed in). */
+    private licenseInfoAvailable = true;
+    /** Last set of Pro settings we already notified about, to avoid nagging. */
+    private lastBlockedNotice = "";
     private readonly DEV_MODE        = false;
     private renderGeneration: number = 0;   // guards stale async renders
     /** Roving tabindex: index of the bin that currently owns Tab focus. */
@@ -349,6 +355,11 @@ export class Visual implements IVisual {
             const gen = ++this.renderGeneration;
             this.checkLicense().then(() => {
                 if (gen !== this.renderGeneration) return; // stale update, skip
+
+                // After the licence is known, and only if the user actually
+                // reached for a Pro setting.
+                this.notifyProFeatureBlocked();
+
                 this.buildBins(dv);
 
                 // Derive the selection from the filter Power BI actually holds, so a
@@ -387,14 +398,83 @@ export class Visual implements IVisual {
             const lm = this.host.licenseManager;
             if (!lm) { this.isPro = false; this.isProChecked = true; return; }
             const r = await lm.getAvailableServicePlans();
+
+            // Microsoft: "Only the active and warning states represent a usable
+            // license." Warning means grace period — the customer has paid and
+            // must keep their features while the payment issue is resolved.
             this.isPro = r?.plans?.some(
-                p => p.spIdentifier === PLAN_ID && p.state === ServicePlanState.Active
+                p => p.spIdentifier === PLAN_ID &&
+                     (p.state === ServicePlanState.Active ||
+                      p.state === ServicePlanState.Warning)
             ) ?? false;
+
+            // In these cases a paying customer legitimately reads as Free, so we
+            // must not tell them to buy something they already own.
+            this.licenseEnvSupported  = !(r as any)?.isLicenseUnsupportedEnv;
+            this.licenseInfoAvailable = (r as any)?.isLicenseInfoAvailable !== false;
+
             this.isProChecked = true;
         } catch {
             this.isPro = false;
+            this.licenseInfoAvailable = false;
             this.isProChecked = true;
         }
+    }
+
+    /**
+     * Which Pro settings the user has explicitly changed.
+     *
+     * Reads `metadata.objects`, which only carries properties the user actually
+     * set — unlike the settings model, where every Pro property has a default
+     * and `valueLabels.show` even defaults to true. Presence here is a
+     * deliberate action, and therefore a genuine moment of purchase intent.
+     */
+    private attemptedProFeatures(): string[] {
+        const objs = this.lastDataView?.metadata?.objects as any;
+        if (!objs) return [];
+
+        const touched = (card: string, props: string[]) =>
+            props.some(p => objs?.[card]?.[p] !== undefined);
+
+        const out: string[] = [];
+        if (touched("pareto", ["binSizePct"]))                 out.push("custom bin size");
+        if (touched("pareto", ["trimLower", "trimUpper"]))     out.push("outlier filtering");
+        if (touched("pareto", ["borderColor", "borderWidth", "barGap"])) out.push("bar styling");
+        if (touched("referenceLines", ["showRef3", "ref3Value", "ref3Color", "ref3Label"])) out.push("a third reference line");
+        if (touched("valueLabels", ["show", "fontSize", "color", "showPercent"])) out.push("value labels");
+        return out;
+    }
+
+    /**
+     * Ask Power BI to show its own "feature blocked" banner, which carries the
+     * purchase path. Microsoft is explicit that a visual "shouldn't display its
+     * own licensing UX", and a banner the user can act on converts; a grey
+     * caption in a corner does not.
+     */
+    private notifyProFeatureBlocked(): void {
+        if (this.isPro || this.DEV_MODE) { this.lastBlockedNotice = ""; return; }
+
+        const wanted = this.attemptedProFeatures();
+        if (wanted.length === 0) { this.lastBlockedNotice = ""; return; }
+
+        // Licence unreadable, or an environment without licence enforcement:
+        // a Pro customer would land here too, so never ask them to buy.
+        if (!this.licenseEnvSupported || !this.licenseInfoAvailable) return;
+
+        const key = wanted.join("|");
+        if (key === this.lastBlockedNotice) return;   // banner lasts 10s; don't loop
+        this.lastBlockedNotice = key;
+
+        const list = wanted.length === 1
+            ? wanted[0]
+            : wanted.slice(0, -1).join(", ") + " and " + wanted[wanted.length - 1];
+
+        try {
+            (this.host.licenseManager as any)?.notifyFeatureBlocked?.(
+                `Pareto Chart Pro: ${list} ${wanted.length === 1 ? "is" : "are"} part of the Pro plan. ` +
+                `Get a licence to enable ${wanted.length === 1 ? "it" : "them"}.`
+            );
+        } catch { /* notification is best-effort; never break the render */ }
     }
 
     // ── Build bins ────────────────────────────────────────────────────────────
@@ -1304,20 +1384,12 @@ export class Visual implements IVisual {
             this.lastDataView
         );
 
-        // Pro-only slices visibility
-        model.pareto.binSizePct.visible  = this.isPro;
-        model.pareto.trimLower.visible   = this.isPro;
-        model.pareto.trimUpper.visible   = this.isPro;
-        model.pareto.borderColor.visible = this.isPro;
-        model.pareto.borderWidth.visible = this.isPro;
-        model.pareto.barGap.visible      = this.isPro;
-
-        model.referenceLines.showRef3.visible  = this.isPro;
-        model.referenceLines.ref3Value.visible = this.isPro;
-        model.referenceLines.ref3Color.visible = this.isPro;
-        model.referenceLines.ref3Label.visible = this.isPro;
-
-        model.valueLabels.visible = this.isPro;
+        // Pro slices stay visible for everyone. Hiding them meant a Free user
+        // could not discover that custom bin size, outlier filtering, value
+        // labels or a third reference line existed at all — and nobody buys
+        // what they don't know is there. Every one of these already carries
+        // "(Pro)" in its display name, and using one triggers Power BI's own
+        // "feature blocked" banner, which carries the purchase path.
 
         // Threshold color slices are noise until the toggle is on.
         const th = model.thresholdColors;
