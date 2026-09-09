@@ -1,5 +1,12 @@
 # Changelog — Pareto Chart Pro
 
+## [1.3.0.1] — 2026-09-09
+
+### Fixed
+- **Repository `package.json` was not a valid npm manifest**, which failed AppSource certification policy 1200.1.1.4 (*Code Repository — Required files*). The file had been overwritten with the internal manifest that `pbiviz` generates inside the `.pbiviz` package (`resources`, `visual`, `metadata`), so it had no `name`, no `scripts` and no `powerbi-visuals-tools` dev dependency. It is now a proper project manifest with `name`, `repository`, `license`, `start`/`package`/`lint` scripts and `powerbi-visuals-tools`; `package-lock.json` was regenerated to match.
+
+No changes to visual behavior — this release exists only to resubmit with a corrected repository.
+
 ## [1.3.0.0] — unreleased
 
 ### Added
