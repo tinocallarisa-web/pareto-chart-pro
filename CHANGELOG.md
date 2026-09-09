@@ -5,6 +5,8 @@
 ### Added
 - **Power BI's own "feature blocked" banner when a Free user reaches for a Pro setting.** Changing a `(Pro)` property now calls `notifyFeatureBlocked()`, so the platform shows its predefined notification with the purchase path. Intent is read from `dataView.metadata.objects`, which carries only properties the user set explicitly, so the banner never fires on defaults; it is raised once per distinct set of attempted features.
 
+- **A persistent notice when a trial or licence has lapsed.** If Pro settings are saved in the report and no licence resolves, the visual raises Power BI's `notifyLicenseRequired(General)` icon. Without it, an expired trial silently reverts the chart to 20% bins with no value labels and nothing explains why — the settings are still stored, so it reads as the visual breaking. The banner alone does not cover this, since it only fires when a setting is *changed*. Power BI shows the icon in Edit mode only, so report consumers see nothing. It is cleared with `clearLicenseNotification()` as soon as a licence resolves or the Pro settings are removed.
+
 ### Changed
 - **Pro settings are visible to everyone.** `getFormattingModel()` previously set `visible = isPro` on bin size, outlier filtering, bar border, bar gap, the third reference line and value labels, so a Free user could not discover that those features existed. They are now always listed, each already labelled `(Pro)` in its display name.
 - **A licence in the `Warning` state is honoured.** The check accepted only `Active`; per the licensing API, "only the active and warning states represent a usable license". `Warning` is a grace period, so a paying customer no longer loses their features while a payment issue is resolved.

@@ -52,6 +52,11 @@ names, which is what keeps the chart readable from tens to hundreds of thousands
   BI shows its own predefined banner. Intent is read from `dataView.metadata.objects`, which carries
   only properties the user set explicitly, so the notification never fires on defaults; it is raised
   again whenever the value changes, and not on resize, selection or data refresh.
+- When Pro properties are present in the report but no licence resolves — the case of a lapsed trial —
+  the visual raises `notifyLicenseRequired(LicenseNotificationType.General)` once, so the state itself is
+  explained rather than only the action. Power BI applies that icon in Edit mode only. Both notifications
+  are cleared with `clearLicenseNotification()` as soon as a licence resolves or the Pro settings are
+  removed, so a paying customer is never told to buy what they own.
 
 ## Free vs Pro
 Free tier:

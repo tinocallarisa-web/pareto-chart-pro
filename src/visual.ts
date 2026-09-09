@@ -9,6 +9,7 @@ import ISelectionManager          = powerbi.extensibility.ISelectionManager;
 import ISelectionId               = powerbi.visuals.ISelectionId;
 import DataView                   = powerbi.DataView;
 import ServicePlanState           = powerbi.ServicePlanState;
+import LicenseNotificationType    = powerbi.LicenseNotificationType;
 import IVisualEventService        = powerbi.extensibility.IVisualEventService;
 import DataViewCategoryColumn     = powerbi.DataViewCategoryColumn;
 
@@ -197,6 +198,8 @@ export class Visual implements IVisual {
     private licenseInfoAvailable = true;
     /** Last set of Pro settings we already notified about, to avoid nagging. */
     private lastBlockedNotice = "";
+    /** The persistent "licence required" icon is a one-shot: it stays until cleared. */
+    private licenseIconShown = false;
     private readonly DEV_MODE        = false;
     private renderGeneration: number = 0;   // guards stale async renders
     /** Roving tabindex: index of the bin that currently owns Tab focus. */
@@ -465,15 +468,49 @@ export class Visual implements IVisual {
      * own licensing UX", and a banner the user can act on converts; a grey
      * caption in a corner does not.
      */
+    /**
+     * Take the licence notice down again: the licence resolved, or the user
+     * removed every Pro setting. Both notifications live for the visual's
+     * lifetime until cleared, so leaving one up would tell a paying customer
+     * they need to buy what they just bought.
+     */
+    private clearLicenseNotice(): void {
+        this.lastBlockedNotice = "";
+        if (!this.licenseIconShown) return;
+        this.licenseIconShown = false;
+        try {
+            (this.host.licenseManager as any)?.clearLicenseNotification?.();
+        } catch { /* best-effort */ }
+    }
+
     private notifyProFeatureBlocked(): void {
-        if (this.isPro || this.DEV_MODE) { this.lastBlockedNotice = ""; return; }
+        if (this.isPro || this.DEV_MODE) { this.clearLicenseNotice(); return; }
 
         const { labels: wanted, signature } = this.attemptedProFeatures();
-        if (wanted.length === 0) { this.lastBlockedNotice = ""; return; }
+        if (wanted.length === 0) { this.clearLicenseNotice(); return; }
 
         // Licence unreadable, or an environment without licence enforcement:
         // a Pro customer would land here too, so never ask them to buy.
         if (!this.licenseEnvSupported || !this.licenseInfoAvailable) return;
+
+        // A persistent icon, raised once, for the state rather than the action.
+        //
+        // The case this covers is a trial expiring. The user's Pro settings stay
+        // saved in the report, so the chart silently goes back to 20% bins with no
+        // value labels and nothing explains why — it reads as the visual breaking.
+        // The banner below only fires when a setting is *changed*, which is no help
+        // to someone who changed nothing. Power BI shows this icon only in Edit
+        // mode, so a report consumer sees nothing; only the person who can act does.
+        if (!this.licenseIconShown) {
+            this.licenseIconShown = true;
+            try {
+                // const enum: TypeScript inlines this to 0. Referencing the enum
+                // object at runtime would give undefined.
+                (this.host.licenseManager as any)?.notifyLicenseRequired?.(
+                    LicenseNotificationType.General
+                );
+            } catch { /* best-effort */ }
+        }
 
         // Fires on every fresh change to a Pro setting, and only then: update()
         // also runs on resize, selection and data refresh, and the banner has no
