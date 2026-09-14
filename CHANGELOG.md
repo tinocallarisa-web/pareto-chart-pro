@@ -1,5 +1,11 @@
 # Changelog — Pareto Chart Pro
 
+## [1.4.1.0] — 2026-09-14
+
+### Fixed
+- **A paying customer could stay on Free.** `getAvailableServicePlans()` returns each plan's `spIdentifier` as the full Partner Center **Service ID** (`publisher.offer.plan`), as the licensing API documentation states. The visual compared it with the bare plan ID `pareto-chart-pro-tcviz` using `===`, which never matches the full Service ID. It now accepts a Service ID ending in `.pareto-chart-pro-tcviz`, and the bare plan ID as well.
+- **`package.json` carried a four-part version (`1.4.0.0`)**, which is not valid semver and makes `npm install` fail with *Invalid Version*. It is now `1.4.1`; `pbiviz.json` keeps the four-part `1.4.1.0`.
+
 ## [1.4.0.0] — 2026-09-09
 
 ### Added

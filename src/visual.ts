@@ -20,6 +20,18 @@ import { ParetoFormattingSettings } from "./settings";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PLAN_ID               = "pareto-chart-pro-tcviz";
+
+/**
+ * spIdentifier es el Service ID completo que genera Partner Center para el plan
+ * ("editor.oferta.plan", p.ej. "tino_callarisa.<oferta>.pareto-chart-pro-tcviz"), no el
+ * Plan ID corto: lo dice la documentación de la licensing API. Comparar con === PLAN_ID
+ * dejaba en Free a quien pagaba. Se acepta el Service ID que termina en ".<plan>" y
+ * también el Plan ID solo, por si algún entorno lo devuelve así.
+ */
+function matchesPlan(spIdentifier: unknown, planId: string): boolean {
+    const sp = String(spIdentifier ?? "");
+    return sp === planId || sp.endsWith("." + planId);
+}
 // Fallback path only (no usable filter target): selection IDs are heavy, so few.
 const MAX_SEL_IDS_PER_BIN   = 100;
 // A BasicFilter becomes a DAX IN() list, and the cost grows with the number of
@@ -406,7 +418,7 @@ export class Visual implements IVisual {
             // license." Warning means grace period — the customer has paid and
             // must keep their features while the payment issue is resolved.
             this.isPro = r?.plans?.some(
-                p => p.spIdentifier === PLAN_ID &&
+                p => matchesPlan(p.spIdentifier, PLAN_ID) &&
                      (p.state === ServicePlanState.Active ||
                       p.state === ServicePlanState.Warning)
             ) ?? false;
