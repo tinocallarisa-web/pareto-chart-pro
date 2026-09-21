@@ -212,6 +212,26 @@ export class Visual implements IVisual {
     private lastBlockedNotice = "";
     /** The persistent "licence required" icon is a one-shot: it stays until cleared. */
     private licenseIconShown = false;
+    /** Pending timer for the Upgrade bar, so it can be cancelled and never leaks. */
+    private licenseIconTimer: number | null = null;
+    /** Edit mode, from options.viewMode. NOT Desktop vs Service: both report it. */
+    private editing = false;
+    /**
+     * Pro features drawn for real, under a watermark, so the user can see what they
+     * would be buying before paying for it. Edit mode only, and only once the licence
+     * has actually resolved — otherwise a Pro customer would see a watermark on the
+     * first frame, and a published report would ship an unpaid feature.
+     */
+    private proPreview = false;
+    private watermarkEl: HTMLDivElement | null = null;
+    /**
+     * Un unico color distinto en categories[0].objects significa que el usuario eligio
+     * un color plano, no una regla fx. Ver buildBins: sin esto solo se pintan las
+     * categorias para las que Power BI llego a entregar objects.
+     */
+    private uniformBarColor: string | null = null;
+    private watermarkTitle: HTMLDivElement | null = null;
+    private watermarkWhy: HTMLDivElement | null = null;
     private readonly DEV_MODE        = false;
     private renderGeneration: number = 0;   // guards stale async renders
     /** Roving tabindex: index of the bin that currently owns Tab focus. */
@@ -250,6 +270,29 @@ export class Visual implements IVisual {
 
         this.svg = this.container.append("svg")
             .style("width", "100%").style("height", "100%");
+
+        // Texto blanco con sombra en lugar de gris translucido: sobre barras saturadas un
+        // gris desaparece. No intercepta clics ni entra en el recorrido del lector.
+        this.watermarkEl = document.createElement("div");
+        this.watermarkEl.setAttribute("aria-hidden", "true");
+        // Dos lineas: el rotulo y, debajo, QUE funcion lo enciende. Una marca que no
+        // dice por que esta ahi se lee como que el visual se ha quedado colgado, y no
+        // hay forma de saber cual de los ajustes Pro sigue puesto.
+        this.watermarkTitle = document.createElement("div");
+        this.watermarkTitle.textContent = "Pro preview";
+        this.watermarkWhy = document.createElement("div");
+        this.watermarkEl.appendChild(this.watermarkTitle);
+        this.watermarkEl.appendChild(this.watermarkWhy);
+        // El tamano se fija en updateWatermark(), que lo escala con el visual: 32px fijos
+        // se pierden en un grafico ancho, que es justo donde vive un Pareto.
+        this.watermarkEl.style.cssText =
+            "position:absolute;left:0;top:0;right:0;bottom:0;display:none;align-items:center;" +
+            "justify-content:center;flex-direction:column;text-align:center;" +
+            "pointer-events:none;z-index:5;" +
+            "font-family:'Segoe UI',sans-serif;font-weight:700;letter-spacing:0.06em;" +
+            "white-space:nowrap;color:#FFFFFF;opacity:0.72;transform:rotate(-20deg);" +
+            "text-shadow:0 0 3px rgba(46,52,64,0.95),0 2px 6px rgba(46,52,64,0.75);";
+        (this.container.node() as HTMLElement).appendChild(this.watermarkEl);
 
         this.injectStyles();
 
@@ -296,8 +339,16 @@ export class Visual implements IVisual {
             this.lastDataView = dv;
             this.settings = readSettings(dv);
 
+            // ViewMode.View = 0. Edit e InFocusEdit son ambos edicion. Esto NO distingue
+            // Desktop de Service: los dos informan de los dos modos, y hacerlo por host
+            // dejaria la vista previa visible en un informe publicado.
+            const viewMode = (options as any).viewMode;
+            this.editing = typeof viewMode === "number" && viewMode !== 0;
+
             if (!dv?.categorical?.categories?.[0]?.values?.length) {
                 this.container.selectAll(".loading-indicator").remove();
+                this.proPreview = false;
+                this.updateWatermark();
                 this.renderLandingPage();
                 this.events.renderingFinished(options);
                 return;
@@ -339,6 +390,14 @@ export class Visual implements IVisual {
                     this.renderLoadingIndicator(loadedCount);
                     if (this.host.fetchMoreData(true)) {
                         // aggregateSegments=true: Power BI combines chunks and calls update() again.
+                        //
+                        // Esta salida se lleva por delante el resto de update(), incluida la
+                        // marca de agua. Con un modelo grande cada cambio de ajuste relanza la
+                        // consulta y pasa por aqui varias veces, asi que dejarla sin refrescar
+                        // significaba que la marca no bajaba al devolver el ajuste a Free: se
+                        // quedaba la del estado anterior. La licencia no cambia entre rondas,
+                        // asi que proPreview sigue siendo valido y basta con releer el ajuste.
+                        this.updateWatermark();
                         this.events.renderingFinished(options);
                         return;
                     }
@@ -371,6 +430,12 @@ export class Visual implements IVisual {
             this.checkLicense().then(() => {
                 if (gen !== this.renderGeneration) return; // stale update, skip
 
+                // Ya se sabe si hay licencia: de ahi sale si toca vista previa.
+                // isProChecked garantiza que la licencia se resolvio; sin el, el primer
+                // frame de un cliente Pro saldria con marca de agua.
+                this.proPreview = !this.isPro && this.editing && this.isProChecked
+                    && this.licenseEnvSupported && this.licenseInfoAvailable;
+
                 // After the licence is known, and only if the user actually
                 // reached for a Pro setting.
                 this.notifyProFeatureBlocked();
@@ -393,6 +458,7 @@ export class Visual implements IVisual {
                 });
 
                 this.renderChart(options.viewport, truncated);
+                this.updateWatermark();
                 // renderChart sets opacity from highlight state only; re-apply the
                 // selection dimming on top of the fresh nodes.
                 this.applyOpacity();
@@ -437,41 +503,60 @@ export class Visual implements IVisual {
     }
 
     /**
-     * Which Pro settings the user has explicitly changed.
+     * Which Pro features the report is actually ASKING FOR right now.
      *
-     * Reads `metadata.objects`, which only carries properties the user actually
-     * set — unlike the settings model, where every Pro property has a default
-     * and `valueLabels.show` even defaults to true. Presence here is a
-     * deliberate action, and therefore a genuine moment of purchase intent.
+     * Two traps, both hit in testing:
+     *
+     * 1. The settings model has a default for every Pro property, and
+     *    `valueLabels.show` even defaults to true — so reading the model would call
+     *    every fresh visual a Pro user. Hence `metadata.objects`, which carries only
+     *    what the report set explicitly.
+     * 2. But `metadata.objects` keeps a property once it has been set, even after the
+     *    user puts it back to the free value. Presence alone therefore meant the
+     *    watermark never came down again: raise the bin count, lower it, and the mark
+     *    stayed. So each feature also has to say whether its CURRENT value asks for
+     *    anything beyond Free.
+     *
+     * The value goes into the signature, not just the property name: moving bin size
+     * from 10 to 15 is a fresh attempt and deserves the banner again, while a resize
+     * or a data refresh changes neither.
      */
-    private attemptedProFeatures(): { labels: string[]; signature: string } {
+    private attemptedProFeatures(): { labels: string[]; signature: string; touched: Set<string> } {
         const objs = this.lastDataView?.metadata?.objects as any;
-        if (!objs) return { labels: [], signature: "" };
+        const vacio = { labels: [] as string[], signature: "", touched: new Set<string>() };
+        if (!objs) return vacio;
 
-        const groups: [string, string, string[]][] = [
-            ["custom bin size",         "pareto",         ["binSizePct"]],
-            ["outlier filtering",       "pareto",         ["trimLower", "trimUpper"]],
-            ["bar styling",             "pareto",         ["borderColor", "borderWidth", "barGap"]],
-            ["a third reference line",  "referenceLines", ["showRef3", "ref3Value", "ref3Color", "ref3Label"]],
-            ["value labels",            "valueLabels",    ["show", "fontSize", "color", "showPercent"]],
+        const num = (v: any, si: number) => (v === undefined || v === null || isNaN(Number(v)) ? si : Number(v));
+        const pareto = objs.pareto ?? {};
+        const refs   = objs.referenceLines ?? {};
+        const vlab   = objs.valueLabels ?? {};
+
+        // [etiqueta, ¿pide algo por encima del Free?, firma del estado]
+        const groups: [string, boolean, string][] = [
+            ["custom bin size",
+             pareto.binSizePct !== undefined && num(pareto.binSizePct, FREE_BIN_SIZE_PCT) !== FREE_BIN_SIZE_PCT,
+             `bin=${num(pareto.binSizePct, FREE_BIN_SIZE_PCT)}`],
+            ["outlier filtering",
+             num(pareto.trimLower, 0) > 0 || num(pareto.trimUpper, 0) > 0,
+             `trim=${num(pareto.trimLower, 0)}/${num(pareto.trimUpper, 0)}`],
+            ["a third reference line",
+             refs.showRef3 === true,
+             `ref3=${refs.showRef3 === true}:${refs.ref3Value ?? ""}`],
+            ["value labels",
+             vlab.show === true,
+             `labels=${vlab.show === true}`],
         ];
 
         const labels: string[] = [];
         const parts:  string[] = [];
-        for (const [label, card, props] of groups) {
-            let touched = false;
-            for (const p of props) {
-                const v = objs?.[card]?.[p];
-                if (v === undefined) continue;
-                touched = true;
-                // The value, not just the property name: changing bin size from 10
-                // to 15 is a fresh attempt at the same feature and deserves the
-                // banner again. A resize or a data refresh changes neither.
-                parts.push(`${card}.${p}=${JSON.stringify(v)}`);
-            }
-            if (touched) labels.push(label);
+        const touched = new Set<string>();
+        for (const [label, activa, firma] of groups) {
+            if (!activa) continue;
+            labels.push(label);
+            touched.add(label);
+            parts.push(firma);
         }
-        return { labels, signature: parts.join("|") };
+        return { labels, signature: parts.join("|"), touched };
     }
 
     /**
@@ -481,6 +566,58 @@ export class Visual implements IVisual {
      * caption in a corner does not.
      */
     /**
+     * Lo que se DIBUJA, funcion a funcion.
+     *
+     * La vista previa NO puede concederse en bloque. `binSizePct` vale 5 por defecto, asi
+     * que un `proNow` global daba 20 barras nada mas insertar el visual: Pro gratis, sin
+     * marca de agua y sin aviso, porque el usuario no habia pedido nada. La previa solo
+     * vale para la funcion que el usuario ha tocado de verdad, que es tambien el momento
+     * en que aparecen la marca y el aviso de compra.
+     */
+    private previewOf(feature: string): boolean {
+        if (this.isPro) return true;
+        if (!this.proPreview) return false;
+        return this.attemptedProFeatures().touched.has(feature);
+    }
+
+    /**
+     * La marca solo aparece cuando hay una funcion Pro realmente puesta. Marcar un
+     * Pareto corriente porque el usuario no tiene licencia seria ensuciar un grafico
+     * que es correcto y gratuito.
+     */
+    private updateWatermark(): void {
+        if (!this.watermarkEl) return;
+        const { labels } = this.attemptedProFeatures();
+        const activa = this.proPreview && labels.length > 0;
+        this.watermarkEl.style.display = activa ? "flex" : "none";
+        if (!activa) return;
+
+        if (this.watermarkWhy) { this.watermarkWhy.textContent = labels.join(" · "); }
+
+        // Escala con el visual y se limita por el alto tambien: en un Pareto muy ancho y
+        // bajo, dimensionar solo por ancho daria un texto que no cabe en vertical. El
+        // minimo evita que desaparezca en un mosaico pequeno, y el maximo que tape el
+        // grafico que precisamente queremos ensenar.
+        const el = this.container.node() as HTMLElement;
+        const w = el?.clientWidth  || 0;
+        const h = el?.clientHeight || 0;
+        const size = Math.round(Math.max(30, Math.min(96, w / 7.5, h / 3.5)));
+        this.watermarkEl.style.fontSize = `${size}px`;
+        if (this.watermarkWhy) {
+            this.watermarkWhy.style.cssText =
+                `font-size:${Math.round(size * 0.32)}px;font-weight:600;letter-spacing:0.02em;`
+                + "margin-top:0.25em;opacity:0.95;";
+        }
+    }
+
+    private cancelLicenseIcon(): void {
+        if (this.licenseIconTimer !== null) {
+            window.clearTimeout(this.licenseIconTimer);
+            this.licenseIconTimer = null;
+        }
+    }
+
+    /**
      * Take the licence notice down again: the licence resolved, or the user
      * removed every Pro setting. Both notifications live for the visual's
      * lifetime until cleared, so leaving one up would tell a paying customer
@@ -488,6 +625,7 @@ export class Visual implements IVisual {
      */
     private clearLicenseNotice(): void {
         this.lastBlockedNotice = "";
+        this.cancelLicenseIcon();
         if (!this.licenseIconShown) return;
         this.licenseIconShown = false;
         try {
@@ -495,7 +633,25 @@ export class Visual implements IVisual {
         } catch { /* best-effort */ }
     }
 
+    /**
+     * Ask Power BI to show its own licence UX. Microsoft is explicit that a visual
+     * "shouldn't display its own licensing UX", so everything here goes through the
+     * host.
+     *
+     * Power BI shows ONE notification at a time and the last one replaces the one
+     * before it. Until 1.4.1.0 this called notifyLicenseRequired and then
+     * notifyFeatureBlocked in the same update(), so on the first attempt the banner
+     * overwrote the Upgrade bar: the user was told to get a licence and left with
+     * nothing to click. The order is the whole fix.
+     *
+     * Sequence, the same one already in production in Calendar, Bullet and Likert:
+     * clear what is up, show the banner naming the feature, and ~10 s later raise the
+     * persistent Upgrade bar, which is what carries the purchase path.
+     */
     private notifyProFeatureBlocked(): void {
+        const lm = (this.host as any).licenseManager;
+        if (!lm) return;
+
         if (this.isPro || this.DEV_MODE) { this.clearLicenseNotice(); return; }
 
         const { labels: wanted, signature } = this.attemptedProFeatures();
@@ -505,41 +661,46 @@ export class Visual implements IVisual {
         // a Pro customer would land here too, so never ask them to buy.
         if (!this.licenseEnvSupported || !this.licenseInfoAvailable) return;
 
-        // A persistent icon, raised once, for the state rather than the action.
-        //
-        // The case this covers is a trial expiring. The user's Pro settings stay
-        // saved in the report, so the chart silently goes back to 20% bins with no
-        // value labels and nothing explains why — it reads as the visual breaking.
-        // The banner below only fires when a setting is *changed*, which is no help
-        // to someone who changed nothing. Power BI shows this icon only in Edit
-        // mode, so a report consumer sees nothing; only the person who can act does.
-        if (!this.licenseIconShown) {
-            this.licenseIconShown = true;
-            try {
-                // const enum: TypeScript inlines this to 0. Referencing the enum
-                // object at runtime would give undefined.
-                (this.host.licenseManager as any)?.notifyLicenseRequired?.(
-                    LicenseNotificationType.General
-                );
-            } catch { /* best-effort */ }
-        }
-
         // Fires on every fresh change to a Pro setting, and only then: update()
-        // also runs on resize, selection and data refresh, and the banner has no
+        // also runs on resize, selection and data refresh, and the notice has no
         // business reappearing for those.
         if (signature === this.lastBlockedNotice) return;
         this.lastBlockedNotice = signature;
+        this.licenseIconShown = true;
 
         const list = wanted.length === 1
             ? wanted[0]
             : wanted.slice(0, -1).join(", ") + " and " + wanted[wanted.length - 1];
+        const msg = this.proPreview
+            ? `Pareto Chart Pro: ${list} ${wanted.length === 1 ? "is" : "are"} part of the Pro `
+              + `plan, shown here as a watermarked preview. Reading view shows the free result.`
+            : `Pareto Chart Pro: ${list} ${wanted.length === 1 ? "is" : "are"} part of the Pro `
+              + `plan. Get a licence to enable ${wanted.length === 1 ? "it" : "them"}.`;
 
-        try {
-            (this.host.licenseManager as any)?.notifyFeatureBlocked?.(
-                `Pareto Chart Pro: ${list} ${wanted.length === 1 ? "is" : "are"} part of the Pro plan. ` +
-                `Get a licence to enable ${wanted.length === 1 ? "it" : "them"}.`
-            );
-        } catch { /* notification is best-effort; never break the render */ }
+        const show = () => {
+            try { lm.notifyFeatureBlocked?.(msg.slice(0, 500)); } catch { /* best-effort */ }
+            this.cancelLicenseIcon();
+            // The Upgrade bar has to come last, or the banner above replaces it.
+            // It is also what covers a trial expiring: the user changed nothing, so
+            // the banner would never fire on its own, and the chart silently drops
+            // back to 20% bins with no value labels and nothing explaining why.
+            this.licenseIconTimer = window.setTimeout(() => {
+                this.licenseIconTimer = null;
+                if (this.isPro || !this.licenseIconShown) return;
+                // const enum: TypeScript inlines this to 0. Referencing the enum
+                // object at runtime would give undefined.
+                try {
+                    lm.notifyLicenseRequired?.(LicenseNotificationType.General);
+                } catch { /* best-effort */ }
+            }, 10500);
+        };
+
+        // clearLicenseNotification may return a promise; showing before it settles
+        // would let the clear wipe the banner we just raised.
+        let cleared: any;
+        try { cleared = lm.clearLicenseNotification?.(); } catch { /* best-effort */ }
+        if (cleared && typeof cleared.then === "function") { cleared.then(show, show); }
+        else { show(); }
     }
 
     // ── Build bins ────────────────────────────────────────────────────────────
@@ -566,7 +727,7 @@ export class Visual implements IVisual {
         if (n === 0) { this.bins = []; return; }
 
         let trimmedRows = rows;
-        if (this.isPro) {
+        if (this.previewOf("outlier filtering")) {
             const skipTop    = Math.max(0, Math.floor(n * Math.min(s.trimUpper, 99) / 100));
             const skipBottom = Math.max(0, Math.floor(n * Math.min(s.trimLower, 99) / 100));
             trimmedRows = rows.slice(skipTop, n - skipBottom || n);
@@ -574,7 +735,7 @@ export class Visual implements IVisual {
         const tn = trimmedRows.length;
         if (tn === 0) { this.bins = []; return; }
 
-        const binSizePct = this.isPro
+        const binSizePct = this.previewOf("custom bin size")
             ? Math.min(20, Math.max(1, s.binSizePct))
             : FREE_BIN_SIZE_PCT;
         const requestedNBins = Math.ceil(100 / binSizePct);
@@ -611,6 +772,25 @@ export class Visual implements IVisual {
             const c = (catObjects?.[rowIndex]?.["pareto"]?.["barColor"] as powerbi.Fill)?.solid?.color;
             return typeof c === "string" && c.length > 0 ? c : null;
         };
+
+        // Un color plano elegido en el swatch se persiste bajo el selector wildcard de
+        // barColor, asi que aterriza aqui y no en metadata.objects. Power BI solo entrega
+        // objects para parte de las categorias cuando el modelo es grande, de modo que
+        // resolverlo bin a bin pintaba unas pocas barras con el color elegido y dejaba el
+        // resto en el azul por defecto. Medido con 500.000 entidades: 4 barras de 20.
+        //
+        // Un unico color distinto = constante del usuario, y vale para TODAS las barras.
+        // Varios = hay una regla fx gobernando, y entonces si manda el color por bin.
+        this.uniformBarColor = null;
+        if (catObjects?.length) {
+            const distintos = new Set<string>();
+            for (const o of catObjects) {
+                const c = (o?.["pareto"]?.["barColor"] as powerbi.Fill)?.solid?.color;
+                if (typeof c === "string" && c.length > 0) { distintos.add(c); }
+                if (distintos.size > 1) { break; }
+            }
+            if (distintos.size === 1) { this.uniformBarColor = distintos.values().next().value; }
+        }
 
         let cumPct = 0;
         const stepPct = 100 / nBins;
@@ -922,8 +1102,9 @@ export class Visual implements IVisual {
         //   1. high contrast   — meaning may not be encoded in fill
         //   2. IBCS mode       — standardized neutral palette
         //   3. threshold colors — explicit opt-in, applies to every bar
-        //   4. fx rule color   — resolved per bin from its top-ranked entity
-        //   5. the constant Bar color
+        //   4. a single colour across every category — a constant the user picked
+        //   5. fx rule color   — resolved per bin from its top-ranked entity
+        //   6. the constant Bar color from metadata.objects
         const crossingIdx = s.thShow
             ? this.bins.findIndex(b => b.cumPct >= Math.min(100, Math.max(0, s.thValue)))
             : -1;
@@ -936,6 +1117,10 @@ export class Visual implements IVisual {
                 if (crossingIdx === -1) return s.thWithinColor;
                 return i <= crossingIdx ? s.thWithinColor : s.thBeyondColor;
             }
+            // La constante del usuario va antes que el color por bin: si solo hay un
+            // color en los objects, no hay regla que respetar y pintarlo bin a bin
+            // dejaria fuera las categorias sin objects entregados.
+            if (this.uniformBarColor) return this.uniformBarColor;
             return b.ruleColor ?? barColor;
         };
 
@@ -1085,7 +1270,7 @@ export class Visual implements IVisual {
         }
 
         // Value labels (Pro)
-        if (s.showLabels && this.isPro) {
+        if (s.showLabels && this.previewOf("value labels")) {
             const labelColor = this.resolveColor(s.labelColor, hcFg, isHC);
             g.selectAll(".bar-label")
                 .data(this.bins)
@@ -1158,7 +1343,7 @@ export class Visual implements IVisual {
         const refLines = [
             { show: s.showRef1, value: s.ref1Value, color: s.ref1Color, label: s.ref1Label },
             { show: s.showRef2, value: s.ref2Value, color: s.ref2Color, label: s.ref2Label },
-            { show: s.showRef3 && this.isPro, value: s.ref3Value, color: s.ref3Color, label: s.ref3Label },
+            { show: s.showRef3 && this.previewOf("a third reference line"), value: s.ref3Value, color: s.ref3Color, label: s.ref3Label },
         ];
 
         refLines.forEach(ref => {
@@ -1490,5 +1675,10 @@ export class Visual implements IVisual {
         return this.formattingSettingsService.buildFormattingModel(model);
     }
 
-    public destroy(): void { this.container.remove(); }
+    public destroy(): void {
+        // Un timeout vivo sobre un visual retirado dispararía un aviso de compra
+        // sin visual al que pertenecer.
+        this.cancelLicenseIcon();
+        this.container.remove();
+    }
 }

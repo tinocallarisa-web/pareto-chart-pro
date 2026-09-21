@@ -104,10 +104,20 @@ semantic model you cannot add calculated columns at all.
 - **Bar color + `fx`** — rule-based conditional formatting. Power BI resolves the rule per entity, so
   each bar takes the color of its **top-ranked entity**. On a gradient, a bar shows where its largest
   member sits, not the average of the bin.
+  > **On very large models the `fx` rule stops short.** Power BI resolves the rule per entity and
+  > hands the resolved colors back with the categories, but above roughly a hundred thousand
+  > entities it only delivers them for part of the data. The bars whose entities did come back are
+  > colored by the rule; the rest fall back to the constant Bar color, so the chart looks
+  > half-painted. This is a platform limit, not a setting: the visual cannot recompute a rule it is
+  > never given. Measured at 500,000 entities — 4 bars of 20 colored. Under a few thousand entities
+  > the rule resolves for everything. **Use Threshold Colors at that size**, which the visual
+  > computes itself from the aggregated bins and which works at any size.
 - **Threshold Colors** — colors bars by their position relative to a cumulative threshold, with an
-  optional highlight on the crossing bin. For a Pareto this is usually the more useful of the two.
+  optional highlight on the crossing bin. For a Pareto this is usually the more useful of the two,
+  and on a large model it is the only one that colors every bar.
 - **IBCS Mode** — neutral charcoal bars so the cumulative line and reference lines carry the message.
-- Precedence: high contrast → IBCS → Threshold Colors → `fx` rule → constant Bar color.
+- Precedence: high contrast → IBCS → Threshold Colors → a single color across every entity (a
+  constant you picked) → `fx` rule per bin → constant Bar color.
 
 ## Keyboard
 

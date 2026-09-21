@@ -39,9 +39,9 @@ export class ParetoCard extends SimpleCard {
         instanceKind: 3,
     });
     barOpacity  = new NumUpDown({ name: "barOpacity",  displayName: "Bar opacity %", value: 85 });
-    borderColor = new ColorPicker({ name: "borderColor", displayName: "Border color (Pro)", value: { value: "#2E5BA8" } });
-    borderWidth = new NumUpDown({ name: "borderWidth", displayName: "Border width (Pro)", value: 0 });
-    barGap      = new NumUpDown({ name: "barGap",      displayName: "Bar gap px (Pro)",   value: 2 });
+    borderColor = new ColorPicker({ name: "borderColor", displayName: "Border color", value: { value: "#2E5BA8" } });
+    borderWidth = new NumUpDown({ name: "borderWidth", displayName: "Border width", value: 0 });
+    barGap      = new NumUpDown({ name: "barGap",      displayName: "Bar gap px",   value: 2 });
     ibcsMode    = new ToggleSwitch({ name: "ibcsMode",  displayName: "IBCS Mode (Standardized)", value: false });
 
     slices = [

@@ -124,7 +124,7 @@
                     }
                 },
                 "borderColor": {
-                    "displayName": "Border color (Pro)",
+                    "displayName": "Border color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -134,13 +134,13 @@
                     }
                 },
                 "borderWidth": {
-                    "displayName": "Border width (Pro)",
+                    "displayName": "Border width",
                     "type": {
                         "numeric": true
                     }
                 },
                 "barGap": {
-                    "displayName": "Bar gap px (Pro)",
+                    "displayName": "Bar gap px",
                     "type": {
                         "numeric": true
                     }
@@ -437,7 +437,11 @@
         ]
     },
     "sorting": {
-        "default": {}
+        "implicit": {
+            "clauses": [
+                { "role": "measure", "direction": 2 }
+            ]
+        }
     },
     "privileges": []
 }

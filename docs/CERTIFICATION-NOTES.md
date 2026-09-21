@@ -35,7 +35,9 @@ names, which is what keeps the chart readable from tens to hundreds of thousands
   not forced, `DEV_MODE` is `false`, and the GUID carries no suffix.
 - Both `Active` and `Warning` states are accepted, per the licensing API: "only the active and warning
   states represent a usable license". `Warning` is a payment grace period, so a paying customer keeps
-  their features while the issue is resolved.
+  their features while the issue is resolved. The **30-day free trial** configured on the plan
+  resolves as `Active`, so a trial user takes the same code path as a paid licence, with no separate
+  branch and no watermark.
 - `isLicenseUnsupportedEnv` and `isLicenseInfoAvailable` are honoured. In Publish to Web, embedded,
   national clouds, PDF/PPT export, or when the user is offline or not signed in, a Pro customer reads
   as Free; there the visual renders the Free experience and prompts no one to purchase.
@@ -64,6 +66,7 @@ Free tier:
 - Fixed 20% bin size (5 bars)
 - Up to 2 reference lines, default at 80%
 - Conditional formatting on bar color (`fx`) and the Threshold Colors card
+- Bar border color and width, and bar gap
 - Tooltips field well, up to 10 additional measures
 - IBCS Mode
 - Drilldown, cross-filtering, multi-select, filter-in dimming
@@ -74,7 +77,16 @@ Pro tier (plan `pareto-chart-pro-tcviz`):
 - Outlier exclusion (top/bottom % trimming)
 - Value labels on bars
 - Third reference line
-- Bar border color, width and gap styling
+
+> **Known limit, conditional formatting on very large models.** The `pareto.barColor` rule is
+> resolved by Power BI per entity and returned on `categories[0].objects`. Above roughly a hundred
+> thousand entities the host delivers those objects for only part of the data, so bars whose
+> entities were not returned fall back to the constant Bar color. Reproduced at 500,000 entities:
+> 4 bars of 20 carried the rule color. The visual cannot recompute a rule it is never handed, and a
+> warning cannot be raised reliably because a rule may legitimately leave entities uncolored — and
+> on a ranked chart a `>=` rule colors exactly a prefix of the bars, which is the same signature.
+> Threshold Colors is computed by the visual from the aggregated bins and is unaffected; it is
+> documented as the option to use at that size.
 
 > Note for reviewers: conditional formatting, Threshold Colors, the Tooltips field well and IBCS Mode
 > are **not** licence-gated. Earlier revisions of this document listed some of them as Pro; the code
@@ -132,4 +144,3 @@ for segment continuation.
 3. `Exclude top %` / `Exclude bottom %` — confirm entities are trimmed before binning.
 4. `Format Pane → Value Labels` — confirm labels appear above bars.
 5. `Format Pane → Reference Lines → Show line 3` — confirm the third threshold.
-6. Bar border color, width and gap under the Pareto card.

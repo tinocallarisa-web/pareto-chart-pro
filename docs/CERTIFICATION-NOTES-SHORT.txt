@@ -1,44 +1,47 @@
-Pareto Chart Pro v1.4.1.0 - GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-Repo (certification branch), full notes in docs/:
-https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
-Support: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
-Privacy: https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
-Terms:   https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
-Video:   https://www.youtube.com/watch?v=qtN0ckSXNZQ
+Pareto Chart Pro 1.4.2.0 GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
+Repo (branch certification, full notes in docs/):
+github.com/tinocallarisa-web/pareto-chart-pro
+Support/privacy/terms: tinocallarisa-web.github.io/pareto-chart-pro/
+Video: youtube.com/watch?v=qtN0ckSXNZQ
 
-WHY THIS RESUBMISSION
-Replaces 1.4.0.0. Licence fix: spIdentifier is the full Service ID
-(publisher.offer.plan); the check now accepts one ending in
-".pareto-chart-pro-tcviz". package.json version is now valid semver (1.4.1).
+PLEASE READ FIRST - PRO PREVIEW (NEW IN 1.4.2.0)
+Without a licence, IN EDIT MODE ONLY, a Pro setting the user turns on is drawn
+WORKING under a "Pro preview" watermark naming it. Intentional, not missing
+gating: it is how the user sees what they would be buying. In reading
+view, before the licence resolves, and where licences cannot be read (Publish to
+Web, embed, export) the FREE result is drawn, no watermark, no notice. The gate
+is options.viewMode, not Desktop vs Service, and the preview is PER FEATURE,
+only for the one actually turned on.
+
+WHY THIS VERSION
+Replaces 1.4.1.0. The Upgrade bar was overwritten: Power BI shows one
+notification at a time and notifyLicenseRequired ran before notifyFeatureBlocked
+in the same update(), so the banner wiped the purchase path. Order is now
+clear -> banner -> (~10 s) Upgrade bar. Also: sorting declared implicit, and bar
+border/width/gap are Free - the render never gated them, only the label was
+wrong.
 
 TESTING - FREE (no licence)
-1. Bind a dimension to Entity and a measure to Value: 5 bars, cumulative line,
-   80% reference line.
-2. Click a bar to cross-filter; Ctrl+click adds.
-3. Tab in, arrows move, Enter selects, Escape clears, Shift+F10 opens the menu.
-4. Pareto > Bar color > fx opens conditional formatting; Threshold Colors card
-   colours bars by cumulative threshold.
-5. Change a setting marked "(Pro)", e.g. Bin size %: the chart keeps the Free
-   result and Power BI's "feature blocked" banner appears, plus a licence icon
-   while Pro settings are set. Both clear once a licence resolves.
-
-TESTING - PRO (active plan)
-6. Bin size % to 5 gives 20 bars. Check outlier trimming, value labels, the 3rd
-   reference line, bar border and gap. No banner or icon appears.
+1. Entity + Value: 5 bars, cumulative line, 80% reference line.
+2. Click a bar to cross-filter; Ctrl+click adds. Tab in, arrows, Enter, Escape,
+   Shift+F10 for the menu. Bar color > fx is conditional formatting.
+3. In EDIT mode set Bin size % to 5: 20 bars render under the watermark, the
+   banner names it, and after ~10 s the Upgrade bar appears. Back to 20 and
+   watermark, bars and notice all revert.
+4. Reading view: 5 bars, no watermark, no notice.
+With an active plan the same settings render with no watermark and no notice.
 
 PRIVACY / NETWORK
-No external calls, telemetry, CDN or endpoints. The only host API used for
-licensing is IVisualLicenseManager, carrying no report data. No file access,
-localStorage or cookies. One property is persisted: general.filter, via
-host.applyJsonFilter.
+No external calls, telemetry, CDN or endpoints; privileges: []. Licensing goes
+through IVisualLicenseManager only, carrying no report data. No file access,
+localStorage or cookies. One persisted property: general.filter.
 
 LICENSING
-Plan pareto-chart-pro-tcviz. getAvailableServicePlans() is called once and
-cached; on failure the visual stays Free. Active and Warning accepted.
-isLicenseUnsupportedEnv and isLicenseInfoAvailable respected: nobody is asked
-to buy in Publish to Web, embedded or export. No licensing UI of our own, only
-platform notifications. Production state: isPro from the licence manager.
+Plan pareto-chart-pro-tcviz, matched on a Service ID ending in it. Requested
+once and cached; on failure the visual stays Free. Active and Warning accepted.
+isLicenseUnsupportedEnv and isLicenseInfoAvailable respected. No licensing UI
+of our own.
 
-FREE: the complete Pareto, minus the Pro items.
-PRO: bin size 1-20%, outlier trimming, value labels, 3rd reference line, bar
-border and gap.
+FREE: the whole Pareto, 20% bins, 2 reference lines, conditional formatting,
+bar border and gap. PRO: bin size 1-20%, outlier trimming, value labels, 3rd
+line.

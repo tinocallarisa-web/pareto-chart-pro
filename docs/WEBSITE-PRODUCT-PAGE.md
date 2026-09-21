@@ -43,7 +43,7 @@ Everything below is included without a licence except the six items marked **(Pr
 - **Threshold colours** — one colour within the threshold, another beyond, and an optional
   highlight on the crossing bin
 - **IBCS mode** — neutral charcoal palette with black axis typography
-- **Bar border colour and width, and bar gap (Pro)**
+- **Bar border colour and width, and bar gap**
 - **Value labels on bars (Pro)** — font size, colour and % formatting
 
 ### Interaction
@@ -74,8 +74,8 @@ Everything below is included without a licence except the six items marked **(Pr
 | Outlier exclusion (top/bottom %) | — | **✓** |
 | Value labels on bars | — | **✓** |
 | Third reference line | — | **✓** |
-| Bar border colour and width | — | **✓** |
-| Bar gap | — | **✓** |
+| Bar border colour and width | **✓** | **✓** |
+| Bar gap | **✓** | **✓** |
 
 Pro settings are listed in the format pane for everyone, each marked `(Pro)`. Changing one
 without a licence leaves the chart on the Free result and raises Power BI's own

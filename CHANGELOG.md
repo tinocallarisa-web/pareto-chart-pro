@@ -1,5 +1,19 @@
 # Changelog — Pareto Chart Pro
 
+## [1.4.2.0] — 2026-09-21
+
+### Fixed
+- **Bar color only painted some of the bars on large models.** Present in 1.4.1.0 and earlier, and reproduced there. `pareto.barColor` carries a `dataViewWildcard` selector so the `fx` rule has a scope to write into, and the side effect is that a plain colour picked in the swatch is persisted per category, in `categorical.categories[0].objects`, rather than in `metadata.objects`. The fill was resolved bin by bin from those objects, but Power BI only delivers them for part of the categories once the model is large — so the chosen colour reached the first bins and the rest fell back to the default blue. Measured with 500,000 entities: 4 bars out of 20. A single distinct colour across the categories is now treated as what it is, a constant the user chose, and applied to every bar; several distinct colours still mean an `fx` rule is driving them and the per-bin colour still wins. This is the same test the format pane already used to decide which swatch to show — the render simply did not apply it.
+- **The Upgrade bar was being overwritten, so a user told to buy had nothing to click.** Power BI shows one licence notification at a time and the last call replaces the previous one. `notifyLicenseRequired()` ran first and `notifyFeatureBlocked()` second, in the same `update()`, so on a user's first attempt at a Pro setting the feature banner wiped out the Upgrade bar — which is the call that carries the purchase path. The sequence is now `clearLicenseNotification()` → the banner naming the feature → and, after ~10 s, the persistent Upgrade bar, matching what already ships in Calendar, Bullet Chart Pro and Likert Survey Pro. The pending timer is cancelled in `destroy()`.
+
+### Added
+- **Pro preview.** Without a licence, and **in edit mode only**, a Pro setting the user turns on is now drawn *working*, under a "Pro preview" watermark, instead of being silently ignored. Until now the chart stayed on the Free result and only a message appeared, so nobody ever saw what they were being asked to pay for. Reading view — and any environment where licences cannot be read — still draws the Free result with no watermark and no prompt, so a published report never uses an unpaid feature. The preview is granted **per feature**, only for the one the user actually asked for: `binSizePct` defaults to 5, so a blanket preview would have handed out 20 bars on insert, with no watermark and no notice.
+
+### Changed
+- **New icon, from the TCViz visual system.** The chart keeps its shape — ranked bars and the cumulative curve — redrawn on the shared tile with the portfolio's palette, so Pareto Chart Pro reads as part of the same family in the Power BI gallery and on AppSource. The 300x300 marketplace logo is updated to match; it does not travel inside the package and is uploaded in Partner Center.
+- **Bar border colour, border width and bar gap are Free, and no longer labelled `(Pro)`.** The render never gated them — they have worked without a licence in every published version — so the label was asking people to pay for something they already had, and the purchase notice fired for it. Gating them now would have removed styling from reports that already use it. Documentation and the product page are corrected to match.
+- **The sort order is declared implicit.** `sorting` was `default`, so Power BI offered its *Sort axis* menu even though a Pareto chart is descending by value by definition and the visual re-sorts regardless — the menu looked broken because nothing it offered had any effect. It now declares `implicit` on the `measure` role, descending, and Power BI stops offering a choice that does not exist.
+
 ## [1.4.1.0] — 2026-09-14
 
 ### Fixed
