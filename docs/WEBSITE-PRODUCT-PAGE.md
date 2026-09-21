@@ -1,6 +1,6 @@
 # Pareto Chart Pro — TCViz Web Product Page Content
 
-Content for the four tabs of the TCViz product page. Current visual version: **1.4.1.0**.
+Content for the four tabs of the TCViz product page. Current visual version: **1.4.2.0**.
 
 ## TAB 1: OVERVIEW
 

@@ -1,4 +1,4 @@
-# Tips & Hints — Pareto Chart Pro (v1.4.1.0)
+# Tips & Hints — Pareto Chart Pro (v1.4.2.0)
 
 ## Getting started
 1. **Entity** — a categorical dimension (Customer, Product, SKU, Supplier). A hierarchy here enables drilldown.
@@ -139,7 +139,18 @@ opens the context menu. Tooltips open on focus, not only on hover.
 | Bin size | fixed 20% (5 bars) | 1–20% (up to 100 bars) |
 | Outlier trimming (top/bottom %) | — | ✓ |
 | Value labels on bars | — | ✓ |
-| Bar border & gap styling | — | ✓ |
+| Bar border & gap styling | ✓ | ✓ |
+
+### Try Pro before you buy
+
+While you are editing a report **without a licence**, a Pro setting you turn on is drawn **working**,
+under a *Pro preview* watermark that names the feature, and Power BI shows its own notice with the
+Upgrade option. Turn the setting back off and the watermark goes with it.
+
+In **reading view** — and anywhere Power BI cannot check licences, such as Publish to Web, embedding
+or export — the Free result is drawn with no watermark and no prompt, so a published report never
+uses a feature you have not paid for. The preview applies only to the setting you actually changed,
+not to every Pro option at once. Pro comes with a 30-day free trial on AppSource.
 
 Because bin size governs how many entities sit behind a bar, cross-filtering a model above roughly
 50,000 entities requires reducing the bin size — which is a Pro control. This is a consequence of

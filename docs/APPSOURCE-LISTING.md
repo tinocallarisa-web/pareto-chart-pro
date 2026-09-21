@@ -1,4 +1,4 @@
-# AppSource listing copy — Pareto Chart Pro v1.4.0.0
+# AppSource listing copy — Pareto Chart Pro v1.4.2.0
 
 Paste-ready text for Partner Center. The marketplace listing is the documentation the
 largest number of people read and the one that goes stale fastest — update it with every

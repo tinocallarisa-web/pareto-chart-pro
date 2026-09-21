@@ -1,9 +1,9 @@
-# Certification Notes — Pareto Chart Pro v1.4.1.0
+# Certification Notes — Pareto Chart Pro v1.4.2.0
 
 ## General Information
 - **Visual Name:** Pareto Chart Pro
 - **GUID:** ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-- **Version:** 1.4.1.0
+- **Version:** 1.4.2.0
 - **Plan ID / spIdentifier:** pareto-chart-pro-tcviz
 - **Certification Branch:** https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
 - **Support URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
