@@ -108,6 +108,8 @@
              background: var(--bg2); color: var(--t2); border: 1px solid var(--line);
              padding: 3px 10px; border-radius: 20px; margin-bottom: 14px; }
   .verpill a { color: var(--acc); text-decoration: none; }
+  .lead { font-size: 14px; line-height: 1.6; color: var(--t2); margin: 0 0 22px; }
+  .lead a { color: var(--acc); }
 
   /* ── Footer ── */
   footer { background: var(--t1); color: var(--t3); text-align: center; padding: 24px 48px; font-size: 12px; }
@@ -174,7 +176,13 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.4.1.0 &nbsp;·&nbsp; docs updated 9 Sep 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.4.2.0 &nbsp;·&nbsp; docs updated 7 Oct 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+
+  <p class="lead">Supported Power BI features: <strong>conditional formatting (fx)</strong> on bar colour ·
+  drilldown on a hierarchy · cross-filtering, highlighting and multi-select · standard and
+  <strong>report page tooltips</strong> · bookmarks · context menu · keyboard navigation with ARIA labels ·
+  high contrast · IBCS mode. Worked examples — customer concentration, SKU rationalisation, defect
+  prioritisation — are in <a href="tips.html#scenarios">Tips &amp; scenarios</a>.</p>
 
   <!-- Quick Start -->
   <h2 id="quickstart">Quick Start</h2>
@@ -235,9 +243,9 @@
     <tr><td>Exclude top % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the highest-value N% of entities before binning.</td></tr>
     <tr><td>Bar color</td><td>#4472C4</td><td>Fill color for all bars. Supports rule-based conditional formatting via the <em>fx</em> button; each bar takes the color of its top-ranked entity.</td></tr>
     <tr><td>Bar opacity %</td><td>85</td><td>Opacity of bars (0–100).</td></tr>
-    <tr><td>Border color <span class="badge badge-pro">Pro</span></td><td>#2E5BA8</td><td>Stroke color for bar borders.</td></tr>
-    <tr><td>Border width <span class="badge badge-pro">Pro</span></td><td>0</td><td>Stroke width in pixels (0 = no border).</td></tr>
-    <tr><td>Bar gap px <span class="badge badge-pro">Pro</span></td><td>2</td><td>Padding between bars in pixels.</td></tr>
+    <tr><td>Border color</td><td>#2E5BA8</td><td>Stroke color for bar borders.</td></tr>
+    <tr><td>Border width</td><td>0</td><td>Stroke width in pixels (0 = no border).</td></tr>
+    <tr><td>Bar gap px</td><td>2</td><td>Padding between bars in pixels.</td></tr>
     <tr><td>IBCS Mode <span class="badge badge-free">Free</span></td><td>Off</td><td>One-click toggle to apply International Business Communication Standards (charcoal neutral bars #404040, black solid axis typography, standardized contrast).</td></tr>
   </table>
 
@@ -418,7 +426,7 @@
     <tr><td>Max entities (Power BI Service)</td><td>500,000+</td><td>500,000+</td></tr>
     <tr><td>Bin size % (1–20%)</td><td>Fixed at 20% (5 bars)</td><td>✅ Configurable 1–20% (up to 100 bars)</td></tr>
     <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Bar border &amp; gap styling</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Bar border &amp; gap styling</td><td>✅</td><td>✅</td></tr>
     <tr><td>3rd reference line</td><td>❌</td><td>✅</td></tr>
     <tr><td>Value labels on bars</td><td>❌</td><td>✅</td></tr>
   </table>
@@ -461,8 +469,8 @@
   <details>
     <summary>Why do I see "(Pro)" settings I cannot use?</summary>
     <div class="faq-body">
-      <p>Every setting in the format pane is listed for all users, and the ones included in the Pro plan carry <strong>(Pro)</strong> in their name — bin size, outlier exclusion, bar border, bar gap, value labels and the third reference line. They are shown rather than hidden so you can see what the plan includes before deciding.</p>
-      <p>If you change one without a licence, the chart keeps rendering the Free result and Power BI shows its own notification with a link to get a licence. Nothing is lost: your setting is stored and takes effect as soon as the licence is active.</p>
+      <p>Every setting in the format pane is listed for all users, and the ones included in the Pro plan carry <strong>(Pro)</strong> in their name — bin size, outlier exclusion, value labels and the third reference line. They are shown rather than hidden so you can see what the plan includes before deciding.</p>
+      <p>If you turn one on without a licence while <strong>editing</strong> a report, the chart draws it working, under a <strong>Pro preview</strong> watermark that names the feature, and Power BI shows its own notification with a link to get a licence — so you see your own data with the feature before deciding. In reading view, and wherever licences cannot be read, the chart shows the Free result with no watermark: a published report never uses a feature nobody paid for. Your setting is stored and applies cleanly as soon as the licence is active.</p>
     </div>
   </details>
 

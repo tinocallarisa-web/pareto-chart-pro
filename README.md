@@ -55,7 +55,7 @@ That's it — ranking, binning and the cumulative line are automatic. No DAX req
 | Bin size | Fixed 20% (5 bars) | 1–20% (up to 100 bars) |
 | Outlier exclusion (top/bottom %) | — | ✅ |
 | Value labels on bars | — | ✅ |
-| Bar border & gap styling | — | ✅ |
+| Bar border & gap styling | ✅ | ✅ |
 | 3rd reference line | — | ✅ |
 
 Licences are purchased through AppSource and validated automatically inside Power BI.

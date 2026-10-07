@@ -161,7 +161,7 @@ In the Format Pane → Bar color, click the *fx* button to apply standard Power 
 | Conditional formatting (bars) | ✅ | ✅ |
 | Bin size | Fixed at 10% | Configurable 1–20% |
 | Outlier exclusion (top/bottom %) | ❌ | ✅ |
-| Bar border & gap styling | ❌ | ✅ |
+| Bar border & gap styling | ✅ | ✅ |
 | 3rd reference line | ❌ | ✅ |
 | Value labels on bars | ❌ | ✅ |
 

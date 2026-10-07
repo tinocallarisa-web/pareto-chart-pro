@@ -72,8 +72,7 @@ thresholds, conditional formatting, Threshold Colors, the tooltips field well, I
 drilldown, cross-filtering, keyboard navigation and high contrast.
 
 Pro adds the controls you need as models grow: bin sizes from 1% to 20% (up to 100 bars),
-outlier exclusion, value labels on bars, a third reference threshold, and bar border and gap
-styling. Bin size also governs how many entities sit behind a bar, which matters for
+outlier exclusion, value labels on bars, and a third reference threshold. Bin size also governs how many entities sit behind a bar, which matters for
 cross-filtering large models — the documentation has the measured figures.
 
 30-day free trial on AppSource.
