@@ -6,12 +6,12 @@ actually depends on — without the sorted-column-plus-DAX workaround.
 
 [![AppSource](https://img.shields.io/badge/Microsoft-AppSource-0078D4)](https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro)
 [![Certified](https://img.shields.io/badge/Power%20BI-Certified-107C10)](https://learn.microsoft.com/power-bi/developer/visuals/power-bi-custom-visuals-certified)
-[![Docs](https://img.shields.io/badge/docs-tcviz-C96442)](https://tinocallarisa-web.github.io/pareto-chart-pro/)
+[![Docs](https://img.shields.io/badge/docs-tcviz-2B6CB0)](https://tinocallarisa-web.github.io/pareto-chart-pro/)
 
 📘 **[Documentation](https://tinocallarisa-web.github.io/pareto-chart-pro/support.html)** ·
 💡 **[Tips & best practices](https://tinocallarisa-web.github.io/pareto-chart-pro/tips.html)** ·
 📋 **[Changelog](https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html)** ·
-🎥 **[Video walkthrough](https://www.youtube.com/watch?v=qtN0ckSXNZQ)**
+🎥 **[Video walkthrough](https://www.youtube.com/watch?v=abzBwDW_wkE)**
 
 ---
 
@@ -23,7 +23,18 @@ percentage line climbs across them to 100%, and up to three reference lines mark
 thresholds you care about — 80% by default.
 
 Because the X axis is a share of entities rather than a list of names, the chart stays
-readable whether the model has 40 SKUs or 40,000.
+readable whether the model has 40 SKUs or 40,000 — and with 30 entities or fewer it switches to
+one named bar per entity, the classic Pareto. A summary sentence states the answer exactly:
+*"1,120 of 5,000 entities (22.4%) make 80% of the total"*.
+
+**New in 1.5.0.0:** period comparison (Pro), small multiples (Pro), ABC zones (Pro), the summary
+sentence, named bars, partial highlighting from other visuals, number formats from the model, and
+Spanish. See the [changelog](https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html).
+
+**Power BI features supported:** conditional formatting (fx) · small multiples · cross-filtering,
+highlighting and multi-select · drilldown · standard and report page tooltips · bookmarks · context
+menu · keyboard navigation with ARIA · high contrast · model format strings · localization
+(English, Spanish).
 
 **Typical questions it answers**
 
@@ -39,6 +50,8 @@ readable whether the model has 40 SKUs or 40,000.
 2. Drag a category field (Customer, Product, SKU…) into **Entity**.
 3. Drag a numeric measure (Revenue, Units, Defect count…) into **Value**.
 4. Optionally add up to 10 measures to **Tooltips**.
+5. *(Pro)* Drag last year's measure into **Comparison value**, or a field such as Region into
+   **Small multiples**.
 
 That's it — ranking, binning and the cumulative line are automatic. No DAX required.
 
@@ -51,12 +64,17 @@ That's it — ranking, binning and the cumulative line are automatic. No DAX req
 | Tooltips field well (up to 10 measures) | ✅ | ✅ |
 | Conditional formatting (`fx`) and Threshold Colors | ✅ | ✅ |
 | IBCS Mode, high contrast, keyboard navigation | ✅ | ✅ |
-| Max entities (Power BI Service) | 150,000+ | 150,000+ |
+| Max entities (Power BI Service) | 500,000+ | 500,000+ |
 | Bin size | Fixed 20% (5 bars) | 1–20% (up to 100 bars) |
 | Outlier exclusion (top/bottom %) | — | ✅ |
 | Value labels on bars | — | ✅ |
 | Bar border & gap styling | ✅ | ✅ |
 | 3rd reference line | — | ✅ |
+| Summary sentence, named bars, partial highlighting | ✅ | ✅ |
+| Number formats from the model, English and Spanish | ✅ | ✅ |
+| Period comparison | — | ✅ |
+| Small multiples | — | ✅ |
+| ABC zones | — | ✅ |
 
 Licences are purchased through AppSource and validated automatically inside Power BI.
 There is nothing to configure and no key to enter.

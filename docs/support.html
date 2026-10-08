@@ -8,7 +8,7 @@
   :root {
     --bg: #FAF9F5; --bg2: #EDE9DE; --bd: #F5F3ED; --line: #DAD9D4;
     --t1: #3D3929; --t2: #535146; --t3: #83827D;
-    --acc: #C96442; --accd: #B05730; --acc2: #9C87F5;
+    --acc: #2B6CB0; --accd: #1F4E80; --acc2: #3E9C5B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--t1); line-height: 1.65; }
@@ -20,8 +20,8 @@
   header .sub   { font-size: 13px; color: #b5b3aa; margin-top: 2px; }
 
   /* ── Nav ── */
-  nav { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 0 48px; display: flex; gap: 0; }
-  nav a { display: block; padding: 14px 20px; font-size: 13px; font-weight: 600; color: var(--t2);
+  nav { background: var(--bg2); border-bottom: 1px solid var(--line); padding: 0 48px; display: flex; gap: 0; overflow-x: auto; }
+  nav a { display: block; padding: 14px 14px; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--t2);
           text-decoration: none; border-bottom: 3px solid transparent; transition: color .2s, border-color .2s; }
   nav a:hover, nav a.active { color: var(--acc); border-bottom-color: var(--acc); }
 
@@ -123,9 +123,9 @@
 <header>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="90" height="40">
     <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#B05730"/>
-      <stop offset=".55" stop-color="#C96442"/>
-      <stop offset="1" stop-color="#9C87F5"/>
+      <stop offset="0" stop-color="#1F4E80"/>
+      <stop offset=".55" stop-color="#2B6CB0"/>
+      <stop offset="1" stop-color="#3E9C5B"/>
     </linearGradient></defs>
     <g transform="translate(40,46)">
       <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
@@ -151,6 +151,7 @@
 <nav>
   <a href="index.html">Home</a>
   <a href="#quickstart" class="active">Quick Start</a>
+  <a href="#reading">Reading the chart</a>
   <a href="#fields">Field Wells</a>
   <a href="#format">Format Pane</a>
   <a href="#accessibility">Accessibility</a>
@@ -176,13 +177,17 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.4.2.0 &nbsp;·&nbsp; docs updated 7 Oct 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.5.0.0 &nbsp;·&nbsp; docs updated 8 Oct 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <p class="lead">Supported Power BI features: <strong>conditional formatting (fx)</strong> on bar colour ·
-  drilldown on a hierarchy · cross-filtering, highlighting and multi-select · standard and
+  <strong>small multiples</strong> · <strong>period comparison</strong> (current vs prior) · drilldown on a
+  hierarchy · cross-filtering, <strong>highlighting</strong> and multi-select · standard and
   <strong>report page tooltips</strong> · bookmarks · context menu · keyboard navigation with ARIA labels ·
-  high contrast · IBCS mode. Worked examples — customer concentration, SKU rationalisation, defect
-  prioritisation — are in <a href="tips.html#scenarios">Tips &amp; scenarios</a>.</p>
+  high contrast · <strong>number formats from the model</strong> · <strong>localization</strong> (English,
+  Spanish) · IBCS mode. Analysis: an exact <strong>80/20 summary sentence</strong>, <strong>ABC
+  classification</strong> zones, threshold colours, outlier exclusion. Worked examples — customer
+  concentration, SKU rationalisation, defect prioritisation — are in
+  <a href="tips.html#scenarios">Tips &amp; scenarios</a>.</p>
 
   <!-- Quick Start -->
   <h2 id="quickstart">Quick Start</h2>
@@ -194,21 +199,126 @@
     <p>Drag a category field (e.g. Customer, Product, SKU) into <code>Entity</code> and a numeric measure (e.g. Revenue, Quantity) into <code>Value</code>. The chart renders automatically with bars sorted from highest to lowest contribution and a cumulative line.</p>
 
     <h3>3. Interpret the chart</h3>
-    <p>The <strong>left Y-axis</strong> shows each bin's share of the total. The <strong>right Y-axis</strong> shows the cumulative percentage. The default reference line marks the 80% threshold — the point where the top entities collectively reach 80% of the total value.</p>
+    <p>The <strong>summary sentence</strong> above the chart gives the answer in words — for example
+    <em>"1,120 of 5,000 entities (22.4%) make 80% of the total"</em>. The <strong>left Y-axis</strong> shows each
+    bar's share of the total; the <strong>right Y-axis</strong> shows the cumulative percentage. The default
+    reference line marks the 80% threshold.</p>
 
     <h3>4. Use drilldown</h3>
-    <p>Add a hierarchy field (e.g. Category &gt; Subcategory &gt; SKU) to the <code>Entity</code> well. Use the drill buttons in the visual header to navigate levels.</p>
+    <p>Add a hierarchy field (e.g. Category &gt; Subcategory &gt; SKU) to the <code>Entity</code> well. Use the drill buttons in the visual header to navigate levels. Levels with 30 members or fewer show one named bar per member.</p>
+
+    <h3>5. Compare with another period <span class="badge badge-pro">Pro</span></h3>
+    <p>Drag last year's measure into <code>Comparison value</code>. Grey bars, a dashed cumulative line and
+    change pills in percentage points show whether the business became more or less concentrated.</p>
+
+    <h3>6. Split into small multiples <span class="badge badge-pro">Pro</span></h3>
+    <p>Drag Region, Plant or Product line into <code>Small multiples</code> to get one Pareto per value, on a
+    shared scale.</p>
   </div>
 
   <!-- Video -->
   <h2>Video Walkthrough</h2>
   <div class="video-wrap">
-    <iframe src="https://www.youtube.com/embed/qtN0ckSXNZQ" allowfullscreen loading="lazy" title="Pareto Chart Pro walkthrough"></iframe>
+    <iframe src="https://www.youtube.com/embed/abzBwDW_wkE" allowfullscreen loading="lazy" title="Pareto Chart Pro walkthrough"></iframe>
   </div>
   <div class="cta">
     <a class="btn btn-primary" href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">Get it on AppSource</a>
     <a class="btn btn-outline" href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" target="_blank">Report an Issue</a>
     <a class="btn btn-outline" href="changelog.html">Changelog</a>
+  </div>
+
+  <!-- Reading the chart -->
+  <h2 id="reading">Reading the chart</h2>
+
+  <div class="card">
+    <h3>The summary sentence <span class="badge badge-free">Free</span></h3>
+    <p>One sentence above the chart: <em>"1,120 of 5,000 entities (22.4%) make 80% of the total"</em>. It is
+    counted <strong>entity by entity</strong>, not read off the bars, so it is exact at any bin size — with 20%
+    bins the bars alone can only tell you the answer lies "between 20% and 40%". The threshold is
+    reference line 1 when it is on (80% by default), otherwise the Threshold Colors value. With a comparison,
+    the sentence adds the same count for the other period: <em>"· comparison: 1,206 entities (24.1%)"</em> —
+    fewer entities needed means the business became more concentrated.</p>
+  </div>
+
+  <div class="card">
+    <h3>Bins, or one named bar per entity <span class="badge badge-free">Free</span></h3>
+    <p>With <strong>more than 30 entities</strong>, entities are ranked and grouped into bins of a fixed share of
+    the population — <code>0–20%</code>, <code>20–40%</code>… — so 10,000 SKUs still read as a handful of bars.</p>
+    <p>With <strong>30 entities or fewer</strong> — segments, defect types, regions, a drilled-down level — the
+    chart switches to the classic Pareto: <strong>one bar per entity, labelled with its name</strong>, sorted from
+    largest to smallest, and the X-axis title becomes the field name. Nothing to configure.</p>
+  </div>
+
+  <div class="card">
+    <h3>Period comparison <span class="badge badge-pro">Pro</span></h3>
+    <p>Bind a second measure — typically the same measure for the prior year — to
+    <code>Comparison value</code>. Each bar gets a grey comparison bar behind it (outlined grey in IBCS mode),
+    the cumulative line gets a dashed comparison line, and a <strong>change pill</strong> above each bar shows the
+    difference in share.</p>
+    <ul>
+      <li><strong>With bins, each period is ranked on its own</strong> over the same entity population and cut at
+      the same points. The first bar compares <em>"the top 20% now"</em> with <em>"the top 20% then"</em>,
+      whoever is in them. That is the question a Pareto answers — <em>has the business become more
+      concentrated?</em> — and it holds even when the leading customers changed.</li>
+      <li><strong>With named bars, the comparison is the same entity</strong>: the bar labelled <em>Retail</em>
+      compares Retail now with Retail then. Ranking each period on its own would put last year's number one
+      under this year's name.</li>
+      <li><strong>The pills are in percentage points (pp), not %.</strong> Going from a 20% share to a 23% share is
+      <strong>+3 pp</strong>; "+3%" would read as 3% relative growth, which is a different and much smaller
+      number. Pills hide when they do not fit the bars; the tooltip always has the figures.</li>
+      <li><strong>New and lost entities count.</strong> The population is every entity with a value in either
+      period. A customer lost since last year is a zero this year, at the bottom of the current ranking; a new
+      one is a zero in the comparison. Leaving them out would compare two different populations.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>Small multiples <span class="badge badge-pro">Pro</span></h3>
+    <p>Bind a field to <code>Small multiples</code> to draw one Pareto per value — plant, region, product line —
+    in a grid. Every panel has its own ranking, bins, summary sentence, comparison and ABC zones, and all panels
+    share the left axis, so bars of the same height mean the same share everywhere. Set the number of columns
+    in <strong>Format → Small multiples</strong>, or leave it at 0 for an automatic layout.</p>
+    <ul>
+      <li><strong>Clicking a bar filters the report to those entities in that panel</strong> — the filter carries
+      the entities <em>and</em> the panel value, so bin 1 of Plant A does not select the same customers in every
+      plant. Ctrl+click adds bars from the same panel; a click in another panel starts a new selection.</li>
+      <li>Each row is one entity × panel combination, so an entity that appears in two panels is ranked in
+      each with its own value there.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>ABC zones <span class="badge badge-pro">Pro</span></h3>
+    <p><strong>Format → ABC zones</strong> shades three bands behind the bars: <strong>A</strong>, the entities that
+    make the first cut of the total (80% by default); <strong>B</strong>, up to the second cut (95%);
+    <strong>C</strong>, the rest. The boundaries are placed at the exact entity where the cumulative crosses each
+    cut, and each band is labelled with its share of entities — <em>"A · 22.4% of entities"</em>. It is the
+    classic ABC inventory and customer classification, drawn on the Pareto it comes from.</p>
+  </div>
+
+  <div class="card">
+    <h3>Highlighting and filtering from other visuals</h3>
+    <p>Other visuals on the page interact with the Pareto in one of two ways, chosen per pair of visuals in
+    <strong>Format → Edit interactions</strong>:</p>
+    <ul>
+      <li><strong>Filter</strong> (the default for slicers): the Pareto receives only the filtered entities and is
+      recalculated entirely — new ranking, bins, summary and zones.</li>
+      <li><strong>Highlight</strong> (the default for charts): every bar is dimmed and the part that belongs to the
+      highlighted entities is drawn on top, opaque, like a native column chart. The tooltip shows the
+      <em>Highlighted share</em>. Select a category in a bar chart and you see how much of the top 10% that
+      category is.</li>
+    </ul>
+    <p>If clicking another chart seems to do nothing, it is highlighting: switch that interaction to
+    <em>Filter</em> to recalculate the Pareto instead.</p>
+  </div>
+
+  <div class="card">
+    <h3>Number formats and language <span class="badge badge-free">Free</span></h3>
+    <p>Values in tooltips use the <strong>format string of the measure in your model</strong> — currency,
+    thousands separators, decimals — and every percentage the visual computes follows the
+    <strong>report's locale</strong> (12.5% in English, 12,5% in Spanish). The format pane, tooltips, notices and
+    screen-reader labels are localized in <strong>English and Spanish</strong> and follow Power BI's language
+    setting.</p>
   </div>
 
   <!-- Field Wells -->
@@ -218,12 +328,22 @@
     <tr>
       <td><strong>Entity</strong></td>
       <td>Categorical / Hierarchy</td>
-      <td>The dimension to rank — e.g. Customer, Product, SKU, Supplier. Accepts a single field or a hierarchy for drilldown.</td>
+      <td>The dimension to rank — e.g. Customer, Product, SKU, Supplier. Accepts a single field or a hierarchy for drilldown. Up to 30 members are drawn as named bars; more are grouped into bins.</td>
     </tr>
     <tr>
       <td><strong>Value</strong></td>
       <td>Numeric measure</td>
-      <td>The metric to concentrate — e.g. Revenue, Units sold, Defect count. Must be a numeric aggregated measure.</td>
+      <td>The metric to concentrate — e.g. Revenue, Units sold, Defect count. Must be a numeric aggregated measure. Its format string from the model is used in tooltips.</td>
+    </tr>
+    <tr>
+      <td><strong>Comparison value</strong> <span class="badge badge-pro">Pro</span></td>
+      <td>Numeric measure</td>
+      <td>A second measure to compare with — e.g. last year's revenue (a column or a DAX measure such as <code>CALCULATE([Sales], SAMEPERIODLASTYEAR('Date'[Date]))</code>). Adds comparison bars, a dashed cumulative line and change pills.</td>
+    </tr>
+    <tr>
+      <td><strong>Small multiples</strong> <span class="badge badge-pro">Pro</span></td>
+      <td>Categorical</td>
+      <td>One Pareto per value of this field — plant, region, product line — on a shared scale.</td>
     </tr>
     <tr>
       <td><strong>Tooltips</strong></td>
@@ -288,7 +408,7 @@
     <tr><td>Show line 1</td><td>On</td><td>Display the first horizontal + vertical reference crosshair.</td></tr>
     <tr><td>Line 1 threshold</td><td>80</td><td>Cumulative % value where the line is drawn (0–100).</td></tr>
     <tr><td>Line 1 color</td><td>#E84444</td><td>Color of the reference line and labels.</td></tr>
-    <tr><td>Line 1 label</td><td>"80%"</td><td>Text label shown on the left Y-axis at the line.</td></tr>
+    <tr><td>Line 1 label</td><td>"80%"</td><td>Text shown at the right end of the line, inside the plot.</td></tr>
     <tr><td>Show line 2 / 3</td><td>Off</td><td>Same settings as line 1, for additional thresholds.</td></tr>
   </table>
 
@@ -299,6 +419,46 @@
     <tr><td>Font size</td><td>10</td><td>Label font size in points.</td></tr>
     <tr><td>Color</td><td>#444444</td><td>Label text color.</td></tr>
     <tr><td>Show % sign</td><td>On</td><td>Append "%" to the label value.</td></tr>
+  </table>
+
+  <h3>Summary <span class="badge badge-free">Free</span></h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Show summary</td><td>On</td><td>The sentence above the chart: how many entities make the threshold share of the total, counted exactly.</td></tr>
+    <tr><td>Font size</td><td>12</td><td>Size of the sentence.</td></tr>
+    <tr><td>Color</td><td>#333333</td><td>Color of the sentence.</td></tr>
+  </table>
+
+  <h3>Comparison <span class="badge badge-pro">Pro</span></h3>
+  <p>Applies when a field is bound to <code>Comparison value</code>.</p>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Show comparison bars</td><td>On</td><td>Grey bars behind the current ones.</td></tr>
+    <tr><td>Comparison bar color</td><td>#8C8C8C</td><td>Color of the comparison bars.</td></tr>
+    <tr><td>Show comparison line</td><td>On</td><td>Dashed cumulative line of the comparison period.</td></tr>
+    <tr><td>Comparison line color</td><td>#8C8C8C</td><td>Color of the dashed line.</td></tr>
+    <tr><td>Show change (pp) per bar</td><td>On</td><td>Pills above the bars with the change in share, in percentage points.</td></tr>
+    <tr><td>Increase color</td><td>#2E7D32</td><td>Pill color when the share went up.</td></tr>
+    <tr><td>Decrease color</td><td>#C62828</td><td>Pill color when the share went down.</td></tr>
+  </table>
+
+  <h3>Small multiples <span class="badge badge-pro">Pro</span></h3>
+  <p>Applies when a field is bound to <code>Small multiples</code>.</p>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Columns</td><td>0</td><td>Panels per row. 0 lays them out automatically for the visual's shape.</td></tr>
+    <tr><td>Title font size</td><td>12</td><td>Size of each panel's title.</td></tr>
+    <tr><td>Title color</td><td>#333333</td><td>Color of each panel's title.</td></tr>
+  </table>
+
+  <h3>ABC zones <span class="badge badge-pro">Pro</span></h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Show ABC zones</td><td>Off</td><td>Shade classes A, B and C behind the bars.</td></tr>
+    <tr><td>Class A up to (cumulative %)</td><td>80</td><td>Class A: the top entities that make this share of the total.</td></tr>
+    <tr><td>Class B up to (cumulative %)</td><td>95</td><td>Class B: the next entities, up to this share. Class C is the rest.</td></tr>
+    <tr><td>Class A / B / C color</td><td>blue / green / grey</td><td>Color of each band (drawn at low opacity).</td></tr>
+    <tr><td>Show zone labels</td><td>On</td><td>Label each band with its class and share of entities.</td></tr>
   </table>
 
   <!-- Accessibility -->
@@ -332,8 +492,11 @@
       <li><strong>Tooltips open on keyboard focus</strong>, not only on hover. A tooltip that only
       appears under a mouse pointer is invisible to a keyboard user.</li>
       <li>A visible focus ring marks the focused bar, with a dedicated high-contrast variant.</li>
-      <li>In Windows or Power BI high contrast mode, every element — bars, cumulative line, axes,
-      dots and reference lines — switches to the system palette automatically.</li>
+      <li>With small multiples the arrow keys walk the bars panel by panel, and each label starts with the
+      panel's name. With a comparison, the label also reads the comparison share and the change.</li>
+      <li>In Windows or Power BI high contrast mode, every element — bars, comparison bars and line, cumulative
+      line, axes, dots, reference lines and ABC zones (outlined instead of shaded) — switches to the system
+      palette automatically.</li>
     </ul>
   </div>
 
@@ -404,6 +567,9 @@
     <p>Whenever Power BI stops short of the full set, the visual says so in an amber notice
     with the exact number of rows it received. A Pareto always spans 0–100%, so a chart built
     on partial data looks entirely normal — the notice is the only way to tell.</p>
+    <p><strong>Small multiples count combinations.</strong> Each row is one entity × panel combination, so a
+    customer that sits in one region is still one row, while one bought in five regions is five. The 30,000-row
+    Desktop window applies to those combinations.</p>
     <p><strong>Keep the entity key narrow.</strong> An integer key costs far less than a long
     text code at every stage: less data to stream toward the 100&nbsp;MB ceiling, and lighter
     filters when you click. If you have both, bind the numeric one.</p>
@@ -423,13 +589,23 @@
     <tr><td>High contrast mode</td><td>✅</td><td>✅</td></tr>
     <tr><td>Tooltips field well (up to 10 measures)</td><td>✅</td><td>✅</td></tr>
     <tr><td>IBCS Mode (standardized styling)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Exact 80/20 summary sentence</td><td>✅</td><td>✅</td></tr>
+    <tr><td>One named bar per entity (30 or fewer)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Highlighting from other visuals (partial bars)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Conditional formatting (fx) on bar color</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Number formats from the model, English and Spanish</td><td>✅</td><td>✅</td></tr>
     <tr><td>Max entities (Power BI Service)</td><td>500,000+</td><td>500,000+</td></tr>
     <tr><td>Bin size % (1–20%)</td><td>Fixed at 20% (5 bars)</td><td>✅ Configurable 1–20% (up to 100 bars)</td></tr>
     <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
     <tr><td>Bar border &amp; gap styling</td><td>✅</td><td>✅</td></tr>
     <tr><td>3rd reference line</td><td>❌</td><td>✅</td></tr>
     <tr><td>Value labels on bars</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Period comparison (bars, dashed line, change pills)</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Small multiples</td><td>❌</td><td>✅</td></tr>
+    <tr><td>ABC zones</td><td>❌</td><td>✅</td></tr>
   </table>
+  <p>Without a licence, the Free result never hides data: with a <code>Small multiples</code> field bound, the
+  panels are summed into one Pareto, and the comparison measure is ignored.</p>
   <p>To activate Pro features, purchase a license from <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" style="color:var(--acc);font-weight:600;">AppSource</a>. License validation happens automatically inside Power BI — no configuration needed.</p>
 
   <!-- FAQ -->
@@ -469,7 +645,7 @@
   <details>
     <summary>Why do I see "(Pro)" settings I cannot use?</summary>
     <div class="faq-body">
-      <p>Every setting in the format pane is listed for all users, and the ones included in the Pro plan carry <strong>(Pro)</strong> in their name — bin size, outlier exclusion, value labels and the third reference line. They are shown rather than hidden so you can see what the plan includes before deciding.</p>
+      <p>Every setting in the format pane is listed for all users, and the ones included in the Pro plan carry <strong>(Pro)</strong> in their name — bin size, outlier exclusion, value labels, the third reference line, comparison, small multiples and ABC zones. They are shown rather than hidden so you can see what the plan includes before deciding.</p>
       <p>If you turn one on without a licence while <strong>editing</strong> a report, the chart draws it working, under a <strong>Pro preview</strong> watermark that names the feature, and Power BI shows its own notification with a link to get a licence — so you see your own data with the feature before deciding. In reading view, and wherever licences cannot be read, the chart shows the Free result with no watermark: a published report never uses a feature nobody paid for. Your setting is stored and applies cleanly as soon as the licence is active.</p>
     </div>
   </details>
@@ -500,6 +676,81 @@
   </details>
 
   <details>
+    <summary>Clicking another chart does not change the Pareto — is that right?</summary>
+    <div class="faq-body">
+      <p>It is highlighting, the default interaction between charts. The Pareto keeps every entity, dims the bars
+      and draws on top the part that belongs to what you selected; the tooltip shows the <em>Highlighted share</em>.
+      If you want the Pareto recalculated for the selection instead — new ranking, new summary — select the other
+      chart, open <strong>Format → Edit interactions</strong> and choose the <strong>filter</strong> icon above the
+      Pareto. Slicers filter by default.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why does the comparison say "pp" and not "%"?</summary>
+    <div class="faq-body">
+      <p>Because it compares two shares. If the top 20% of customers made 75.6% of sales last year and 77.5% this
+      year, the change is <strong>+1.9 percentage points</strong>. Writing "+1.9%" would mean the share grew by 1.9% of
+      itself — to about 77.0% — which is not what happened.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>The grey bar is not last year's value of the same customers</summary>
+    <div class="faq-body">
+      <p>With bins, it is not meant to be. Each period is ranked on its own: the grey first bar is
+      <em>last year's top 20%</em>, whoever they were. That shows whether concentration changed, even when the
+      leading customers changed. To follow specific customers, drill down to a level with 30 members or fewer,
+      or filter to them: with named bars the comparison is always the same entity.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How are new and lost customers treated in a comparison?</summary>
+    <div class="faq-body">
+      <p>Both periods are ranked over the same population: every entity with a value in either. A customer with no
+      sales this year counts as zero this year; a new customer counts as zero in the comparison. The summary
+      sentence's entity count includes them, which is why it can differ slightly from a count of only the
+      customers that bought in a given year.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why do I see names instead of percentage bins?</summary>
+    <div class="faq-body">
+      <p>With 30 entities or fewer the visual draws one named bar per entity — the classic Pareto of defect types
+      or segments. Grouping three segments into "0–33%" bins would hide which segment is which. Above 30 entities
+      it returns to bins.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Clicking a bar at a drilled-down level filters only part of its entities</summary>
+    <div class="faq-body">
+      <p>At a hierarchy level Power BI does not expose a plain table and column to filter on, so the visual falls
+      back to selection identities, capped at 100 entities per bar. At the top level, or with the field bound on
+      its own rather than as a hierarchy, the filter is exact for any number of entities.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Can I select bars in two small-multiple panels at once?</summary>
+    <div class="faq-body">
+      <p>No: Ctrl+click adds bars within one panel. A filter on entities plus a filter on the panel field cannot
+      express "bin 1 of Plant A and bin 3 of Plant B" without also selecting combinations you did not click, so a
+      click in another panel starts a new selection.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Which language does the visual use?</summary>
+    <div class="faq-body">
+      <p>Power BI's own language setting (in Desktop, <strong>File → Options → Regional settings</strong>). English
+      and Spanish are included; other languages show English text. Numbers follow the report's locale either way.</p>
+    </div>
+  </details>
+
+  <details>
     <summary>The chart looks correct in Power BI Desktop but shows Free behavior in the Service</summary>
     <div class="faq-body">
       <p>This is usually a license assignment issue. Make sure the Pro license is assigned to the user account that is viewing the report in Power BI Service, not only to the account that published it. License assignment is managed in the Microsoft 365 admin center.</p>
@@ -512,7 +763,7 @@
       <p>It depends on where the report runs:</p>
       <ul>
         <li><strong>Power BI Service:</strong> the visual streams data in segments and supports <strong>500,000+ entities</strong>. The first segment is 30,000 rows; further segments are fetched automatically.</li>
-        <li><strong>Power BI Desktop:</strong> segment fetching is not available, so the visual is capped at <strong>30,000 rows</strong> and shows a "Data limited to 30,000 rows" notice. This is a Power BI Desktop platform limitation, not a tier limit — the row cap is identical in Free and Pro.</li>
+        <li><strong>Power BI Desktop:</strong> segment fetching is not available, so the visual is capped at <strong>30,000 rows</strong> and shows an amber <em>"Partial data"</em> notice with the number of rows received. This is a Power BI Desktop platform limitation, not a tier limit — the row cap is identical in Free and Pro.</li>
       </ul>
       <p>Because entities are grouped into bins, size rarely hurts readability: 10,000 SKUs render as 5 bars at the Free 20% bin size, or 10 bars at a Pro 10% bin size. What size does affect is cross-filtering — see <a href="#performance" style="color:var(--acc);">Performance &amp; scale</a> for how to choose a bin size for your model.</p>
     </div>

@@ -1,11 +1,33 @@
-# Tips & Hints — Pareto Chart Pro (v1.4.2.0)
+# Tips & Hints — Pareto Chart Pro (v1.5.0.0)
 
 ## Getting started
 1. Entity — a categorical dimension (Customer, Product, SKU, Supplier). A hierarchy here enables drilldown.
 2. Value — a numeric measure (Sales, Revenue, Liters, Defect count).
 3. Tooltips — up to 10 extra measures (Profit, Margin %, Quantity) shown on hover and on keyboard focus.
+4. Comparison value (Pro) — last year's measure, to compare concentration between periods.
+5. Small multiples (Pro) — a field such as Region or Plant, for one Pareto per value.
 
 No DAX, no pre-sorting, no cumulative measure. Ranking, binning and the cumulative line are automatic.
+
+## New in 1.5.0.0
+
+- Summary sentence. "1,120 of 5,000 entities (22.4%) make 80% of the total" — counted entity by
+  entity, so it is exact at any bin size. The threshold is reference line 1 (80% by default).
+- Named bars. With 30 entities or fewer (segments, defect types, a drilled-down level) you get one
+  bar per entity with its name — the classic Pareto. Above 30, bins.
+- Period comparison (Pro). Grey comparison bars, a dashed cumulative line and a pill per bar with
+  the change in share in percentage points (20% → 23% is +3 pp, not +3%). With bins each period is
+  ranked on its own — the first bar compares this year's top 20% with last year's top 20%, whoever they
+  are. With named bars it is the same entity. New and lost customers count as zero in the year they
+  have no value.
+- Small multiples (Pro). One Pareto per region, plant or product line, on a shared scale. Clicking
+  a bar filters the report to those entities in that panel; Ctrl+click adds bars within the same panel.
+- ABC zones (Pro). Classes A (to 80%), B (to 95%) and C shaded behind the bars, cut at the exact
+  entity, each labelled with its share of entities.
+- Highlighting from other visuals draws the highlighted part of each bar. If you want the Pareto
+  recalculated instead, set that interaction to "Filter" in Format → Edit interactions.
+- Number formats and language. Tooltip values use the measure's format from the model; percentages
+  follow the report's locale. English and Spanish.
 
 ## Bin size is the scale control, not a cosmetic setting
 
@@ -136,6 +158,11 @@ opens the context menu. Tooltips open on focus, not only on hover.
    Outlier trimming (top/bottom %) . . . — . . . ✓
    Value labels on bars . . . — . . . ✓
    Bar border & gap styling . . . ✓ . . . ✓
+   Summary sentence, named bars, partial highlighting . . . ✓ . . . ✓
+   Number formats from the model, English and Spanish . . . ✓ . . . ✓
+   Period comparison . . . — . . . ✓
+   Small multiples . . . — . . . ✓
+   ABC zones . . . — . . . ✓
 
 ## Try Pro before you buy
 

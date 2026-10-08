@@ -9,7 +9,7 @@
   :root {
     --bg: #FAF9F5; --bg2: #EDE9DE; --bd: #F5F3ED; --line: #DAD9D4;
     --t1: #3D3929; --t2: #535146; --t3: #83827D;
-    --acc: #C96442; --accd: #B05730; --acc2: #9C87F5;
+    --acc: #2B6CB0; --accd: #1F4E80; --acc2: #3E9C5B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--t1); line-height: 1.65; }
@@ -159,9 +159,9 @@
 <header>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="90" height="40">
     <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#B05730"/>
-      <stop offset=".55" stop-color="#C96442"/>
-      <stop offset="1" stop-color="#9C87F5"/>
+      <stop offset="0" stop-color="#1F4E80"/>
+      <stop offset=".55" stop-color="#2B6CB0"/>
+      <stop offset="1" stop-color="#3E9C5B"/>
     </linearGradient></defs>
     <g transform="translate(40,46)">
       <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
@@ -206,13 +206,13 @@
 
 <div class="wrap">
 
-  <div class="verpill">Current version 1.4.2.0 &nbsp;·&nbsp; <a href="changelog.html">see what changed</a></div>
+  <div class="verpill">Current version 1.5.0.0 &nbsp;·&nbsp; <a href="changelog.html">see what changed</a></div>
 
   <h2>Start here</h2>
   <div class="grid">
     <a class="tile" href="support.html#quickstart">
       <h3>Quick Start</h3>
-      <p>Add the visual, bind <code>Entity</code> and <code>Value</code>, and read your first chart. Four steps.</p>
+      <p>Add the visual, bind <code>Entity</code> and <code>Value</code>, read your first chart, then compare periods and split into panels.</p>
       <p style="margin-top:10px;"><span class="arrow">Get started &rarr;</span></p>
     </a>
     <a class="tile" href="support.html#format">
@@ -222,12 +222,12 @@
     </a>
     <a class="tile" href="tips.html">
       <h3>Tips &amp; best practices</h3>
-      <p>Four worked business scenarios, scaling to 500k+ entities, and five ways to get a Pareto wrong.</p>
+      <p>Seven worked business scenarios — including period comparison, small multiples and ABC — scaling to 500k+ entities, and five ways to get a Pareto wrong.</p>
       <p style="margin-top:10px;"><span class="arrow">Read the guide &rarr;</span></p>
     </a>
     <a class="tile" href="support.html#faq">
       <h3>FAQ</h3>
-      <p>Licensing, drilldown, row limits, high contrast, conditional formatting, sorting.</p>
+      <p>Comparison, small multiples, highlighting vs filtering, licensing, drilldown, row limits, conditional formatting.</p>
       <p style="margin-top:10px;"><span class="arrow">Find an answer &rarr;</span></p>
     </a>
     <a class="tile" href="changelog.html">
@@ -248,8 +248,15 @@
     entity population, and drawn as descending bars. A cumulative percentage line climbs across them to 100%,
     and up to three reference lines mark the thresholds you care about — 80% by default.</p>
     <p>Because the X axis is a share of entities rather than a list of names, the chart stays readable whether the
-    model has 40 SKUs or 40,000. It supports cross-filtering, multi-select, highlight dimming, drilldown across a
-    hierarchy, report and canvas tooltips, and high contrast mode.</p>
+    model has 40 SKUs or 40,000 — and with 30 entities or fewer it switches to one named bar per entity, the
+    classic Pareto. A summary sentence states the answer exactly: <em>"1,120 of 5,000 entities (22.4%) make 80% of
+    the total"</em>.</p>
+    <p>Pro adds <strong>period comparison</strong> (is the business more concentrated than last year?),
+    <strong>small multiples</strong> (one Pareto per region or plant), <strong>ABC zones</strong>, custom bin sizes,
+    outlier exclusion and value labels.</p>
+    <p>It supports conditional formatting (fx), cross-filtering, multi-select, partial highlighting from other
+    visuals, drilldown across a hierarchy, standard and report page tooltips, bookmarks, keyboard navigation,
+    high contrast, the measure's number format from the model, and English and Spanish.</p>
     <p>It is <strong>certified by Microsoft</strong>, which means it runs with no external service calls and is
     available in organisations that restrict uncertified custom visuals.</p>
   </div>
@@ -267,6 +274,11 @@
     <tr><td>Value labels on bars</td><td>&mdash;</td><td>&#9989;</td></tr>
     <tr><td>Bar border &amp; gap styling</td><td>&#9989;</td><td>&#9989;</td></tr>
     <tr><td>3rd reference line</td><td>&mdash;</td><td>&#9989;</td></tr>
+    <tr><td>Summary sentence, named bars, partial highlighting</td><td>&#9989;</td><td>&#9989;</td></tr>
+    <tr><td>Conditional formatting, number formats, English and Spanish</td><td>&#9989;</td><td>&#9989;</td></tr>
+    <tr><td>Period comparison</td><td>&mdash;</td><td>&#9989;</td></tr>
+    <tr><td>Small multiples</td><td>&mdash;</td><td>&#9989;</td></tr>
+    <tr><td>ABC zones</td><td>&mdash;</td><td>&#9989;</td></tr>
   </table>
   <p style="font-size:13px;color:var(--t3);">Licences are purchased through AppSource and validated automatically
   inside Power BI. There is nothing to configure and no key to enter.</p>

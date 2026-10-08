@@ -9,7 +9,7 @@
   :root {
     --bg: #FAF9F5; --bg2: #EDE9DE; --bd: #F5F3ED; --line: #DAD9D4;
     --t1: #3D3929; --t2: #535146; --t3: #83827D;
-    --acc: #C96442; --accd: #B05730; --acc2: #9C87F5;
+    --acc: #2B6CB0; --accd: #1F4E80; --acc2: #3E9C5B;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--t1); line-height: 1.65; }
@@ -161,9 +161,9 @@
 <header>
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 828 362" width="90" height="40">
     <defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#B05730"/>
-      <stop offset=".55" stop-color="#C96442"/>
-      <stop offset="1" stop-color="#9C87F5"/>
+      <stop offset="0" stop-color="#1F4E80"/>
+      <stop offset=".55" stop-color="#2B6CB0"/>
+      <stop offset="1" stop-color="#3E9C5B"/>
     </linearGradient></defs>
     <g transform="translate(40,46)">
       <rect x="22" y="20" width="150" height="150" rx="30" fill="none" stroke="url(#g)" stroke-width="11"/>
@@ -206,8 +206,56 @@
 
   <div class="rel">
     <div class="rel-head">
-      <span class="rel-ver">1.4.2.0</span>
+      <span class="rel-ver">1.5.0.0</span>
       <span class="tag tag-cur">Current</span>
+      <span class="rel-date">October 2026</span>
+    </div>
+
+    <h4><span class="tag tag-add">Added</span></h4>
+    <ul>
+      <li><strong>Period comparison (Pro).</strong> A new <code>Comparison value</code> field — typically last year's
+          measure — draws grey comparison bars, a dashed cumulative line and a change pill on each bar, in
+          percentage points. With bins each period is ranked on its own, so the chart answers whether the business
+          became more or less concentrated; with named bars it compares the same entity.</li>
+      <li><strong>Small multiples (Pro).</strong> A new <code>Small multiples</code> field draws one Pareto per value —
+          plant, region, product line — on a shared scale. Clicking a bar filters the report to those entities in
+          that panel.</li>
+      <li><strong>ABC zones (Pro).</strong> Classes A, B and C shaded behind the bars, cut at the exact entity where
+          the cumulative crosses 80% and 95% (configurable), each labelled with its share of entities.</li>
+      <li><strong>Summary sentence.</strong> "1,120 of 5,000 entities (22.4%) make 80% of the total", counted entity by
+          entity so it is exact at any bin size, with the comparison period's count when there is one.</li>
+      <li><strong>Named bars for small entity counts.</strong> With 30 entities or fewer — segments, defect types, a
+          drilled-down level — one bar per entity with its name, the classic Pareto.</li>
+      <li><strong>Spanish.</strong> Format pane, tooltips, notices and screen-reader labels in English and Spanish,
+          following Power BI's language.</li>
+      <li><strong>Number formats from the model.</strong> Tooltip values use the measure's format string (currency,
+          separators, decimals); percentages follow the report's locale.</li>
+      <li><strong>The bar's value in the tooltip</strong>, formatted like the measure.</li>
+    </ul>
+
+    <h4><span class="tag tag-chg">Changed</span></h4>
+    <ul>
+      <li><strong>Highlighting from other visuals shows the highlighted part of each bar</strong>, like a native column
+          chart, with its share in the tooltip. Before, a bar was only dimmed when none of its entities was
+          highlighted, so with large bins clicking another chart seemed to do nothing.</li>
+      <li><strong>Reference line labels</strong> sit inside the plot at the right end of the line, instead of on top of
+          the left axis numbers.</li>
+      <li><strong>The cumulative axis is always shown</strong>, also in small tiles: without it the cumulative line was
+          read against the left axis and looked wrong.</li>
+    </ul>
+
+    <h4><span class="tag tag-fix">Fixed</span></h4>
+    <ul>
+      <li><strong>The partial-data notice blamed the Service's 100 MB limit in Power BI Desktop.</strong> The visual now
+          asks Power BI where it runs instead of guessing from the browser.</li>
+      <li><strong>Every render now reports to Power BI when it finishes or fails</strong>, also when a newer
+          update replaces it mid-way.</li>
+    </ul>
+  </div>
+
+  <div class="rel">
+    <div class="rel-head">
+      <span class="rel-ver">1.4.2.0</span>
       <span class="rel-date">21 September 2026</span>
     </div>
 

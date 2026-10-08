@@ -37,11 +37,21 @@ const MARKER        = '// ISPRO_MARKER';
 const pbivizOrig = fs.readFileSync(PBIVIZ_JSON, 'utf8');
 const visualOrig = fs.readFileSync(VISUAL_TS,   'utf8');
 
+let restaurado = false;
 function restore() {
+    if (restaurado) return;
+    restaurado = true;
     fs.writeFileSync(PBIVIZ_JSON, pbivizOrig, 'utf8');
     fs.writeFileSync(VISUAL_TS,   visualOrig,  'utf8');
     console.log('✅  Ficheros restaurados al estado de producción.');
 }
+
+// Un build interrumpido (Ctrl+C, cerrar la terminal, matar el proceso) no pasa por el
+// finally: el 08-10-2026 dejo visual.ts con isPro = true y pbiviz.json con el GUID _test.
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGBREAK']) {
+    try { process.on(sig, () => { restore(); process.exit(130); }); } catch (e) { /* senal no disponible */ }
+}
+process.on('exit', restore);
 
 try {
     // ── Patch pbiviz.json ─────────────────────────────────────────────────────

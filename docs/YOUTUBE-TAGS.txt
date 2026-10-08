@@ -1,6 +1,6 @@
-MAIN TAG BLOCK (paste as-is — 481 characters, under YouTube's 500 limit)
+MAIN TAG BLOCK (paste as-is — 355 characters, under YouTube's 500 limit)
 
-pareto chart power bi,how to make a pareto chart in power bi,pareto analysis power bi,80 20 rule power bi,abc analysis power bi,power bi pareto without dax,power bi custom visual,power bi tutorial,pareto chart tutorial,cumulative percentage power bi,power bi 80 20 analysis,customer concentration analysis,power bi large dataset,power bi data visualization,power bi accessibility,conditional formatting power bi,power bi cross filtering,tcviz
+pareto chart power bi,pareto analysis power bi,80 20 rule power bi,abc analysis power bi,power bi pareto without dax,power bi small multiples,power bi year over year comparison,customer concentration analysis,pareto chart tutorial,power bi custom visual,power bi tutorial,cumulative percentage power bi,abc classification,power bi data visualization,tcviz
 
 
 VARIANTS, depending on the angle you lead with

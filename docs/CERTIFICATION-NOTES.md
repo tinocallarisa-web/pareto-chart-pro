@@ -1,15 +1,30 @@
-# Certification Notes — Pareto Chart Pro v1.4.2.0
+# Certification Notes — Pareto Chart Pro v1.5.0.0
+
+## New in 1.5.0.0 (paste-ready summary: `CERTIFICATION-NOTES-SHORT.txt`)
+- **Data roles added:** `comparison` (Measure, Pro) and `panel` (Grouping, Pro). `panel` is mapped as a
+  second category column (`categories.select`), so each row is one entity × panel combination.
+- **Comparison (Pro):** comparison bars, dashed cumulative line, change pills in percentage points.
+- **Small multiples (Pro):** one Pareto per panel value; a bar click applies two `BasicFilter`s, on the
+  entities and on the panel value. On the selection-ID fallback, IDs carry both categories.
+- **ABC zones (Pro)**, a **summary sentence** and **named bars** when there are 30 entities or fewer (Free).
+- **Highlights** draw the highlighted part of each bar.
+- **Localization:** `stringResources` declared (en-US, es-ES); `displayNameKey` on every role, object and
+  visible property; the formatting model receives the localization manager.
+- **Number formats:** measure `source.format` and `host.locale` via powerbi-visuals-utils-formattingutils.
+- **Rendering events:** a superseded update and an exception inside the licence promise now close their
+  `renderingStarted` (`renderingFinished` / `renderingFailed`).
+- Without a licence, in reading view, the panels are summed into one Pareto and the comparison is ignored.
 
 ## General Information
 - **Visual Name:** Pareto Chart Pro
 - **GUID:** ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-- **Version:** 1.4.2.0
+- **Version:** 1.5.0.0
 - **Plan ID / spIdentifier:** pareto-chart-pro-tcviz
 - **Certification Branch:** https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
 - **Support URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 - **Privacy URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
 - **Terms URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
-- **Video Walkthrough:** https://www.youtube.com/watch?v=qtN0ckSXNZQ
+- **Video Walkthrough:** https://www.youtube.com/watch?v=abzBwDW_wkE
 
 ## What the visual does
 Ranks the entities bound to `Entity` by the measure bound to `Value`, groups them into bins of a
@@ -69,14 +84,16 @@ Free tier:
 - Bar border color and width, and bar gap
 - Tooltips field well, up to 10 additional measures
 - IBCS Mode
-- Drilldown, cross-filtering, multi-select, filter-in dimming
+- Drilldown, cross-filtering, multi-select, partial highlighting
 - Keyboard navigation, screen-reader labels, high contrast mode
+- Summary sentence, named bars (30 entities or fewer), English and Spanish, model number formats
 
 Pro tier (plan `pareto-chart-pro-tcviz`):
 - Custom bin size 1–20% (up to 100 bars)
 - Outlier exclusion (top/bottom % trimming)
 - Value labels on bars
 - Third reference line
+- Period comparison (`Comparison value`), small multiples (`Small multiples`), ABC zones
 
 > **Known limit, conditional formatting on very large models.** The `pareto.barColor` rule is
 > resolved by Power BI per entity and returned on `categories[0].objects`. Above roughly a hundred

@@ -1,112 +1,84 @@
-# AppSource listing copy — Pareto Chart Pro v1.4.2.0
+# AppSource listing copy — Pareto Chart Pro v1.5.0.0
 
-Paste-ready text for Partner Center. The marketplace listing is the documentation the
-largest number of people read and the one that goes stale fastest — update it with every
-release, not only when the code changes.
+Paste-ready text for Partner Center. **Editing this file does not change the offer**: the fields
+Microsoft reviews live only in Partner Center, and have to be pasted by hand.
 
----
-
-## Short description
-*(Partner Center: "Short description", ~100 characters)*
-
-```
-80/20 concentration analysis for Power BI. Rank any entity, find your real Pareto, act on it.
-```
+Measured limits: search results summary 100 characters, description 5,000 (cut silently; the
+What's new block goes inside it), certification notes 2,500 counting CRLF, 3 keywords.
 
 ---
 
-## Long description
+## Search results summary
+*(88 characters)*
 
 ```
-Pareto Chart Pro answers one question well: how much of your result comes from how few of
-your entities?
+80/20 analysis in Power BI: who drives your result, how that changed, by region. No DAX.
+```
 
-Bind a dimension and a numeric measure — customers and revenue, SKUs and units, defect codes
-and incidents, suppliers and spend. The visual ranks the entities, groups them into bins of a
-fixed share of the population, and overlays a cumulative percentage line with the thresholds
-you care about. No DAX, no cumulative measure, no sorted-column workaround.
+---
 
-WHY BINS
-Most Pareto charts plot one bar per category, which stops working past a few hundred of them.
-Here the X axis is a share of entities rather than a list of names, so the chart stays
-readable whether you have 400 customers or 500,000 — and the ranking recalculates against
-whatever your slicers currently select, not against a pre-computed grouping.
+## Description
+*(3076 characters, What's new included)*
 
-WHAT YOU CAN DO WITH IT
-• Customer concentration and revenue risk — how exposed are you if the top accounts leave
-• SKU rationalisation — how much of the catalogue can be retired without losing sales
-• Defect and incident prioritisation — which few causes explain most of the failures
-• Supplier spend review — whether negotiating attention is going where the money is
+```
+Everyone has heard that 20% of customers make 80% of sales. Almost nobody in the meeting knows whether that is true for their own business this year, whether it was more or less true last year, or whether one region behaves differently. The native way to find out is a sorted column chart, a cumulative DAX measure and a dual axis — and it still cannot tell you the answer in words.
 
-KEY FEATURES
-• Ranked bins with a cumulative percentage line reaching 100%
-• Up to three reference thresholds with custom labels
-• Threshold Colors — colour bins by their position relative to a cumulative threshold, and
-  highlight the bin where the line actually crosses
-• Conditional formatting on bar colour through the standard fx rule dialog
-• Tooltips field well — up to 10 additional measures on hover and on keyboard focus
-• IBCS Mode — one-click standardized styling for executive and board reporting
-• Drilldown across a hierarchy, cross-filtering, multi-select and highlight dimming
-• Outlier exclusion, value labels and bin sizes down to 1% (Pro)
+Pareto Chart Pro ranks any entity — customers, SKUs, defect codes, suppliers — and states the answer: "1,120 of 5,000 customers (22.4%) make 80% of sales". Exact, counted customer by customer, recalculated against whatever your slicers select.
 
-ACCESSIBILITY
-The chart is a single Tab stop. Arrow keys move between bins, Enter selects and cross-filters,
-Escape clears, Shift+F10 opens the context menu. Every bar carries a descriptive label naming
-its position, its share of value, the cumulative percentage and how many entities it holds.
-Tooltips open on keyboard focus, not only on hover, and all colours switch to the system
-palette in high contrast mode.
+WHAT YOU SEE
+• Ranked bars and a cumulative line to 100%, with up to three threshold lines
+• A summary sentence with the exact number of entities behind the threshold
+• Bins of a fixed share of entities, so 500,000 customers read as five bars; with 30 entities or fewer, one named bar each — the classic Pareto
+• Threshold colours and conditional formatting (fx) on bar colour
+• Highlighting from other visuals draws the highlighted part of each bar, like a native chart
 
-SCALE
-Verified at 500,000 entities in Power BI Service with slicers re-ranking correctly. Power BI
-Desktop reads up to 30,000 rows — a platform limitation of Desktop, identical in both tiers.
-When Power BI stops short of the full dataset the visual says so, with the exact row count.
-
-PRIVACY
-Certified by Microsoft. No external network calls of any kind — no telemetry, no analytics,
-no custom endpoints. All calculation happens locally inside Power BI. The only outbound call
-is Microsoft's own licence check, which carries no report data.
+PRO: COMPARE, SPLIT, CLASSIFY
+• Period comparison — bind last year's measure and get comparison bars, a dashed cumulative line and the change on every bar in percentage points. Each period is ranked on its own, so it answers the real question: are we more dependent on our top customers than a year ago?
+• Small multiples — one Pareto per region, plant or product line on a shared scale. Click a bar to filter the report to those customers in that region.
+• ABC zones — classes A, B and C shaded at the exact customer where the cumulative crosses 80% and 95%
+• Bin sizes from 1% to 20%, outlier exclusion, value labels
 
 FREE AND PRO
-The free tier is a complete Pareto chart: ranked bins, cumulative line, two reference
-thresholds, conditional formatting, Threshold Colors, the tooltips field well, IBCS Mode,
-drilldown, cross-filtering, keyboard navigation and high contrast.
+The free tier is a complete, correct Pareto: nothing is hidden or capped, and with a small-multiples field bound it sums the panels into one chart rather than dropping data. Turn on a Pro feature without a licence while editing and it is drawn working under a "Pro preview" watermark, on your own data. Reading view shows the free result.
 
-Pro adds the controls you need as models grow: bin sizes from 1% to 20% (up to 100 bars),
-outlier exclusion, value labels on bars, and a third reference threshold. Bin size also governs how many entities sit behind a bar, which matters for
-cross-filtering large models — the documentation has the measured figures.
+NATIVE INTEGRATION
+Cross-filtering and multi-select, drilldown on a hierarchy, standard and report page tooltips, bookmarks, context menu. Keyboard navigation (one Tab stop, arrow keys between bars) with screen-reader labels, high contrast, the measure's format string from your model, and English and Spanish.
 
-30-day free trial on AppSource.
+PRIVACY
+Certified by Microsoft. No network requests, no telemetry: everything is calculated inside Power BI. Licences are checked through Microsoft's own licensing API.
+
+GETTING STARTED
+1. Entity = Customer, Value = Sales.
+2. Pro: Comparison value = Sales last year; Small multiples = Region.
+3. Read the sentence above the chart.
+
+Documentation, scenarios and sample data: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
+Support: support@tcviz.com
+
+WHAT'S NEW IN 1.5.0.0
+Period comparison, small multiples and ABC zones (Pro); the exact summary sentence; named bars for small entity counts; partial highlighting from other visuals; number formats from the model; Spanish.
 ```
 
 ---
 
-## What's new — v1.4.0.0
+## Search keywords (3)
 
-```
-• The Pro settings are now listed in the format pane for everyone, each marked (Pro), so you
-  can see what the plan includes before deciding. Changing one without a licence leaves the
-  chart on the free result and shows Power BI's own notification with a link to get a licence.
-• A licence in its payment grace period keeps working instead of dropping to the free tier.
-• Environments that cannot enforce licences — Publish to Web, embedded, PDF and PowerPoint
-  export — no longer prompt anyone to buy what they may already own.
-• Fixed: the bar colour swatch went back to showing the default after you changed the colour,
-  even though the chart had applied it.
-```
+1. `pareto chart` — the term a buyer types; we compete with Microsoft's absence of a native one.
+2. `80/20 analysis` — the problem in the buyer's words, from people with a question, not a chart type.
+3. `ABC analysis` — the inventory and key-account term, new with 1.5; low volume, high intent, and few
+   Power BI visuals cover it.
+
+Left out: `customer concentration` (long, low volume), `small multiples` (a function, not a problem).
 
 ---
 
-## What's new — v1.3.0.0
+## Plan description (Pro)
 
 ```
-• Conditional formatting on bar colour via the fx rule dialog
-• Threshold Colors: colour bins by cumulative % threshold, with the crossing bin highlighted
-• Full keyboard navigation and screen-reader support — arrow keys, Enter to select, Escape to
-  clear, descriptive labels on every bar, and tooltips that open on focus
-• Adaptive layout: the chart now scales its margins, type and axis chrome to the tile it is in
-• Cross-filtering rebuilt — clicking a bar now filters every entity behind it
-• Fixed: the partial-data warning that never appeared, a hang on large models in Desktop, and
-  a selection that needed a second click to register
+Pareto Chart Pro adds period comparison (comparison bars, dashed cumulative line and the change on every bar in percentage points), small multiples (one Pareto per region or plant), ABC zones, bin sizes from 1% to 20%, outlier exclusion, value labels and a third reference line. The free tier remains a complete Pareto chart.
 ```
+
+The price of an existing plan cannot be changed (USD 4.99 per user per month).
 
 ---
 
@@ -118,7 +90,7 @@ cross-filtering large models — the documentation has the measured figures.
 | Privacy | https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html |
 | Terms | https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html |
 | Changelog | https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html |
-| Video | https://www.youtube.com/watch?v=qtN0ckSXNZQ |
+| Video | https://www.youtube.com/watch?v=abzBwDW_wkE |
 | Source | https://github.com/tinocallarisa-web/pareto-chart-pro |
 
 ---

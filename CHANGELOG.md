@@ -1,5 +1,27 @@
 # Changelog — Pareto Chart Pro
 
+## [1.5.0.0] — 2026-10
+
+### Added
+- **Period comparison (Pro).** New `comparison` data role (Measure). Bins: the comparison is ranked on its own over the same entity population (every entity with a value in either period; a missing value counts as 0), trimmed with the same top/bottom counts and cut at the same positions, so bin k compares "the top k-th slice then" with "now". Named bars (≤ 30 entities): the same entity, because an independent ranking would put last year's leader under this year's name. Drawn as a translucent comparison bar behind and to the left of the current one (outlined grey in IBCS), a dashed cumulative line and a pill per bar with the change in share in percentage points; pills hide when they do not fit. New `comparison` object: bars, line, pills, colours.
+- **Small multiples (Pro).** New `panel` data role (Grouping), mapped as a **second category column** (`categories.select: [for category, bind panel]`), so each row is one entity × panel combination and the 30,000-row window still counts entities. An earlier build grouped the values by panel (`values.group.by`), which made Power BI page the data in blocks of 500 rows — a 5,000-customer model drew a Pareto of 500. Panels share the left axis; layout from `smallMultiples.columns` (0 = automatic, cells about 1.6 times wider than tall). Clicking a bar applies two BasicFilters, entities and panel value; selection identities carry both categories on the fallback path. A selection lives inside one panel.
+- **ABC zones (Pro).** New `abcZones` object: show, cuts (80 / 95), colours, labels. Boundaries at the exact entity where the cumulative crosses each cut, mapped onto the evenly spaced entity axis.
+- **Summary sentence (Free).** New `summary` object. Entities needed to reach the threshold (reference line 1, else the threshold-colour value, else 80%) counted entity by entity — exact at any bin size. With a comparison, the comparison's own count; no pp in the sentence, because there fewer entities means more concentration, the opposite sign of the bar pills.
+- **Named bars (Free).** At 30 entities or fewer (`ENTITY_BARS_MAX`), one bar per entity labelled with its value (model format for dates and numbers); X-axis title becomes the field name. Bars are keyed by `<panel>|#<entity>`, so repeated names do not collide.
+- **Localization.** `stringResources` declared in `pbiviz.json` (it was missing: the existing `en-US` file never reached Power BI) with `en-US` and `es-ES`; `displayNameKey` on 5/5 roles, 11/11 objects and 60/61 properties (the hidden filter property has none); the formatting model gets the localization manager. All visual text — tooltips, notices, summary, ARIA labels, watermark, licence banners — goes through it.
+- **Native number formats.** `powerbi-visuals-utils-formattingutils` 6.1.2. Tooltip values with the measure's `source.format`; computed percentages and pp with `host.locale`. No `toFixed` on a visible number remains.
+- Tooltip rows: bin value, comparison value/share/change/cumulative, highlighted share.
+
+### Changed
+- **Highlights draw the highlighted part of each bar** (sum of `highlights` over the bin's entities ÷ panel total), over the full bar at 30% opacity. Before, a bin was dimmed only when no entity in it was highlighted — with large bins, never.
+- Reference line labels inside the plot at the right end, with a halo; at `x = -4` they overlapped the left axis tick labels.
+- The right (cumulative) axis is always drawn; the summary needs a panel at least 120 × 200 px.
+- `isDesktop` from `host.hostEnv` (`CustomVisualHostEnv.Desktop = 4`), falling back to the user agent. Current Desktop builds no longer carry "Electron".
+- Current bars over comparison bars get an opaque knockout, so a translucent bar no longer shows the grey through.
+- **Rendering events 1:1 per update.** A superseded update (a newer `update()` arrived while the licence promise was pending) returned without `renderingFinished`, and an exception thrown while drawing inside that promise never reached the outer `catch`, so neither emitted `renderingFailed`. Both now close the update's `renderingStarted` (policy 1200.1.2).
+- `build-test.js` restores the source on SIGINT/SIGTERM/SIGHUP/SIGBREAK and on exit: an interrupted build left `isPro = true` and the `_test` GUID in the tree.
+- Toolchain: `npm audit fix` (non-force) and `overrides.uuid ^11.1.1`; ESLint and `eslint-plugin-powerbi-visuals` declared in `package.json` with an `eslint` script. Remaining: `braces` (no fixed version; build-time only, via powerbi-visuals-tools).
+
 ## [1.4.2.0] — 2026-09-21
 
 ### Fixed

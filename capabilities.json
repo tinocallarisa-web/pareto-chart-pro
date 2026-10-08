@@ -2,18 +2,35 @@
     "dataRoles": [
         {
             "displayName": "Entity",
+            "displayNameKey": "Role_category",
             "name": "category",
             "kind": "Grouping",
             "description": "Category field to rank (customer, product, SKU…)"
         },
         {
             "displayName": "Value",
+            "displayNameKey": "Role_measure",
             "name": "measure",
             "kind": "Measure",
             "description": "Numeric measure to concentrate (sales, revenue, liters…)"
         },
         {
+            "displayName": "Comparison value (Pro)",
+            "displayNameKey": "Role_comparison",
+            "name": "comparison",
+            "kind": "Measure",
+            "description": "A second measure to compare with, e.g. last year's sales. Each period is ranked on its own."
+        },
+        {
+            "displayName": "Small multiples (Pro)",
+            "displayNameKey": "Role_panel",
+            "name": "panel",
+            "kind": "Grouping",
+            "description": "One Pareto per value of this field: plant, region, product line."
+        },
+        {
             "displayName": "Tooltips",
+            "displayNameKey": "Role_tooltips",
             "name": "tooltips",
             "kind": "Measure",
             "description": "Additional measures to display in tooltips"
@@ -29,6 +46,12 @@
                     "measure": {
                         "max": 1
                     },
+                    "comparison": {
+                        "max": 1
+                    },
+                    "panel": {
+                        "max": 1
+                    },
                     "tooltips": {
                         "max": 10
                     }
@@ -36,9 +59,18 @@
             ],
             "categorical": {
                 "categories": {
-                    "for": {
-                        "in": "category"
-                    },
+                    "select": [
+                        {
+                            "for": {
+                                "in": "category"
+                            }
+                        },
+                        {
+                            "bind": {
+                                "to": "panel"
+                            }
+                        }
+                    ],
                     "dataReductionAlgorithm": {
                         "window": {
                             "count": 30000
@@ -54,6 +86,11 @@
                         },
                         {
                             "bind": {
+                                "to": "comparison"
+                            }
+                        },
+                        {
+                            "bind": {
                                 "to": "tooltips"
                             }
                         }
@@ -65,6 +102,7 @@
     "objects": {
         "general": {
             "displayName": "General",
+            "displayNameKey": "Obj_general",
             "properties": {
                 "filter": {
                     "type": {
@@ -75,9 +113,11 @@
         },
         "pareto": {
             "displayName": "Pareto",
+            "displayNameKey": "Obj_pareto",
             "properties": {
                 "binSizePct": {
                     "displayName": "Bin size % of entities (Pro)",
+                    "displayNameKey": "Prop_pareto_binSizePct",
                     "description": "Each bar represents this % of entities. Free tier fixed at 20% (5 bins). Pro: 1–20%.",
                     "type": {
                         "numeric": true
@@ -85,6 +125,7 @@
                 },
                 "trimLower": {
                     "displayName": "Exclude bottom % entities (Pro)",
+                    "displayNameKey": "Prop_pareto_trimLower",
                     "description": "Remove the bottom N% of entities (outliers) before calculating bins.",
                     "type": {
                         "numeric": true
@@ -92,6 +133,7 @@
                 },
                 "trimUpper": {
                     "displayName": "Exclude top % entities (Pro)",
+                    "displayNameKey": "Prop_pareto_trimUpper",
                     "description": "Remove the top N% of entities (outliers) before calculating bins.",
                     "type": {
                         "numeric": true
@@ -99,6 +141,7 @@
                 },
                 "barColor": {
                     "displayName": "Bar color",
+                    "displayNameKey": "Prop_pareto_barColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -119,12 +162,14 @@
                 },
                 "barOpacity": {
                     "displayName": "Bar opacity %",
+                    "displayNameKey": "Prop_pareto_barOpacity",
                     "type": {
                         "numeric": true
                     }
                 },
                 "borderColor": {
                     "displayName": "Border color",
+                    "displayNameKey": "Prop_pareto_borderColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -135,18 +180,21 @@
                 },
                 "borderWidth": {
                     "displayName": "Border width",
+                    "displayNameKey": "Prop_pareto_borderWidth",
                     "type": {
                         "numeric": true
                     }
                 },
                 "barGap": {
                     "displayName": "Bar gap px",
+                    "displayNameKey": "Prop_pareto_barGap",
                     "type": {
                         "numeric": true
                     }
                 },
                 "ibcsMode": {
                     "displayName": "IBCS Mode (Standardized)",
+                    "displayNameKey": "Prop_pareto_ibcsMode",
                     "description": "Apply International Business Communication Standards styling (neutral colors, clean contrast, standardized IBCS palette)",
                     "type": {
                         "bool": true
@@ -156,10 +204,12 @@
         },
         "thresholdColors": {
             "displayName": "Threshold Colors",
+            "displayNameKey": "Obj_thresholdColors",
             "description": "Color bins by where they fall relative to a cumulative % threshold.",
             "properties": {
                 "show": {
                     "displayName": "Color bars by threshold",
+                    "displayNameKey": "Prop_thresholdColors_show",
                     "description": "Overrides Bar color. Bins are colored by whether their cumulative % is within the threshold.",
                     "type": {
                         "bool": true
@@ -167,6 +217,7 @@
                 },
                 "thresholdValue": {
                     "displayName": "Threshold (cumulative %)",
+                    "displayNameKey": "Prop_thresholdColors_thresholdValue",
                     "description": "Cumulative percentage that separates the vital few from the trivial many. Defaults to 80.",
                     "type": {
                         "numeric": true
@@ -174,6 +225,7 @@
                 },
                 "withinColor": {
                     "displayName": "Within threshold",
+                    "displayNameKey": "Prop_thresholdColors_withinColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -184,6 +236,7 @@
                 },
                 "beyondColor": {
                     "displayName": "Beyond threshold",
+                    "displayNameKey": "Prop_thresholdColors_beyondColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -194,6 +247,7 @@
                 },
                 "highlightCrossing": {
                     "displayName": "Highlight crossing bin",
+                    "displayNameKey": "Prop_thresholdColors_highlightCrossing",
                     "description": "Emphasize the bin in which the cumulative line crosses the threshold.",
                     "type": {
                         "bool": true
@@ -201,6 +255,7 @@
                 },
                 "crossingColor": {
                     "displayName": "Crossing bin color",
+                    "displayNameKey": "Prop_thresholdColors_crossingColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -213,9 +268,11 @@
         },
         "axes": {
             "displayName": "Axes",
+            "displayNameKey": "Obj_axes",
             "properties": {
                 "axisColor": {
                     "displayName": "Axis text color",
+                    "displayNameKey": "Prop_axes_axisColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -226,6 +283,7 @@
                 },
                 "gridColor": {
                     "displayName": "Grid color",
+                    "displayNameKey": "Prop_axes_gridColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -236,6 +294,7 @@
                 },
                 "fontSize": {
                     "displayName": "Font size",
+                    "displayNameKey": "Prop_axes_fontSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
@@ -244,12 +303,14 @@
                 },
                 "showXLabel": {
                     "displayName": "Show X axis label",
+                    "displayNameKey": "Prop_axes_showXLabel",
                     "type": {
                         "bool": true
                     }
                 },
                 "showYLabel": {
                     "displayName": "Show Y axis label",
+                    "displayNameKey": "Prop_axes_showYLabel",
                     "type": {
                         "bool": true
                     }
@@ -258,9 +319,11 @@
         },
         "cumulativeLine": {
             "displayName": "Cumulative Line",
+            "displayNameKey": "Obj_cumulativeLine",
             "properties": {
                 "lineColor": {
                     "displayName": "Line color",
+                    "displayNameKey": "Prop_cumulativeLine_lineColor",
                     "type": {
                         "fill": {
                             "solid": {
@@ -271,18 +334,21 @@
                 },
                 "lineWidth": {
                     "displayName": "Line width",
+                    "displayNameKey": "Prop_cumulativeLine_lineWidth",
                     "type": {
                         "numeric": true
                     }
                 },
                 "showDots": {
                     "displayName": "Show dots",
+                    "displayNameKey": "Prop_cumulativeLine_showDots",
                     "type": {
                         "bool": true
                     }
                 },
                 "dotRadius": {
                     "displayName": "Dot radius",
+                    "displayNameKey": "Prop_cumulativeLine_dotRadius",
                     "type": {
                         "numeric": true
                     }
@@ -291,15 +357,18 @@
         },
         "referenceLines": {
             "displayName": "Reference Lines",
+            "displayNameKey": "Obj_referenceLines",
             "properties": {
                 "showRef1": {
                     "displayName": "Show line 1",
+                    "displayNameKey": "Prop_referenceLines_showRef1",
                     "type": {
                         "bool": true
                     }
                 },
                 "ref1Value": {
                     "displayName": "Line 1 — cumulative % threshold",
+                    "displayNameKey": "Prop_referenceLines_ref1Value",
                     "description": "Draw a reference line where cumulative value reaches this %.",
                     "type": {
                         "numeric": true
@@ -307,6 +376,7 @@
                 },
                 "ref1Color": {
                     "displayName": "Line 1 color",
+                    "displayNameKey": "Prop_referenceLines_ref1Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -317,24 +387,28 @@
                 },
                 "ref1Label": {
                     "displayName": "Line 1 label",
+                    "displayNameKey": "Prop_referenceLines_ref1Label",
                     "type": {
                         "text": true
                     }
                 },
                 "showRef2": {
                     "displayName": "Show line 2",
+                    "displayNameKey": "Prop_referenceLines_showRef2",
                     "type": {
                         "bool": true
                     }
                 },
                 "ref2Value": {
                     "displayName": "Line 2 — cumulative % threshold",
+                    "displayNameKey": "Prop_referenceLines_ref2Value",
                     "type": {
                         "numeric": true
                     }
                 },
                 "ref2Color": {
                     "displayName": "Line 2 color",
+                    "displayNameKey": "Prop_referenceLines_ref2Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -345,24 +419,28 @@
                 },
                 "ref2Label": {
                     "displayName": "Line 2 label",
+                    "displayNameKey": "Prop_referenceLines_ref2Label",
                     "type": {
                         "text": true
                     }
                 },
                 "showRef3": {
                     "displayName": "Show line 3 (Pro)",
+                    "displayNameKey": "Prop_referenceLines_showRef3",
                     "type": {
                         "bool": true
                     }
                 },
                 "ref3Value": {
                     "displayName": "Line 3 — cumulative % threshold (Pro)",
+                    "displayNameKey": "Prop_referenceLines_ref3Value",
                     "type": {
                         "numeric": true
                     }
                 },
                 "ref3Color": {
                     "displayName": "Line 3 color (Pro)",
+                    "displayNameKey": "Prop_referenceLines_ref3Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -373,23 +451,229 @@
                 },
                 "ref3Label": {
                     "displayName": "Line 3 label (Pro)",
+                    "displayNameKey": "Prop_referenceLines_ref3Label",
                     "type": {
                         "text": true
                     }
                 }
             }
         },
-        "valueLabels": {
-            "displayName": "Value Labels (Pro)",
+        "summary": {
+            "displayName": "Summary",
+            "displayNameKey": "Obj_summary",
             "properties": {
                 "show": {
-                    "displayName": "Show",
+                    "displayName": "Show summary",
+                    "displayNameKey": "Prop_summary_show",
+                    "description": "One sentence above the chart: how many entities make the threshold share of the total.",
                     "type": {
                         "bool": true
                     }
                 },
                 "fontSize": {
                     "displayName": "Font size",
+                    "displayNameKey": "Prop_summary_fontSize",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "color": {
+                    "displayName": "Color",
+                    "displayNameKey": "Prop_summary_color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "comparison": {
+            "displayName": "Comparison (Pro)",
+            "displayNameKey": "Obj_comparison",
+            "properties": {
+                "showBars": {
+                    "displayName": "Show comparison bars",
+                    "displayNameKey": "Prop_comparison_showBars",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "barColor": {
+                    "displayName": "Comparison bar color",
+                    "displayNameKey": "Prop_comparison_barColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "showLine": {
+                    "displayName": "Show comparison line",
+                    "displayNameKey": "Prop_comparison_showLine",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "lineColor": {
+                    "displayName": "Comparison line color",
+                    "displayNameKey": "Prop_comparison_lineColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "showPills": {
+                    "displayName": "Show change (pp) per bar",
+                    "displayNameKey": "Prop_comparison_showPills",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "upColor": {
+                    "displayName": "Increase color",
+                    "displayNameKey": "Prop_comparison_upColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "downColor": {
+                    "displayName": "Decrease color",
+                    "displayNameKey": "Prop_comparison_downColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "smallMultiples": {
+            "displayName": "Small multiples (Pro)",
+            "displayNameKey": "Obj_smallMultiples",
+            "properties": {
+                "columns": {
+                    "displayName": "Columns (0 = automatic)",
+                    "displayNameKey": "Prop_smallMultiples_columns",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "titleFontSize": {
+                    "displayName": "Title font size",
+                    "displayNameKey": "Prop_smallMultiples_titleFontSize",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "titleColor": {
+                    "displayName": "Title color",
+                    "displayNameKey": "Prop_smallMultiples_titleColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "abcZones": {
+            "displayName": "ABC zones (Pro)",
+            "displayNameKey": "Obj_abcZones",
+            "properties": {
+                "show": {
+                    "displayName": "Show ABC zones",
+                    "displayNameKey": "Prop_abcZones_show",
+                    "description": "Shade class A, B and C behind the bars: A makes the first cut of the total, B up to the second, C the rest.",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "aCut": {
+                    "displayName": "Class A up to (cumulative %)",
+                    "displayNameKey": "Prop_abcZones_aCut",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "bCut": {
+                    "displayName": "Class B up to (cumulative %)",
+                    "displayNameKey": "Prop_abcZones_bCut",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "aColor": {
+                    "displayName": "Class A color",
+                    "displayNameKey": "Prop_abcZones_aColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "bColor": {
+                    "displayName": "Class B color",
+                    "displayNameKey": "Prop_abcZones_bColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "cColor": {
+                    "displayName": "Class C color",
+                    "displayNameKey": "Prop_abcZones_cColor",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "showLabels": {
+                    "displayName": "Show zone labels",
+                    "displayNameKey": "Prop_abcZones_showLabels",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },
+        "valueLabels": {
+            "displayName": "Value Labels (Pro)",
+            "displayNameKey": "Obj_valueLabels",
+            "properties": {
+                "show": {
+                    "displayName": "Show",
+                    "displayNameKey": "Prop_valueLabels_show",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "fontSize": {
+                    "displayName": "Font size",
+                    "displayNameKey": "Prop_valueLabels_fontSize",
                     "type": {
                         "formatting": {
                             "fontSize": true
@@ -398,6 +682,7 @@
                 },
                 "color": {
                     "displayName": "Color",
+                    "displayNameKey": "Prop_valueLabels_color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -408,6 +693,7 @@
                 },
                 "showPercent": {
                     "displayName": "Show % sign",
+                    "displayNameKey": "Prop_valueLabels_showPercent",
                     "type": {
                         "bool": true
                     }

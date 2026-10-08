@@ -12,10 +12,13 @@ import ServicePlanState           = powerbi.ServicePlanState;
 import LicenseNotificationType    = powerbi.LicenseNotificationType;
 import IVisualEventService        = powerbi.extensibility.IVisualEventService;
 import DataViewCategoryColumn     = powerbi.DataViewCategoryColumn;
+import DataViewValueColumn        = powerbi.DataViewValueColumn;
+import ILocalizationManager       = powerbi.extensibility.ILocalizationManager;
 
 import * as d3 from "d3";
 
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
+import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { ParetoFormattingSettings } from "./settings";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -58,6 +61,12 @@ const MAX_SEL_IDS_PER_BIN   = 100;
 // visual declines and names the lever that fixes it.
 const MAX_FILTER_VALUES     = 10000;
 const FREE_BIN_SIZE_PCT = 20;
+/**
+ * Up to this many entities, one bar per entity with its name: the classic Pareto of
+ * defect types or segments. Binning 3 segments into "0–33%" bars hid the one thing a
+ * reader wants at that level, which segment it is. Above it, bins as always.
+ */
+const ENTITY_BARS_MAX = 30;
 // Base chrome at full size. computeLayout() scales it down for small tiles.
 const MARGIN            = { top: 28, right: 64, bottom: 68, left: 64 };
 
@@ -109,6 +118,30 @@ interface Settings {
     labelFontSize:number;
     labelColor:   string;
     showPercent:  boolean;
+    // summary group (Free)
+    sumShow:      boolean;
+    sumFontSize:  number;
+    sumColor:     string;
+    // comparison group (Pro)
+    cmpShowBars:  boolean;
+    cmpBarColor:  string;
+    cmpShowLine:  boolean;
+    cmpLineColor: string;
+    cmpShowPills: boolean;
+    cmpUpColor:   string;
+    cmpDownColor: string;
+    // smallMultiples group (Pro)
+    smColumns:    number;
+    smTitleSize:  number;
+    smTitleColor: string;
+    // abcZones group (Pro)
+    abcShow:      boolean;
+    abcA:         number;
+    abcB:         number;
+    abcAColor:    string;
+    abcBColor:    string;
+    abcCColor:    string;
+    abcLabels:    boolean;
 }
 
 function readSettings(dv: DataView): Settings {
@@ -168,6 +201,30 @@ function readSettings(dv: DataView): Settings {
         labelFontSize: num("valueLabels", "fontSize",      10),
         labelColor:    col("valueLabels", "color",         "#444444"),
         showPercent:   boo("valueLabels", "showPercent",   true),
+
+        sumShow:       boo("summary", "show",     true),
+        sumFontSize:   num("summary", "fontSize", 12),
+        sumColor:      col("summary", "color",    "#333333"),
+
+        cmpShowBars:   boo("comparison", "showBars",  true),
+        cmpBarColor:   col("comparison", "barColor",  "#8C8C8C"),
+        cmpShowLine:   boo("comparison", "showLine",  true),
+        cmpLineColor:  col("comparison", "lineColor", "#8C8C8C"),
+        cmpShowPills:  boo("comparison", "showPills", true),
+        cmpUpColor:    col("comparison", "upColor",   "#2E7D32"),
+        cmpDownColor:  col("comparison", "downColor", "#C62828"),
+
+        smColumns:     num("smallMultiples", "columns",       0),
+        smTitleSize:   num("smallMultiples", "titleFontSize", 12),
+        smTitleColor:  col("smallMultiples", "titleColor",    "#333333"),
+
+        abcShow:       boo("abcZones", "show",       false),
+        abcA:          num("abcZones", "aCut",       80),
+        abcB:          num("abcZones", "bCut",       95),
+        abcAColor:     col("abcZones", "aColor",     "#2B6CB0"),
+        abcBColor:     col("abcZones", "bColor",     "#3E9C5B"),
+        abcCColor:     col("abcZones", "cColor",     "#A0A0A0"),
+        abcLabels:     boo("abcZones", "showLabels", true),
     };
 }
 
@@ -177,16 +234,75 @@ interface TooltipSummaryItem {
 }
 
 interface BinDatum {
+    /** Unique across panels: "<panel>|<label>". Selection is keyed on it. */
+    key:            string;
     label:          string;
+    panel:          number;
+    /** One entity per bar, labelled with its name, rather than a share of entities. */
+    named:          boolean;
     pctShare:       number;
     cumPct:         number;
+    /** Sum of the measure over the bin's entities, for the tooltip. */
+    value:          number;
     indices:        number[];      // raw row indices — selIds created on demand
     nEntities:      number;
     highlighted:    boolean;
+    /**
+     * Share of the panel total held by the entities another visual highlights, in
+     * percent. Drawn as the opaque part of the bar, like a native column chart: a
+     * bin of 500 customers almost always holds one of the highlighted category, so
+     * an all-or-nothing dim never changed anything.
+     */
+    hlShare:        number | null;
     customTooltips: TooltipSummaryItem[];
     /** Color resolved by an fx conditional-formatting rule on the bin's
      *  top-ranked entity, or null when no rule is applied. */
     ruleColor:      string | null;
+    /**
+     * Comparison period, ranked ON ITS OWN over the same entity population and
+     * cut into the same bins: "the top 20% made 72% then and 78% now". Null when
+     * no comparison is drawn.
+     */
+    cmpShare:       number | null;
+    cmpCum:         number | null;
+    cmpValue:       number | null;
+}
+
+/** One Pareto: the whole chart, or one panel of the small multiples. */
+interface PanelDatum {
+    title:      string;
+    /** Raw panel value, for the filter; null without small multiples. */
+    value:      powerbi.PrimitiveValue | null;
+    bins:       BinDatum[];
+    nEntities:  number;
+    hasCmp:     boolean;
+    /**
+     * Exact, entity by entity, not to the nearest bin: the fewest top entities
+     * whose cumulative value reaches `target` % of the total, in each period.
+     */
+    target:     number;
+    need:       number;
+    cmpNeed:    number | null;
+    /** ABC zones: entities in class A and in A+B, counted exactly. Null when off. */
+    abcA:       number | null;
+    abcAB:      number | null;
+}
+
+/** Per-panel input to the binning: one value per category row. */
+interface PanelInput {
+    title:   string;
+    value:   powerbi.PrimitiveValue | null;
+    measure: (number | null)[];
+    hl:      (number | null)[] | null;
+    cmp:     (number | null)[] | null;
+    tips:    { name: string; format: string | undefined; values: (number | null)[] }[];
+}
+
+/** Colours resolved once per render (theme, high contrast, IBCS) and shared by every panel. */
+interface RenderCtx {
+    isHC: boolean; hcFg: string; hcBg: string; hcFgNeutral: string;
+    barColor: string; lineColor: string; axisColor: string; gridColor: string; dotColor: string;
+    cmpBar: string; cmpLine: string;
 }
 
 // ─── Visual ───────────────────────────────────────────────────────────────────
@@ -199,8 +315,22 @@ export class Visual implements IVisual {
     private svg:       d3.Selection<SVGSVGElement,  unknown, null, undefined>;
 
     private settings:      Settings;
+    /** Every bin of every panel, panel by panel: the order of the bars in the DOM. */
     private bins:          BinDatum[] = [];
+    private panels:        PanelDatum[] = [];
+    /** Bin keys ("<panel>|<label>"). A selection lives inside one panel. */
     private selectedBins:  Set<string> = new Set();
+
+    private loc: ILocalizationManager;
+    /** Format strings of the bound measures, straight from the model. */
+    private measureFormat: string | undefined;
+    private cmpFormat:     string | undefined;
+    /** The small-multiples column, for the panel half of a bin filter. */
+    private panelSource:   powerbi.DataViewMetadataColumn | null = null;
+    /** Whether the panel / comparison fields are bound, Pro or not. */
+    private hasPanelField = false;
+    private hasCmpField   = false;
+    private fmtCache = new Map<string, valueFormatter.IValueFormatter>();
 
     private isPro:           boolean = false; // ISPRO_MARKER
     private isProChecked:    boolean = false;
@@ -245,13 +375,23 @@ export class Visual implements IVisual {
     private lastFetchCount = 0;
     private fetchRounds    = 0;
     private readonly MAX_FETCH_ROUNDS = 60;   // 60 x 30k is past Power BI's row ceiling
-    // Power BI Desktop runs inside Electron; fetchMoreData only works in Service
-    private readonly isDesktop: boolean = navigator.userAgent.indexOf('Electron') !== -1;
+    /**
+     * Desktop, from the host itself (CustomVisualHostEnv.Desktop = 1 << 2). The old
+     * test looked for "Electron" in the user agent, which current Desktop builds no
+     * longer carry, so Desktop was taken for the Service and the truncation notice
+     * blamed the Service's 100 MB limit for a Desktop row cap.
+     */
+    private get isDesktop(): boolean {
+        const env = Number((this.host as any)?.hostEnv);
+        if (isFinite(env) && env > 0) return (env & 4) !== 0;
+        return navigator.userAgent.indexOf("Electron") !== -1;
+    }
 
     // ── Formatting Model API ──────────────────────────────────────────────────
     private formattingSettingsService: FormattingSettingsService;
     private lastDataView: DataView | undefined;
     private lastCatCol:  DataViewCategoryColumn | undefined;
+    private lastPanCol:  DataViewCategoryColumn | null = null;
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -260,8 +400,9 @@ export class Visual implements IVisual {
         this.events           = options.host.eventService;
         this.selectionManager = options.host.createSelectionManager();
         this.settings         = readSettings(undefined);
+        this.loc              = options.host.createLocalizationManager();
 
-        this.formattingSettingsService = new FormattingSettingsService();
+        this.formattingSettingsService = new FormattingSettingsService(this.loc);
 
         this.container = d3.select(options.element)
             .append("div").classed("pareto-visual", true)
@@ -279,7 +420,7 @@ export class Visual implements IVisual {
         // dice por que esta ahi se lee como que el visual se ha quedado colgado, y no
         // hay forma de saber cual de los ajustes Pro sigue puesto.
         this.watermarkTitle = document.createElement("div");
-        this.watermarkTitle.textContent = "Pro preview";
+        this.watermarkTitle.textContent = this.t("UI_ProPreview", "Pro preview");
         this.watermarkWhy = document.createElement("div");
         this.watermarkEl.appendChild(this.watermarkTitle);
         this.watermarkEl.appendChild(this.watermarkWhy);
@@ -321,7 +462,7 @@ export class Visual implements IVisual {
             const target = event.target as Element;
             const datum  = d3.select<Element, BinDatum>(target).datum();
             const selId  = datum?.indices?.length && this.lastCatCol
-                ? (this.getSelIds(datum.indices, 1)[0] ?? null)
+                ? (this.binSelIds(datum, 1)[0] ?? null)
                 : null;
             this.selectionManager.showContextMenu(selId, {
                 x: event.clientX,
@@ -331,6 +472,58 @@ export class Visual implements IVisual {
         });
     }
 
+    // ── Localization and number format ────────────────────────────────────────
+    /** A string from stringResources, or the English fallback when the key is missing. */
+    private t(key: string, fallback: string): string {
+        try {
+            const s = this.loc?.getDisplayName(key);
+            return s && s !== key ? s : fallback;
+        } catch { return fallback; }
+    }
+
+    /** "{0} of {1}"-style templates. */
+    private tf(key: string, fallback: string, ...args: string[]): string {
+        return this.t(key, fallback).replace(/\{(\d+)\}/g, (_m, i) => args[Number(i)] ?? "");
+    }
+
+    private formatter(format: string | undefined): valueFormatter.IValueFormatter {
+        const k = format ?? "";
+        let f = this.fmtCache.get(k);
+        if (!f) {
+            f = valueFormatter.create({ format, cultureSelector: this.host.locale });
+            this.fmtCache.set(k, f);
+        }
+        return f;
+    }
+
+    /**
+     * A share the visual computed itself (bin share, cumulative), in the report's
+     * locale: 12,5 % in Spanish, 12.5% in English. `v` is in percent units.
+     */
+    private pct(v: number, decimals = 1): string {
+        const fmt = decimals > 0 ? "0." + "0".repeat(decimals) + "%" : "0%";
+        return this.formatter(fmt).format(v / 100);
+    }
+
+    /** A change between two shares, in percentage points, with its sign. */
+    private pp(d: number, decimals = 1): string {
+        const r = Math.round(d * Math.pow(10, decimals)) / Math.pow(10, decimals);
+        const fmt = decimals > 0 ? "0." + "0".repeat(decimals) : "0";
+        const sign = r > 0 ? "+" : r < 0 ? "−" : "±";
+        return `${sign}${this.formatter(fmt).format(Math.abs(r))} ${this.t("UI_pp", "pp")}`;
+    }
+
+    /** A measure value with the measure's own format string from the model. */
+    private fmtValue(v: number, format: string | undefined): string {
+        if (!isFinite(v)) return "";
+        return this.formatter(format).format(v);
+    }
+
+    /** Integer counts (entities) with the locale's thousands separator. */
+    private int(n: number): string {
+        return this.formatter("#,0").format(n);
+    }
+
     // ── Update ────────────────────────────────────────────────────────────────
     public update(options: VisualUpdateOptions): void {
         this.events.renderingStarted(options);
@@ -338,6 +531,9 @@ export class Visual implements IVisual {
             const dv = options.dataViews?.[0];
             this.lastDataView = dv;
             this.settings = readSettings(dv);
+            const cols = dv?.metadata?.columns ?? [];
+            this.hasCmpField   = cols.some(c => c.roles?.["comparison"]);
+            this.hasPanelField = cols.some(c => c.roles?.["panel"]);
 
             // ViewMode.View = 0. Edit e InFocusEdit son ambos edicion. Esto NO distingue
             // Desktop de Service: los dos informan de los dos modos, y hacerlo por host
@@ -428,7 +624,10 @@ export class Visual implements IVisual {
 
             const gen = ++this.renderGeneration;
             this.checkLicense().then(() => {
-                if (gen !== this.renderGeneration) return; // stale update, skip
+                // A newer update() superseded this one. It still has to close its own
+                // renderingStarted: Microsoft checks the events 1:1 per update (policy
+                // 1200.1.2; Likert was rejected for exactly this on 2026-10-02).
+                if (gen !== this.renderGeneration) { this.events.renderingFinished(options); return; }
 
                 // Ya se sabe si hay licencia: de ahi sale si toca vista previa.
                 // isProChecked garantiza que la licencia se resolvio; sin el, el primer
@@ -452,7 +651,7 @@ export class Visual implements IVisual {
                 }
 
                 // Drop labels that no longer exist (bin count can change).
-                const labels = new Set(this.bins.map(b => b.label));
+                const labels = new Set(this.bins.map(b => b.key));
                 Array.from(this.selectedBins).forEach(l => {
                     if (!labels.has(l)) this.selectedBins.delete(l);
                 });
@@ -464,6 +663,11 @@ export class Visual implements IVisual {
                 this.applyOpacity();
                 this.syncAria();
                 this.events.renderingFinished(options);
+            }).catch((e: unknown) => {
+                // An error while drawing happens inside this promise, where the outer
+                // try/catch cannot see it: without this, renderingStarted is never closed.
+                this.events.renderingFailed(options, String(e));
+                console.error("[ParetoChartPro]", e);
             });
         } catch (e) {
             this.events.renderingFailed(options, String(e));
@@ -522,9 +726,9 @@ export class Visual implements IVisual {
      * or a data refresh changes neither.
      */
     private attemptedProFeatures(): { labels: string[]; signature: string; touched: Set<string> } {
-        const objs = this.lastDataView?.metadata?.objects as any;
-        const vacio = { labels: [] as string[], signature: "", touched: new Set<string>() };
-        if (!objs) return vacio;
+        // No early return on a report with no saved settings: binding the comparison
+        // or small-multiples field is a Pro request on its own.
+        const objs = (this.lastDataView?.metadata?.objects ?? {}) as any;
 
         const num = (v: any, si: number) => (v === undefined || v === null || isNaN(Number(v)) ? si : Number(v));
         const pareto = objs.pareto ?? {};
@@ -545,6 +749,16 @@ export class Visual implements IVisual {
             ["value labels",
              vlab.show === true,
              `labels=${vlab.show === true}`],
+            // Binding the field IS the request: there is nothing else to switch on.
+            ["comparison",
+             this.hasCmpField,
+             `cmp=${this.hasCmpField}`],
+            ["small multiples",
+             this.hasPanelField,
+             `panels=${this.hasPanelField}`],
+            ["ABC zones",
+             objs.abcZones?.show === true,
+             `abc=${objs.abcZones?.show === true}`],
         ];
 
         const labels: string[] = [];
@@ -574,6 +788,20 @@ export class Visual implements IVisual {
      * vale para la funcion que el usuario ha tocado de verdad, que es tambien el momento
      * en que aparecen la marca y el aviso de compra.
      */
+    /** Display name of a Pro feature id, in the report's language. */
+    private featName(id: string): string {
+        switch (id) {
+            case "custom bin size":        return this.t("Feat_binSize",   "custom bin size");
+            case "outlier filtering":      return this.t("Feat_trim",      "outlier filtering");
+            case "a third reference line": return this.t("Feat_ref3",      "a third reference line");
+            case "value labels":           return this.t("Feat_labels",    "value labels");
+            case "comparison":             return this.t("Feat_cmp",       "comparison");
+            case "small multiples":        return this.t("Feat_panels",    "small multiples");
+            case "ABC zones":              return this.t("Feat_abc",       "ABC zones");
+            default: return id;
+        }
+    }
+
     private previewOf(feature: string): boolean {
         if (this.isPro) return true;
         if (!this.proPreview) return false;
@@ -592,7 +820,8 @@ export class Visual implements IVisual {
         this.watermarkEl.style.display = activa ? "flex" : "none";
         if (!activa) return;
 
-        if (this.watermarkWhy) { this.watermarkWhy.textContent = labels.join(" · "); }
+        if (this.watermarkTitle) { this.watermarkTitle.textContent = this.t("UI_ProPreview", "Pro preview"); }
+        if (this.watermarkWhy) { this.watermarkWhy.textContent = labels.map(l => this.featName(l)).join(" · "); }
 
         // Escala con el visual y se limita por el alto tambien: en un Pareto muy ancho y
         // bajo, dimensionar solo por ancho daria un texto que no cabe en vertical. El
@@ -668,14 +897,13 @@ export class Visual implements IVisual {
         this.lastBlockedNotice = signature;
         this.licenseIconShown = true;
 
-        const list = wanted.length === 1
-            ? wanted[0]
-            : wanted.slice(0, -1).join(", ") + " and " + wanted[wanted.length - 1];
+        const names = wanted.map(w => this.featName(w));
+        const list = names.join(", ");
         const msg = this.proPreview
-            ? `Pareto Chart Pro: ${list} ${wanted.length === 1 ? "is" : "are"} part of the Pro `
-              + `plan, shown here as a watermarked preview. Reading view shows the free result.`
-            : `Pareto Chart Pro: ${list} ${wanted.length === 1 ? "is" : "are"} part of the Pro `
-              + `plan. Get a licence to enable ${wanted.length === 1 ? "it" : "them"}.`;
+            ? this.tf("UI_NoticePreview",
+                "Pareto Chart Pro: {0} — part of the Pro plan, shown here as a watermarked preview. Reading view shows the free result.", list)
+            : this.tf("UI_NoticeBlocked",
+                "Pareto Chart Pro: {0} — part of the Pro plan. Get a licence to enable it.", list);
 
         const show = () => {
             try { lm.notifyFeatureBlocked?.(msg.slice(0, 500)); } catch { /* best-effort */ }
@@ -704,74 +932,109 @@ export class Visual implements IVisual {
     }
 
     // ── Build bins ────────────────────────────────────────────────────────────
+    /**
+     * The small-multiples field arrives as a SECOND CATEGORY column, so each row is
+     * one entity × panel combination. Grouping the values by panel instead made
+     * Power BI page the data in blocks of 500 rows: a 5,000-customer model drew a
+     * Pareto of 500. As a category, the 30,000-row window still applies, and a
+     * customer that sits in one region is still one row.
+     *
+     * Without a licence the panels are folded back into one Pareto per entity, and
+     * the comparison measure is ignored: the free result is the plain chart.
+     */
     private buildBins(dv: DataView): void {
-        const s       = this.settings;
-        const catCol  = dv.categorical.categories[0] as DataViewCategoryColumn;
-        const valCol  = (dv.categorical.values || []).find(v => v.source?.roles?.["measure"])
-                     ?? dv.categorical.values[0];
-        const rawVals = valCol.values  as number[];
-        const hlVals  = valCol.highlights as number[];
-        const hasHL   = hlVals != null;
+        const cats   = dv.categorical.categories ?? [];
+        const catCol = (cats.find(c => c.source?.roles?.["category"]) ?? cats[0]) as DataViewCategoryColumn;
+        const panCol = cats.find(c => c.source?.roles?.["panel"] && c !== catCol) ?? null;
+        this.lastCatCol  = catCol;
+        this.lastPanCol  = panCol;
+        this.panelSource = panCol?.source ?? null;
+        const nRows = catCol.values.length;
 
-        this.lastCatCol = catCol;
-        let rows: { value: number; index: number; hlValue: number | null }[] =
-            rawVals.map((v, i) => ({
-                value:   Math.max(0, Number(v) || 0),
-                hlValue: hasHL ? (hlVals[i] != null ? Number(hlVals[i]) : null) : null,
-                index:   i,
-            }));
+        const vals    = dv.categorical.values ?? ([] as unknown as powerbi.DataViewValueColumns);
+        const roleCol = (role: string): DataViewValueColumn | undefined =>
+            vals.find(v => v.source?.roles?.[role]);
+        const mCol = roleCol("measure");
+        const cCol = roleCol("comparison");
+        const tCols = vals.filter(v => v.source?.roles?.["tooltips"]);
+        this.measureFormat = mCol?.source?.format;
+        this.cmpFormat     = cCol?.source?.format;
 
-        rows.sort((a, b) => b.value - a.value);
+        const usePanels = !!panCol && this.previewOf("small multiples");
+        const useCmp    = !!cCol && this.previewOf("comparison");
 
-        const n = rows.length;
-        if (n === 0) { this.bins = []; return; }
+        const toNum = (v: powerbi.PrimitiveValue): number | null =>
+            v === null || v === undefined || v === "" || isNaN(Number(v)) ? null : Number(v);
+        const meas = mCol ? mCol.values.map(toNum) : new Array(nRows).fill(null);
+        const hl   = mCol?.highlights ? mCol.highlights.map(toNum) : null;
+        const cmp  = useCmp && cCol ? cCol.values.map(toNum) : null;
+        const tips = tCols.map(tc => ({ name: tc.source.displayName, format: tc.source.format, values: tc.values.map(toNum) }));
 
-        let trimmedRows = rows;
-        if (this.previewOf("outlier filtering")) {
-            const skipTop    = Math.max(0, Math.floor(n * Math.min(s.trimUpper, 99) / 100));
-            const skipBottom = Math.max(0, Math.floor(n * Math.min(s.trimLower, 99) / 100));
-            trimmedRows = rows.slice(skipTop, n - skipBottom || n);
+        // Rows of each Pareto. With panels: one list per panel value. Without: one
+        // list, and an entity that appears under several panels is summed into its
+        // first row, so it is ranked once with its total.
+        const inputs: PanelInput[] = [];
+        if (usePanels && panCol) {
+            const byPanel = new Map<string, number[]>();
+            const firstVal = new Map<string, powerbi.PrimitiveValue>();
+            for (let i = 0; i < nRows; i++) {
+                const v = panCol.values[i];
+                const k = v === null || v === undefined ? "\u0000" : (v instanceof Date ? String(v.getTime()) : String(v));
+                let arr = byPanel.get(k);
+                if (!arr) { arr = []; byPanel.set(k, arr); firstVal.set(k, v); }
+                arr.push(i);
+            }
+            const keys = Array.from(byPanel.keys()).sort((a, b) => {
+                const va = firstVal.get(a), vb = firstVal.get(b);
+                if (typeof va === "number" && typeof vb === "number") return va - vb;
+                if (va instanceof Date && vb instanceof Date) return va.getTime() - vb.getTime();
+                return String(va ?? "").localeCompare(String(vb ?? ""), this.host.locale);
+            });
+            for (const k of keys) {
+                const rows = byPanel.get(k)!;
+                const pick = <T>(arr: (T | null)[] | null): (T | null)[] | null => {
+                    if (!arr) return null;
+                    const out: (T | null)[] = new Array(nRows).fill(null);
+                    for (const i of rows) out[i] = arr[i];
+                    return out;
+                };
+                const v = firstVal.get(k) ?? null;
+                inputs.push({
+                    title: this.panelTitle(v),
+                    value: v,
+                    measure: pick(meas)!,
+                    hl:   pick(hl),
+                    cmp:  pick(cmp),
+                    tips: tips.map(t => ({ name: t.name, format: t.format, values: pick(t.values)! })),
+                });
+            }
+        } else if (panCol) {
+            const first = new Map<string, number>();
+            const fold = <T extends number>(arr: (T | null)[] | null): (number | null)[] | null => {
+                if (!arr) return null;
+                const out: (number | null)[] = new Array(nRows).fill(null);
+                for (let i = 0; i < nRows; i++) {
+                    const key = String(catCol.values[i]);
+                    let f = first.get(key);
+                    if (f === undefined) { f = i; first.set(key, i); }
+                    const x = arr[i];
+                    if (x !== null && x !== undefined) out[f] = (out[f] ?? 0) + x;
+                }
+                return out;
+            };
+            inputs.push({
+                title: "", value: null,
+                measure: fold(meas)!, hl: fold(hl), cmp: fold(cmp),
+                tips: tips.map(t => ({ name: t.name, format: t.format, values: fold(t.values)! })),
+            });
+        } else {
+            inputs.push({ title: "", value: null, measure: meas, hl, cmp, tips });
         }
-        const tn = trimmedRows.length;
-        if (tn === 0) { this.bins = []; return; }
-
-        const binSizePct = this.previewOf("custom bin size")
-            ? Math.min(20, Math.max(1, s.binSizePct))
-            : FREE_BIN_SIZE_PCT;
-        const requestedNBins = Math.ceil(100 / binSizePct);
-        const nBins = Math.min(requestedNBins, tn);
-
-        const baseEntities = Math.floor(tn / nBins);
-        const remainder    = tn % nBins;
-        const binStartIndices = new Array<number>(nBins);
-        let curr = 0;
-        for (let k = 0; k < nBins; k++) {
-            binStartIndices[k] = curr;
-            curr += baseEntities + (k < remainder ? 1 : 0);
-        }
-
-        const rawBins: typeof trimmedRows[] = Array.from({ length: nBins }, () => []);
-        for (let k = 0; k < nBins; k++) {
-            const start = binStartIndices[k];
-            const end   = k < nBins - 1 ? binStartIndices[k + 1] : tn;
-            rawBins[k]  = trimmedRows.slice(start, end);
-        }
-
-        const total = trimmedRows.reduce((s, r) => s + r.value, 0);
-        if (total === 0) { this.bins = []; return; }
-
-        const tooltipCols = (dv.categorical.values || []).filter(
-            vCol => vCol.source?.roles?.["tooltips"]
-        );
 
         // Conditional formatting: Power BI resolves the fx rule per category and
         // hands the result back on categories[0].objects[i]. Read it defensively —
         // with no rule applied the whole chain is undefined.
         const catObjects = (catCol as any)?.objects as powerbi.DataViewObjects[] | undefined;
-        const ruleColorAt = (rowIndex: number): string | null => {
-            const c = (catObjects?.[rowIndex]?.["pareto"]?.["barColor"] as powerbi.Fill)?.solid?.color;
-            return typeof c === "string" && c.length > 0 ? c : null;
-        };
 
         // Un color plano elegido en el swatch se persiste bajo el selector wildcard de
         // barColor, asi que aterriza aqui y no en metadata.objects. Power BI solo entrega
@@ -792,65 +1055,240 @@ export class Visual implements IVisual {
             if (distintos.size === 1) { this.uniformBarColor = distintos.values().next().value; }
         }
 
-        let cumPct = 0;
-        const stepPct = 100 / nBins;
-        this.bins = rawBins
-            .filter(b => b.length > 0)
-            .map((b, idx) => {
-                const binStart = idx * stepPct;
-                const binEnd   = Math.min((idx + 1) * stepPct, 100);
-                const binValue = b.reduce((s, r) => s + r.value, 0);
-                const pctShare = (binValue / total) * 100;
-                cumPct += pctShare;
+        this.panels = [];
+        inputs.forEach(inp => {
+            const p = this.binPanel(inp, this.panels.length, catObjects);
+            if (p) this.panels.push(p);
+        });
+        this.bins = ([] as BinDatum[]).concat(...this.panels.map(p => p.bins));
+    }
 
-                const highlighted = hasHL ? b.some(r => r.hlValue != null && r.hlValue > 0) : false;
+    /** An entity's value as a bar label, with the model's format for dates and numbers. */
+    private entityName(row: number): string {
+        const v = this.lastCatCol?.values[row];
+        if (v === null || v === undefined || v === "") return this.t("UI_Blank", "(Blank)");
+        if (v instanceof Date || typeof v === "number") return this.fmtValue(v as any, this.lastCatCol?.source?.format) || String(v);
+        return String(v);
+    }
 
-                const customTooltips: TooltipSummaryItem[] = tooltipCols.map(col => {
-                    const sum = b.reduce((acc, r) => acc + (Number(col.values[r.index]) || 0), 0);
-                    const formatted = typeof sum === "number" && !isNaN(sum)
-                        ? (Number.isInteger(sum) ? sum.toLocaleString() : sum.toLocaleString(undefined, { maximumFractionDigits: 2 }))
-                        : String(sum);
-                    return {
-                        displayName: col.source.displayName,
-                        value: formatted,
-                    };
-                });
+    /** The panel's value as a title: the model's format for dates and numbers. */
+    private panelTitle(v: powerbi.PrimitiveValue | undefined | null): string {
+        if (v === null || v === undefined || v === "") return this.t("UI_Blank", "(Blank)");
+        const fmt = this.panelSource?.format;
+        if (v instanceof Date || typeof v === "number") return this.fmtValue(v as any, fmt) || String(v);
+        return String(v);
+    }
 
-                // Rows are sorted descending, so b[0] is the bin's top-ranked
-                // entity. Its rule color represents the bin; fall back to the
-                // first entity in the bin that resolves to one.
-                let ruleColor: string | null = null;
-                for (const r of b) {
-                    ruleColor = ruleColorAt(r.index);
-                    if (ruleColor) break;
-                }
+    /**
+     * Rank, trim and bin one panel. The comparison measure is ranked on its own over
+     * the same entity population and cut at the same positions, so bin k compares
+     * "the top k-th slice then" with "the top k-th slice now", whoever is in it.
+     */
+    private binPanel(inp: PanelInput, panelIdx: number,
+                     catObjects: powerbi.DataViewObjects[] | undefined): PanelDatum | null {
+        const s = this.settings;
+        const hasHL = inp.hl != null;
 
-                return {
-                    label:          `${Math.round(binStart)}–${Math.round(binEnd)}%`,
-                    pctShare,
-                    cumPct,
-                    indices:        b.map(r => r.index),
-                    nEntities:      b.length,
-                    highlighted,
-                    customTooltips,
-                    ruleColor,
-                };
+        // An entity belongs to this panel when either period has a value for it. A
+        // customer lost since last year has no current value and still counts: it is
+        // part of the comparison population, at the bottom of the current ranking.
+        const rows: { value: number; cmp: number; index: number; hlValue: number | null }[] = [];
+        for (let i = 0; i < inp.measure.length; i++) {
+            const v = inp.measure[i];
+            const c = inp.cmp ? inp.cmp[i] : null;
+            if (v === null && c === null) continue;
+            rows.push({
+                value:   Math.max(0, v ?? 0),
+                cmp:     Math.max(0, c ?? 0),
+                hlValue: hasHL ? inp.hl![i] : null,
+                index:   i,
             });
+        }
+        const n = rows.length;
+        if (n === 0) return null;
+
+        rows.sort((a, b) => b.value - a.value);
+
+        let skipTop = 0, skipBottom = 0;
+        if (this.previewOf("outlier filtering")) {
+            skipTop    = Math.max(0, Math.floor(n * Math.min(s.trimUpper, 99) / 100));
+            skipBottom = Math.max(0, Math.floor(n * Math.min(s.trimLower, 99) / 100));
+        }
+        const trimmedRows = rows.slice(skipTop, n - skipBottom || n);
+        const tn = trimmedRows.length;
+        if (tn === 0) return null;
+
+        const binSizePct = this.previewOf("custom bin size")
+            ? Math.min(20, Math.max(1, s.binSizePct))
+            : FREE_BIN_SIZE_PCT;
+        const requestedNBins = Math.ceil(100 / binSizePct);
+        const named = tn <= ENTITY_BARS_MAX;
+        const nBins = named ? tn : Math.min(requestedNBins, tn);
+
+        const baseEntities = Math.floor(tn / nBins);
+        const remainder    = tn % nBins;
+        const starts = new Array<number>(nBins + 1);
+        let curr = 0;
+        for (let k = 0; k < nBins; k++) {
+            starts[k] = curr;
+            curr += baseEntities + (k < remainder ? 1 : 0);
+        }
+        starts[nBins] = tn;
+
+        const total = trimmedRows.reduce((acc, r) => acc + r.value, 0);
+        if (total === 0) return null;
+
+        const target = this.summaryTarget();
+        const needFor = (sortedDesc: number[], sum: number): number => {
+            let acc = 0;
+            for (let j = 0; j < sortedDesc.length; j++) {
+                acc += sortedDesc[j];
+                if (acc >= sum * target / 100 - 1e-9) return j + 1;
+            }
+            return sortedDesc.length;
+        };
+        const sortedVals = trimmedRows.map(r => r.value);
+        const need = needFor(sortedVals, total);
+
+        // ABC zones, exact like the summary: A reaches the first cut of the total,
+        // B the second. Cut points are clamped so B can never end before A.
+        let abcA: number | null = null, abcAB: number | null = null;
+        if (s.abcShow && this.previewOf("ABC zones")) {
+            const cutOf = (pct: number): number => {
+                let acc = 0;
+                for (let j = 0; j < sortedVals.length; j++) {
+                    acc += sortedVals[j];
+                    if (acc >= total * pct / 100 - 1e-9) return j + 1;
+                }
+                return sortedVals.length;
+            };
+            const a = Math.min(99, Math.max(1, s.abcA));
+            const b = Math.min(99.9, Math.max(a, s.abcB));
+            abcA  = cutOf(a);
+            abcAB = Math.max(abcA, cutOf(b));
+        }
+        let cmpNeed: number | null = null;
+
+        // Comparison. With bins: its own ranking, the same trim and the same cut
+        // points — "the top 20% then" against "the top 20% now", whoever is in them.
+        // With named bars it has to be the SAME entity: a bar labelled "Retail" with
+        // last year's number one behind it (maybe HoReCa) would be a false reading.
+        let cmpBinValues: number[] | null = null;
+        let cmpTotal = 0;
+        if (inp.cmp) {
+            const ranked = rows.map(r => r.cmp).sort((a, b) => b - a).slice(skipTop, n - skipBottom || n);
+            cmpTotal = ranked.reduce((a, v) => a + v, 0);
+            if (cmpTotal > 0) {
+                cmpNeed = needFor(ranked, cmpTotal);
+                cmpBinValues = [];
+                const source = named ? trimmedRows.map(r => r.cmp) : ranked;
+                if (named) cmpTotal = source.reduce((a, v) => a + v, 0);
+                for (let k = 0; k < nBins; k++) {
+                    let sum = 0;
+                    for (let j = starts[k]; j < starts[k + 1]; j++) sum += source[j];
+                    cmpBinValues.push(sum);
+                }
+                if (cmpTotal <= 0) cmpBinValues = null;
+            }
+        }
+
+        const ruleColorAt = (rowIndex: number): string | null => {
+            const c = (catObjects?.[rowIndex]?.["pareto"]?.["barColor"] as powerbi.Fill)?.solid?.color;
+            return typeof c === "string" && c.length > 0 ? c : null;
+        };
+
+        let cumPct = 0, cmpCum = 0;
+        const stepPct = 100 / nBins;
+        const bins: BinDatum[] = [];
+        for (let k = 0; k < nBins; k++) {
+            const b = trimmedRows.slice(starts[k], starts[k + 1]);
+            if (!b.length) continue;
+            const binStart = k * stepPct;
+            const binEnd   = Math.min((k + 1) * stepPct, 100);
+            const binValue = b.reduce((acc, r) => acc + r.value, 0);
+            const pctShare = (binValue / total) * 100;
+            cumPct += pctShare;
+
+            let cmpShare: number | null = null, cmpCumNow: number | null = null, cmpValue: number | null = null;
+            if (cmpBinValues) {
+                cmpValue = cmpBinValues[k];
+                cmpShare = (cmpValue / cmpTotal) * 100;
+                cmpCum  += cmpShare;
+                cmpCumNow = cmpCum;
+            }
+
+            const hlSum = hasHL ? b.reduce((acc, r) => acc + Math.max(0, r.hlValue ?? 0), 0) : 0;
+            const highlighted = hasHL && hlSum > 0;
+            const hlShare = hasHL ? (hlSum / total) * 100 : null;
+
+            const customTooltips: TooltipSummaryItem[] = inp.tips.map(tip => {
+                const sum = b.reduce((acc, r) => acc + (tip.values[r.index] ?? 0), 0);
+                return { displayName: tip.name, value: this.fmtValue(sum, tip.format) };
+            });
+
+            // Rows are sorted descending, so b[0] is the bin's top-ranked
+            // entity. Its rule color represents the bin; fall back to the
+            // first entity in the bin that resolves to one.
+            let ruleColor: string | null = null;
+            for (const r of b) {
+                ruleColor = ruleColorAt(r.index);
+                if (ruleColor) break;
+            }
+
+            const label = named
+                ? this.entityName(b[0].index)
+                : `${Math.round(binStart)}–${Math.round(binEnd)}%`;
+            bins.push({
+                // Names can repeat (two customers called the same); the key cannot.
+                key:     named ? `${panelIdx}|#${String(this.lastCatCol?.values[b[0].index])}` : `${panelIdx}|${label}`,
+                label,
+                panel:   panelIdx,
+                named,
+                pctShare,
+                cumPct,
+                value:   binValue,
+                indices: b.map(r => r.index),
+                nEntities: b.length,
+                highlighted,
+                hlShare,
+                customTooltips,
+                ruleColor,
+                cmpShare,
+                cmpCum:  cmpCumNow,
+                cmpValue,
+            });
+        }
+
+        return {
+            title: inp.title,
+            value: inp.value,
+            bins,
+            nEntities: tn,
+            hasCmp: cmpBinValues !== null,
+            target,
+            need,
+            cmpNeed,
+            abcA,
+            abcAB,
+        };
     }
 
     /** Toggle a bin's selection. Shared by pointer and keyboard so both behave
-     *  identically. `additive` mirrors Ctrl/Cmd-click. */
+     *  identically. `additive` mirrors Ctrl/Cmd-click. A selection lives inside one
+     *  panel: an entity filter AND a panel filter cannot express "bin 1 of plant A
+     *  plus bin 3 of plant B" without selecting more than was clicked. */
     private toggleBinSelection(b: BinDatum, additive: boolean): void {
         if (!this.canInteract) return;
 
-        if (additive) {
-            if (this.selectedBins.has(b.label)) this.selectedBins.delete(b.label);
-            else                                this.selectedBins.add(b.label);
-        } else if (this.selectedBins.size === 1 && this.selectedBins.has(b.label)) {
+        const otherPanel = Array.from(this.selectedBins).some(k => !k.startsWith(`${b.panel}|`));
+        if (additive && !otherPanel) {
+            if (this.selectedBins.has(b.key)) this.selectedBins.delete(b.key);
+            else                              this.selectedBins.add(b.key);
+        } else if (this.selectedBins.size === 1 && this.selectedBins.has(b.key)) {
             this.selectedBins.clear();
         } else {
             this.selectedBins.clear();
-            this.selectedBins.add(b.label);
+            this.selectedBins.add(b.key);
         }
 
         if (this.selectedBins.size === 0) {
@@ -859,10 +1297,10 @@ export class Visual implements IVisual {
             return;
         }
 
-        const chosen = this.bins.filter(bin => this.selectedBins.has(bin.label));
+        const chosen = this.bins.filter(bin => this.selectedBins.has(bin.key));
 
         // Refuse rather than filter partially.
-        const entityCount = chosen.reduce((acc, b) => acc + b.nEntities, 0);
+        const entityCount = chosen.reduce((acc, x) => acc + x.nEntities, 0);
         if (entityCount > MAX_FILTER_VALUES) {
             this.selectedBins.clear();
             this.oversizedSelection = entityCount;
@@ -885,9 +1323,20 @@ export class Visual implements IVisual {
         // Fallback: no usable filter target (drilldown level, unusual model
         // shape). Selection IDs still work, capped at MAX_SEL_IDS_PER_BIN.
         const allIds = chosen.reduce(
-            (acc, bin) => acc.concat(this.getSelIds(bin.indices)), [] as ISelectionId[]);
+            (acc, bin) => acc.concat(this.binSelIds(bin)), [] as ISelectionId[]);
         this.selectionManager.select(allIds, false)
             .then((ids: ISelectionId[]) => { this.applyOpacity(ids); this.syncAria(); });
+    }
+
+    /** "table.column" of a column, or null for hierarchy levels and other shapes. */
+    private columnTarget(src: powerbi.DataViewMetadataColumn | null | undefined): { table: string; column: string } | null {
+        // Require exactly one dot. "table.column" is a usable target; a hierarchy
+        // level arrives as "table.hierarchy.level", and splitting that on the
+        // first dot would build a target for a column that does not exist —
+        // a wrong filter rather than no filter. Anything else falls back.
+        const parts = (src?.queryName ?? "").split(".");
+        if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
+        return { table: parts[0], column: parts[1] };
     }
 
     /**
@@ -913,25 +1362,37 @@ export class Visual implements IVisual {
             return true;
         }
 
-        const values = new Set<string>();
-        for (const f of filters) {
-            const vs = (f as any)?.values;
-            if (Array.isArray(vs)) for (const v of vs) values.add(String(v));
-        }
-        if (!values.size) return false;   // a filter we cannot read — do not clear
-
         const cat = this.lastCatCol;
         if (!cat) return false;
+        const catTarget   = this.columnTarget(cat.source);
+        const panelTarget = this.columnTarget(this.panelSource);
+
+        const values = new Set<string>();
+        let panelValues: Set<string> | null = null;
+        for (const f of filters) {
+            const vs = (f as any)?.values;
+            if (!Array.isArray(vs)) continue;
+            const col = (f as any)?.target?.column;
+            if (panelTarget && col === panelTarget.column && (!catTarget || col !== catTarget.column)) {
+                panelValues = panelValues ?? new Set<string>();
+                for (const v of vs) panelValues.add(String(v));
+            } else {
+                for (const v of vs) values.add(String(v));
+            }
+        }
+        if (!values.size) return false;   // a filter we cannot read — do not clear
 
         this.selectedBins.clear();
         for (const b of this.bins) {
             // A bin cannot be fully contained in a smaller value set.
             if (!b.indices.length || b.nEntities > values.size) continue;
+            const pv = this.panels[b.panel]?.value;
+            if (panelValues && pv !== null && pv !== undefined && !panelValues.has(String(pv))) continue;
             let all = true;
             for (const i of b.indices) {
                 if (!values.has(String(cat.values[i]))) { all = false; break; }
             }
-            if (all) this.selectedBins.add(b.label);
+            if (all) this.selectedBins.add(b.key);
         }
         return true;
     }
@@ -939,7 +1400,7 @@ export class Visual implements IVisual {
     /** Keep aria-selected in step with the visual selection state. */
     private syncAria(): void {
         this.svg.selectAll<SVGRectElement, BinDatum>(".bar")
-            .attr("aria-selected", b => (this.selectedBins.has(b.label) ? "true" : "false"));
+            .attr("aria-selected", b => (this.selectedBins.has(b.key) ? "true" : "false"));
     }
 
     /** style/visual.less is not emitted into the .pbiviz by pbiviz, so any CSS the
@@ -972,33 +1433,15 @@ export class Visual implements IVisual {
     }
 
     // ── Render chart ──────────────────────────────────────────────────────────
+    /**
+     * One panel, or a grid of them. Every panel shares the left axis, so a bar of
+     * the same height means the same share in every panel; the cumulative axis is
+     * 0–100% by definition everywhere.
+     */
     private renderChart(viewport: powerbi.IViewport, isTruncated = false): void {
         const s  = this.settings;
-        // ── Adaptive layout ────────────────────────────────────────────────────
-        // A fixed margin spends most of a small dashboard tile on chrome. Scale the
-        // chrome with the viewport and drop whatever no longer earns its space.
         const VW = viewport.width, VH = viewport.height;
-        const compact = VW < 360 || VH < 240;
-        const tiny    = VW < 240 || VH < 170;
-
-        const fs = tiny    ? Math.max(8, s.axisFontSize - 3)
-                 : compact ? Math.max(9, s.axisFontSize - 2)
-                 : s.axisFontSize;
-
-        const showXLabel    = s.showXLabel && !compact;
-        const showYLabel    = s.showYLabel && !compact;
-        const showRightAxis = !tiny;
-
-        const M = {
-            top:    tiny ? 10 : compact ? 16 : MARGIN.top,
-            right:  tiny ?  8 : compact ? 34 : MARGIN.right,
-            bottom: (tiny ? 26 : compact ? 40 : 52) + (showXLabel ? 16 : 0),
-            left:   (tiny ? 28 : compact ? 38 : 48) + (showYLabel ? 16 : 0),
-        };
-
-        const W  = VW - M.left - M.right;
-        const H  = VH - M.top  - M.bottom;
-        if (W <= 0 || H <= 0 || !this.bins.length) return;
+        if (VW <= 0 || VH <= 0 || !this.panels.length || !this.bins.length) return;
 
         // ── High contrast support ──────────────────────────────────────────────
         const palette     = this.host.colorPalette as any;
@@ -1012,6 +1455,8 @@ export class Visual implements IVisual {
         let axisColor = this.resolveColor(s.axisColor, hcFg,        isHC);
         let gridColor = this.resolveColor(s.gridColor, hcFgNeutral, isHC);
         let dotColor  = lineColor;
+        let cmpBar    = this.resolveColor(s.cmpBarColor,  hcFgNeutral, isHC);
+        let cmpLine   = this.resolveColor(s.cmpLineColor, hcFgNeutral, isHC);
 
         if (s.ibcsMode && !isHC) {
             barColor  = "#404040"; // IBCS Neutral Charcoal
@@ -1019,31 +1464,213 @@ export class Visual implements IVisual {
             dotColor  = "#262626";
             axisColor = "#000000"; // IBCS Black Axis Typography & Lines
             gridColor = "#E5E5E5";
+            cmpBar    = "#A6A6A6"; // IBCS previous period: outlined grey
+            cmpLine   = "#A6A6A6";
+        }
+        const ctx: RenderCtx = { isHC, hcFg, hcBg, hcFgNeutral, barColor, lineColor, axisColor, gridColor, dotColor, cmpBar, cmpLine };
+
+        this.svg.attr("width", VW).attr("height", VH);
+
+        const multi = this.panels.length > 1 || (this.panels[0].value !== null && this.panels[0].value !== undefined);
+        const n = this.panels.length;
+        const noticeH = isTruncated ? 16 : 0;
+        let cols = 1;
+        if (multi) {
+            cols = s.smColumns >= 1
+                ? Math.min(n, Math.round(s.smColumns))
+                // Aim for cells about 1.6 times wider than tall: a Pareto reads left
+                // to right and a tall narrow cell squeezes its bins.
+                : Math.max(1, Math.min(n, Math.round(Math.sqrt(n * (VW / Math.max(1, VH - noticeH)) / 1.6))));
+        }
+        const rows   = Math.ceil(n / cols);
+        const gap    = multi ? 14 : 0;
+        const titleH = multi ? Math.max(9, s.smTitleSize) + 8 : 0;
+        const cellW  = (VW - gap * (cols - 1)) / cols;
+        const cellH  = (VH - noticeH - gap * (rows - 1)) / rows;
+
+        // Shared left axis. Headroom for value labels and change pills on top of
+        // the tallest bar, so neither is clipped at the top.
+        const showCmpBars = this.panels.some(p => p.hasCmp) && s.cmpShowBars;
+        const maxShare = d3.max(this.bins, b => Math.max(b.pctShare, showCmpBars && b.cmpShare != null ? b.cmpShare : 0)) ?? 100;
+        const pillsOn  = s.cmpShowPills && this.panels.some(p => p.hasCmp);
+        const labelsOn = s.showLabels && this.previewOf("value labels");
+        const headroom = 1.18 + (pillsOn ? 0.14 : 0) + (labelsOn && pillsOn ? 0.06 : 0);
+        const yMax = Math.max(maxShare * headroom, 5);
+
+        this.panels.forEach((p, pi) => {
+            const cx = (pi % cols) * (cellW + gap);
+            const cy = noticeH + Math.floor(pi / cols) * (cellH + gap);
+            const pg = this.svg.append("g").classed("panel", true)
+                .attr("transform", `translate(${cx},${cy})`);
+            if (multi) {
+                const title = pg.append("text")
+                    .attr("x", 0).attr("y", Math.max(9, s.smTitleSize))
+                    .style("font-size", Math.max(9, s.smTitleSize) + "px")
+                    .style("font-weight", "600")
+                    .style("fill", isHC ? hcFg : s.smTitleColor)
+                    .text(p.title);
+                this.fitText(title.node(), cellW);
+            }
+            const body = pg.append("g").attr("transform", `translate(0,${titleH})`);
+            this.drawPanel(body, p, cellW, cellH - titleH, yMax, ctx);
+        });
+
+        this.wireBars();
+
+        // Truncation notice (Desktop only, when ≥30k rows)
+        if (isTruncated) {
+            const shown = this.int(this.truncatedAt);
+            this.svg.append("text")
+                .attr("x", 4).attr("y", 12)
+                .attr("text-anchor", "start")
+                .style("font-size", "10px").style("fill", isHC ? hcFgNeutral : "#E8A020")
+                .text(this.isDesktop
+                    ? this.tf("UI_TruncDesktop", "⚠ Partial data: {0} rows. Power BI Desktop cannot load more — publish to the Service for the full dataset.", shown)
+                    : this.tf("UI_TruncService", "⚠ Partial data: {0} rows. Power BI's 100 MB data limit was reached — reduce bound tooltip measures or narrow the filter.", shown));
+        }
+    }
+
+    /** Shorten an SVG text with an ellipsis until it fits. */
+    private fitText(node: SVGTextElement | null, maxW: number): void {
+        if (!node || maxW <= 0 || typeof node.getComputedTextLength !== "function") return;
+        let txt = node.textContent ?? "";
+        if (node.getComputedTextLength() <= maxW) return;
+        while (txt.length > 1 && node.getComputedTextLength() > maxW) {
+            txt = txt.slice(0, -2);
+            node.textContent = txt + "…";
+        }
+    }
+
+    /** Threshold of the summary: reference line 1 when on, else the threshold colour, else 80%. */
+    private summaryTarget(): number {
+        const s = this.settings;
+        return Math.min(99, Math.max(1, s.showRef1 ? s.ref1Value : (s.thShow ? s.thValue : 80)));
+    }
+
+    /**
+     * The one sentence a reader wants from a Pareto: how many entities make the
+     * threshold share. Counted entity by entity, so it is exact at any bin size —
+     * with 20% bins the bars alone can only say "between 20% and 40%".
+     *
+     * With a comparison, the same count in the other period: fewer entities
+     * needed means more concentration.
+     */
+    private summaryText(p: PanelDatum): string {
+        const share = (k: number) => (100 * k) / Math.max(1, p.nEntities);
+        let text = this.tf("UI_Summary", "{0} of {1} entities ({2}) make {3} of the total",
+            this.int(p.need), this.int(p.nEntities), this.pct(share(p.need), 1), this.pct(p.target, 0));
+        if (p.hasCmp && p.cmpNeed != null) {
+            // Two counts, no pp: here fewer entities means MORE concentration, the
+            // opposite sign of the bar pills, and two opposite signs on one chart mislead.
+            text += this.tf("UI_SummaryCmp", " · comparison: {0} entities ({1})",
+                this.int(p.cmpNeed), this.pct(share(p.cmpNeed), 1));
+        }
+        return text;
+    }
+
+    /** Tooltip rows for a bin: the bin, its value, the comparison, extra measures. */
+    private tipItems(b: BinDatum, withCount = true): powerbi.extensibility.VisualTooltipDataItem[] {
+        const items: powerbi.extensibility.VisualTooltipDataItem[] = [];
+        const p = this.panels[b.panel];
+        if (p && p.value !== null && p.value !== undefined) {
+            items.push({ displayName: this.t("UI_TipPanel", "Panel"), value: p.title });
+        }
+        items.push({ displayName: this.t("UI_TipEntities", "Entities"), value: b.label });
+        if (withCount) items.push({ displayName: this.t("UI_TipCount", "Count"), value: this.int(b.nEntities) });
+        items.push({ displayName: this.t("UI_TipValue", "Value"), value: this.fmtValue(b.value, this.measureFormat) });
+        items.push({ displayName: this.t("UI_TipShare", "% of total value"), value: this.pct(b.pctShare, 2) });
+        items.push({ displayName: this.t("UI_TipCum", "Cumulative"), value: this.pct(b.cumPct, 2) });
+        if (b.hlShare !== null) {
+            items.push({ displayName: this.t("UI_TipHl", "Highlighted share"), value: this.pct(b.hlShare, 2) });
+        }
+        if (b.cmpShare != null && b.cmpCum != null && b.cmpValue != null) {
+            items.push({ displayName: this.t("UI_TipCmpValue", "Comparison value"), value: this.fmtValue(b.cmpValue, this.cmpFormat ?? this.measureFormat) });
+            items.push({ displayName: this.t("UI_TipCmpShare", "Comparison share"), value: this.pct(b.cmpShare, 2) });
+            items.push({ displayName: this.t("UI_TipChange", "Change in share"), value: this.pp(b.pctShare - b.cmpShare) });
+            items.push({ displayName: this.t("UI_TipCmpCum", "Comparison cumulative"), value: this.pct(b.cmpCum, 2) });
+        }
+        return items.concat(b.customTooltips || []);
+    }
+
+    private showTip(event: MouseEvent, b: BinDatum, move = false): void {
+        const args = {
+            dataItems: this.tipItems(b),
+            identities: b.indices.length && this.lastCatCol ? this.binSelIds(b, 1) : [],
+            coordinates: [event.clientX, event.clientY],
+            isTouchEvent: false,
+        };
+        if (move) this.host.tooltipService?.move(args);
+        else      this.host.tooltipService?.show(args);
+    }
+
+    private drawPanel(
+        g: d3.Selection<SVGGElement, unknown, null, undefined>,
+        p: PanelDatum, VW: number, VH: number, yMax: number, ctx: RenderCtx
+    ): void {
+        const s = this.settings;
+        const bins = p.bins;
+        if (!bins.length) return;
+        // ── Adaptive layout ────────────────────────────────────────────────────
+        // A fixed margin spends most of a small dashboard tile on chrome. Scale the
+        // chrome with the viewport and drop whatever no longer earns its space.
+        const compact = VW < 360 || VH < 240;
+        const tiny    = VW < 240 || VH < 170;
+
+        const fs = tiny    ? Math.max(8, s.axisFontSize - 3)
+                 : compact ? Math.max(9, s.axisFontSize - 2)
+                 : s.axisFontSize;
+
+        const showXLabel    = s.showXLabel && !compact;
+        const showYLabel    = s.showYLabel && !compact;
+        // The cumulative line, its dots and the reference lines live on the 0–100%
+        // scale. Without the right axis they were read against the left one and
+        // looked wrong: a 52% first bar with its cumulative dot at "42%".
+        const showRightAxis = true;
+        const showSummary   = s.sumShow && VH >= 120 && VW >= 200;
+        const sumFs         = compact ? Math.max(9, s.sumFontSize - 2) : s.sumFontSize;
+        const summaryH      = showSummary ? sumFs + 10 : 0;
+
+        const M = {
+            top:    (tiny ? 10 : compact ? 16 : MARGIN.top) + summaryH,
+            right:  tiny ? 30 : compact ? 36 : MARGIN.right,
+            bottom: (tiny ? 26 : compact ? 40 : 52) + (showXLabel ? 16 : 0),
+            left:   (tiny ? 28 : compact ? 38 : 48) + (showYLabel ? 16 : 0),
+        };
+
+        const W  = VW - M.left - M.right;
+        const H  = VH - M.top  - M.bottom;
+        if (W <= 0 || H <= 0) return;
+
+        const { isHC, hcFg, hcBg, barColor, lineColor, axisColor, gridColor, dotColor, cmpBar, cmpLine } = ctx;
+
+        if (showSummary) {
+            const st = g.append("text").classed("pareto-summary", true)
+                .attr("x", 0).attr("y", sumFs)
+                .style("font-size", sumFs + "px")
+                .style("fill", isHC ? hcFg : s.sumColor)
+                .text(this.summaryText(p));
+            this.fitText(st.node(), VW);
         }
 
-        // ──────────────────────────────────────────────────────────────────────
-
-        const hasHL    = this.bins.some(b => b.highlighted);
+        const hasHL    = bins.some(b => b.hlShare !== null);
         const padding  = Math.max(0.05, Math.min(0.4, s.barGap / 100));
 
-        this.svg.attr("width", viewport.width).attr("height", viewport.height);
-        const g = this.svg.append("g")
+        const gp = g.append("g")
             .attr("transform", `translate(${M.left},${M.top})`);
 
         // Scales
         const xScale = d3.scaleBand()
-            .domain(this.bins.map(b => b.label))
+            .domain(bins.map(b => b.key))
             .range([0, W])
             .padding(padding);
 
-        const maxShare = d3.max(this.bins, b => b.pctShare) ?? 100;
         const yL = d3.scaleLinear()
-            .domain([0, Math.max(maxShare * 1.18, 5)])
+            .domain([0, yMax])
             .range([H, 0]).nice();
         const yR = d3.scaleLinear().domain([0, 100]).range([H, 0]);
 
         // Grid lines
-        g.selectAll(".grid-line")
+        gp.selectAll(".grid-line")
             .data(yL.ticks(6))
             .enter().append("line")
             .classed("grid-line", true)
@@ -1052,10 +1679,43 @@ export class Visual implements IVisual {
             .attr("stroke", gridColor)
             .attr("stroke-width", isHC ? 1 : 0.5);
 
+        // ABC zones (Pro): shaded behind everything, split at the exact entity where
+        // the cumulative crosses each cut. The entity axis runs evenly from 0 to W, so
+        // a fraction of entities maps straight to a position.
+        if (p.abcA !== null && p.abcAB !== null && p.nEntities > 0) {
+            const xA = W * p.abcA / p.nEntities;
+            const xB = W * p.abcAB / p.nEntities;
+            const zones = [
+                { cls: "A", x0: 0,  x1: xA, n: p.abcA,                color: s.abcAColor },
+                { cls: "B", x0: xA, x1: xB, n: p.abcAB - p.abcA,      color: s.abcBColor },
+                { cls: "C", x0: xB, x1: W,  n: p.nEntities - p.abcAB, color: s.abcCColor },
+            ].filter(z => z.x1 - z.x0 > 0.5);
+            const zg = gp.append("g").classed("abc-zones", true).style("pointer-events", "none");
+            zg.selectAll("rect").data(zones).enter().append("rect")
+                .attr("x", z => z.x0).attr("y", 0)
+                .attr("width", z => z.x1 - z.x0).attr("height", H)
+                .attr("fill", z => isHC ? "none" : z.color)
+                .attr("fill-opacity", 0.12)
+                .attr("stroke", isHC ? hcFg : "none")
+                .attr("stroke-dasharray", isHC ? "3,3" : null);
+            if (s.abcLabels) {
+                zg.selectAll("text").data(zones.filter(z => z.x1 - z.x0 > 34)).enter().append("text")
+                    .attr("x", z => z.x0 + 4).attr("y", 11)
+                    .style("font-size", "10px").style("font-weight", "700")
+                    .style("fill", z => isHC ? hcFg : z.color)
+                    .text(z => (z.x1 - z.x0 > 110)
+                        ? this.tf("UI_AbcLabel", "{0} · {1} of entities", z.cls, this.pct(100 * z.n / p.nEntities, 1))
+                        : z.cls);
+            }
+        }
+
         // Axes
-        const xAxis = g.append("g").classed("axis", true)
+        const xAxis = gp.append("g").classed("axis", true)
             .attr("transform", `translate(0,${H})`)
-            .call(d3.axisBottom(xScale));
+            .call(d3.axisBottom(xScale).tickFormat(k => {
+                const lab = bins.find(b => b.key === k)?.label ?? "";
+                return lab.length > 16 ? lab.slice(0, 15) + "…" : lab;
+            }));
         // Thin the tick labels when the bands get too narrow to read them.
         const bandPx   = xScale.step();   // band + gap: the space one label owns
         const everyNth = Math.max(1, Math.ceil((fs * 2.6) / Math.max(1, bandPx)));
@@ -1067,34 +1727,36 @@ export class Visual implements IVisual {
             .style("display", (_d, i) => (i % everyNth === 0 ? null : "none"));
         xAxis.selectAll("line, path").style("stroke", axisColor);
 
-        const yAxisL = g.append("g").classed("axis", true)
-            .call(d3.axisLeft(yL).ticks(6).tickFormat(d => `${d}%`));
+        const yAxisL = gp.append("g").classed("axis", true)
+            .call(d3.axisLeft(yL).ticks(6).tickFormat(d => this.pct(Number(d), 0)));
         yAxisL.selectAll("text").style("fill", axisColor).style("font-size", fs + "px");
         yAxisL.selectAll("line, path").style("stroke", axisColor);
 
         if (showRightAxis) {
-            const yAxisR = g.append("g").classed("axis", true)
+            const yAxisR = gp.append("g").classed("axis", true)
                 .attr("transform", `translate(${W},0)`)
-                .call(d3.axisRight(yR).ticks(compact ? 3 : 5).tickFormat(d => `${d}%`));
+                .call(d3.axisRight(yR).ticks(tiny ? 2 : compact ? 3 : 5).tickFormat(d => this.pct(Number(d), 0)));
             yAxisR.selectAll("text").style("fill", axisColor).style("font-size", fs + "px");
             yAxisR.selectAll("line, path").style("stroke", axisColor);
         }
 
         // Axis labels
         if (showYLabel) {
-            g.append("text")
+            gp.append("text")
                 .attr("transform", `rotate(-90)`)
                 .attr("x", -H / 2).attr("y", -(M.left - 14))
                 .attr("text-anchor", "middle")
                 .style("font-size", fs + "px").style("fill", axisColor)
-                .text("% of total value");
+                .text(this.t("UI_AxisY", "% of total value"));
         }
         if (showXLabel) {
-            g.append("text")
+            gp.append("text")
                 .attr("x", W / 2).attr("y", H + M.bottom - 10)
                 .attr("text-anchor", "middle")
                 .style("font-size", fs + "px").style("fill", axisColor)
-                .text("% of entities (best → worst)");
+                .text(bins[0]?.named
+                    ? (this.lastCatCol?.source?.displayName ?? "")
+                    : this.t("UI_AxisX", "% of entities (best → worst)"));
         }
 
         // ── Bar fill resolution ────────────────────────────────────────────────
@@ -1106,7 +1768,7 @@ export class Visual implements IVisual {
         //   5. fx rule color   — resolved per bin from its top-ranked entity
         //   6. the constant Bar color from metadata.objects
         const crossingIdx = s.thShow
-            ? this.bins.findIndex(b => b.cumPct >= Math.min(100, Math.max(0, s.thValue)))
+            ? bins.findIndex(b => b.cumPct >= Math.min(100, Math.max(0, s.thValue)))
             : -1;
 
         const binFill = (b: BinDatum, i: number): string => {
@@ -1124,54 +1786,241 @@ export class Visual implements IVisual {
             return b.ruleColor ?? barColor;
         };
 
+        // Comparison bars sit behind and to the left of the current ones, the IBCS
+        // way of drawing a previous period: the eye reads the pair, not two charts.
+        const cmpBars = p.hasCmp && s.cmpShowBars;
+        const band    = xScale.bandwidth();
+        const curW    = cmpBars ? band * 0.78 : band;
+        const curX    = (b: BinDatum) => xScale(b.key) + (cmpBars ? band - curW : 0);
+        const barTop  = (b: BinDatum) => yL(Math.max(b.pctShare, cmpBars && b.cmpShare != null ? b.cmpShare : 0));
+
+        if (cmpBars) {
+            gp.selectAll(".cmp-bar")
+                .data(bins.filter(b => b.cmpShare != null))
+                .enter().append("rect")
+                .classed("cmp-bar", true)
+                .attr("x",      b => xScale(b.key))
+                .attr("y",      b => yL(b.cmpShare as number))
+                .attr("width",  curW)
+                .attr("height", b => Math.max(0, H - yL(b.cmpShare as number)))
+                .attr("fill",   s.ibcsMode && !isHC ? "#FFFFFF" : cmpBar)
+                .attr("fill-opacity", s.ibcsMode || isHC ? 1 : 0.35)
+                .attr("stroke", cmpBar)
+                .attr("stroke-width", isHC ? 2 : 1)
+                .style("pointer-events", "none");
+        }
+
+        // A knockout under each current bar where it overlaps the comparison bar:
+        // the current bar is translucent (Bar opacity), and the grey showing through
+        // split every bar into two blues.
+        if (cmpBars) {
+            gp.selectAll(".bar-knockout")
+                .data(bins)
+                .enter().append("rect")
+                .classed("bar-knockout", true)
+                .attr("x",      b => curX(b))
+                .attr("y",      b => yL(b.pctShare))
+                .attr("width",  curW)
+                .attr("height", b => Math.max(0, H - yL(b.pctShare)))
+                .attr("fill",   isHC ? hcBg : "#FFFFFF")
+                .style("pointer-events", "none");
+        }
+
         // Bars
         const bw = s.borderWidth > 0 ? s.borderWidth : 0;
         const borderStroke = this.resolveColor(s.borderColor, hcFg, isHC);
 
-        const barSel = g.selectAll(".bar")
-            .data(this.bins)
+        gp.selectAll(".bar")
+            .data(bins)
             .enter().append("rect")
             .classed("bar", true)
-            .attr("x",      b => xScale(b.label))
+            .attr("x",      b => curX(b))
             .attr("y",      b => yL(b.pctShare))
-            .attr("width",  xScale.bandwidth())
+            .attr("width",  curW)
             .attr("height", b => Math.max(0, H - yL(b.pctShare)))
             .attr("fill",   (b, i) => binFill(b, i))
-            .attr("opacity", b => hasHL ? (b.highlighted ? s.barOpacity : s.barOpacity * 0.25) : s.barOpacity)
+            .attr("opacity", hasHL ? s.barOpacity * 0.3 : s.barOpacity)
             .attr("stroke",       (bw > 0 || isHC) ? borderStroke : "none")
             .attr("stroke-width", isHC ? 2 : bw)
-            .style("cursor", "pointer")
+            .style("cursor", "pointer");
+
+        // Highlight from another visual: the part of each bar that belongs to the
+        // highlighted entities, opaque, over the dimmed full bar.
+        if (hasHL) {
+            gp.selectAll(".bar-hl")
+                .data(bins.filter(b => (b.hlShare ?? 0) > 0))
+                .enter().append("rect")
+                .classed("bar-hl", true)
+                .attr("x",      b => curX(b))
+                .attr("y",      b => yL(b.hlShare as number))
+                .attr("width",  curW)
+                .attr("height", b => Math.max(0, H - yL(b.hlShare as number)))
+                .attr("fill",   (b, i) => binFill(b, bins.indexOf(b)))
+                .attr("opacity", s.barOpacity)
+                .style("pointer-events", "none");
+        }
+
+        // Value labels (Pro)
+        let labelH = 0;
+        if (s.showLabels && this.previewOf("value labels")) {
+            const labelColor = this.resolveColor(s.labelColor, hcFg, isHC);
+            const lfs = Math.max(7, Math.min(s.labelFontSize, curW * 0.4));
+            labelH = lfs + 2;
+            gp.selectAll(".bar-label")
+                .data(bins)
+                .enter().append("text")
+                .classed("bar-label", true)
+                .attr("x", b => curX(b) + curW / 2)
+                .attr("y", b => barTop(b) - 4)
+                .attr("text-anchor", "middle")
+                .style("font-size", lfs + "px")
+                .style("fill", labelColor)
+                .text(b => s.showPercent ? this.pct(b.pctShare, 1) : this.formatter("0.0").format(b.pctShare));
+        }
+
+        // Change pills (Pro): the change in each bar's share, in percentage points.
+        // pp, not %: going from a 20% share to 23% is +3 pp, while "+3%" would read
+        // as a 3% relative growth. Hidden when they do not fit the bars at all.
+        if (p.hasCmp && s.cmpShowPills) {
+            const pfs = Math.max(8, Math.min(10, fs - 1));
+            const texts = bins.map(b => b.cmpShare != null ? this.pp(b.pctShare - b.cmpShare) : "");
+            const longest = d3.max(texts, x => x.length) ?? 0;
+            const pillW = longest * pfs * 0.58 + 8;
+            if (pillW <= xScale.step() + 2) {
+                const pill = gp.selectAll(".cmp-pill")
+                    .data(bins.map((b, i) => ({ b, txt: texts[i] })).filter(d => d.txt))
+                    .enter().append("g").classed("cmp-pill", true)
+                    .attr("transform", d =>
+                        `translate(${xScale(d.b.key) + band / 2},${barTop(d.b) - 4 - labelH - (pfs + 4) / 2})`)
+                    .style("pointer-events", "none");
+                const deltaOf = (b: BinDatum) => b.pctShare - (b.cmpShare as number);
+                pill.append("rect")
+                    .attr("x", -pillW / 2).attr("y", -(pfs + 4) / 2)
+                    .attr("width", pillW).attr("height", pfs + 4)
+                    .attr("rx", (pfs + 4) / 2)
+                    .attr("fill", d => isHC ? hcBg : (deltaOf(d.b) >= 0.05 ? s.cmpUpColor : deltaOf(d.b) <= -0.05 ? s.cmpDownColor : "#8C8C8C"))
+                    .attr("stroke", isHC ? hcFg : "none");
+                pill.append("text")
+                    .attr("text-anchor", "middle").attr("dy", "0.35em")
+                    .style("font-size", pfs + "px").style("font-weight", "600")
+                    .style("fill", isHC ? hcFg : "#FFFFFF")
+                    .text(d => d.txt);
+            }
+        }
+
+        // Cumulative line
+        const centre = (b: BinDatum) => xScale(b.key) + band / 2;
+        const lineGen = d3.line<BinDatum>()
+            .x(b => centre(b))
+            .y(b => yR(b.cumPct))
+            .curve(d3.curveMonotoneX);
+
+        // Comparison cumulative line, dashed, under the current one.
+        if (p.hasCmp && s.cmpShowLine) {
+            const cmpGen = d3.line<BinDatum>()
+                .defined(b => b.cmpCum != null)
+                .x(b => centre(b))
+                .y(b => yR(b.cmpCum as number))
+                .curve(d3.curveMonotoneX);
+            gp.append("path")
+                .datum(bins)
+                .classed("cmp-line", true)
+                .attr("fill", "none")
+                .attr("stroke", cmpLine)
+                .attr("stroke-width", isHC ? Math.max(s.lineWidth, 2) : Math.max(1, s.lineWidth - 0.5))
+                .attr("stroke-dasharray", "5,4")
+                .attr("d", cmpGen)
+                .style("pointer-events", "none");
+        }
+
+        gp.append("path")
+            .datum(bins)
+            .attr("fill", "none")
+            .attr("stroke", lineColor)
+            .attr("stroke-width", isHC ? Math.max(s.lineWidth, 2) : s.lineWidth)
+            .attr("d", lineGen);
+
+        if (s.showDots) {
+            gp.selectAll(".cum-dot")
+                .data(bins)
+                .enter().append("circle")
+                .attr("cx", b => centre(b))
+                .attr("cy", b => yR(b.cumPct))
+                .attr("r", isHC ? Math.max(s.dotRadius, 5) : s.dotRadius)
+                .attr("fill", dotColor)
+                .attr("stroke", isHC ? hcBg : "#fff")
+                .attr("stroke-width", 1.5)
+                .style("cursor", "crosshair")
+                .on("mouseover", (event: MouseEvent, b: BinDatum) => this.showTip(event, b))
+                .on("mousemove", (event: MouseEvent, b: BinDatum) => this.showTip(event, b, true))
+                .on("mouseout", () =>
+                    this.host.tooltipService?.hide({ immediately: false, isTouchEvent: false })
+                );
+        }
+
+        // Reference lines
+        const refLines = [
+            { show: s.showRef1, value: s.ref1Value, color: s.ref1Color, label: s.ref1Label },
+            { show: s.showRef2, value: s.ref2Value, color: s.ref2Color, label: s.ref2Label },
+            { show: s.showRef3 && this.previewOf("a third reference line"), value: s.ref3Value, color: s.ref3Color, label: s.ref3Label },
+        ];
+
+        refLines.forEach(ref => {
+            if (!ref.show || ref.value <= 0 || ref.value >= 100) return;
+
+            const refColor = this.resolveColor(ref.color, hcFg, isHC);
+            const yH = yR(ref.value);
+
+            this.drawDashedLine(gp, 0, W, yH, yH, refColor, 1.5);
+
+            // Inside the plot, at the right end and just above the line. At x = -4 it
+            // sat on top of the left axis tick labels and neither could be read.
+            gp.append("text")
+                .classed("ref-label", true)
+                .attr("x", W - 4).attr("y", yH - 4)
+                .attr("text-anchor", "end")
+                .style("font-size", "10px").style("font-weight", "600").style("fill", refColor)
+                .style("paint-order", "stroke").style("stroke", isHC ? hcBg : "#FFFFFF")
+                .style("stroke-width", "3px").style("stroke-linejoin", "round")
+                .text(ref.label || this.pct(ref.value, 0));
+
+            const crossBin = bins.find(b => b.cumPct >= ref.value);
+            if (crossBin) {
+                const xV = centre(crossBin);
+                this.drawDashedLine(gp, xV, xV, 0, H, refColor, 1.5, true);
+
+                gp.append("text")
+                    .attr("x", xV).attr("y", -4)
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "10px").style("fill", refColor)
+                    .text(crossBin.label);
+            }
+        });
+
+        // The Free tier upsell caption used to live here. Removed: Microsoft is
+        // explicit that a visual "shouldn't display its own licensing UX, instead
+        // use one of Power BI supported predefined notifications". The Pro
+        // settings now carry "(Pro)" in the format pane and reaching for one
+        // raises the platform's own banner, which — unlike a grey caption in a
+        // corner — the user can actually act on.
+    }
+
+    /**
+     * Pointer, keyboard and ARIA for every bar of every panel, in one pass: the
+     * whole chart stays a single Tab stop and the arrows walk the bars panel by
+     * panel, in the same order as this.bins.
+     */
+    private wireBars(): void {
+        const barSel = this.svg.selectAll<SVGRectElement, BinDatum>(".bar");
+        const total  = this.bins.length;
+
+        barSel
             .on("click", (event: MouseEvent, b: BinDatum) => {
                 event.stopPropagation();
                 this.toggleBinSelection(b, event.ctrlKey || event.metaKey);
             })
-            .on("mouseover", (event: MouseEvent, b: BinDatum) => {
-                this.host.tooltipService?.show({
-                    dataItems: [
-                        { displayName: "Entities",          value: b.label },
-                        { displayName: "Count",             value: String(b.nEntities) },
-                        { displayName: "% of total value",  value: `${b.pctShare.toFixed(2)}%` },
-                        { displayName: "Cumulative",        value: `${b.cumPct.toFixed(2)}%` },
-                        ...(b.customTooltips || [])
-                    ],
-                    identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
-                    coordinates: [event.clientX, event.clientY],
-                    isTouchEvent: false,
-                });
-            })
-            .on("mousemove", (event: MouseEvent, b: BinDatum) => {
-                this.host.tooltipService?.move({
-                    dataItems: [
-                        { displayName: "Entities",         value: b.label },
-                        { displayName: "% of total value", value: `${b.pctShare.toFixed(2)}%` },
-                        { displayName: "Cumulative",       value: `${b.cumPct.toFixed(2)}%` },
-                        ...(b.customTooltips || [])
-                    ],
-                    identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
-                    coordinates: [event.clientX, event.clientY],
-                    isTouchEvent: false,
-                });
-            })
+            .on("mouseover", (event: MouseEvent, b: BinDatum) => this.showTip(event, b))
+            .on("mousemove", (event: MouseEvent, b: BinDatum) => this.showTip(event, b, true))
             .on("mouseout", () =>
                 this.host.tooltipService?.hide({ immediately: false, isTouchEvent: false })
             );
@@ -1182,24 +2031,33 @@ export class Visual implements IVisual {
         this.svg
             .attr("role", "listbox")
             .attr("aria-multiselectable", "true")
-            .attr("aria-label",
-                `Pareto chart. ${this.bins.length} bins of ranked entities, ` +
-                `highest contribution first.`);
+            .attr("aria-label", this.panels.length > 1
+                ? this.tf("UI_AriaChartMulti", "Pareto chart, {0} panels, {1} bins of ranked entities, highest contribution first.",
+                    String(this.panels.length), String(total))
+                : this.tf("UI_AriaChart", "Pareto chart. {0} bins of ranked entities, highest contribution first.", String(total)));
 
-        this.focusedBin = Math.max(0, Math.min(this.focusedBin, this.bins.length - 1));
+        this.focusedBin = Math.max(0, Math.min(this.focusedBin, total - 1));
 
         barSel
             .attr("role", "option")
             .attr("tabindex", (_d, i) => (i === this.focusedBin ? 0 : -1))
-            .attr("aria-selected", b => (this.selectedBins.has(b.label) ? "true" : "false"))
-            .attr("aria-label", (b, i) =>
-                `Bin ${i + 1} of ${this.bins.length}. Entities ${b.label}. ` +
-                `${b.pctShare.toFixed(1)} percent of total value. ` +
-                `Cumulative ${b.cumPct.toFixed(1)} percent. ` +
-                `${b.nEntities} ${b.nEntities === 1 ? "entity" : "entities"}.`);
+            .attr("aria-selected", b => (this.selectedBins.has(b.key) ? "true" : "false"))
+            .attr("aria-label", b => {
+                const p = this.panels[b.panel];
+                const inPanel = p.bins.indexOf(b);
+                let txt = (this.panels.length > 1 ? `${p.title}. ` : "") +
+                    this.tf("UI_AriaBin", "Bin {0} of {1}. Entities {2}. {3} of total value. Cumulative {4}. {5} entities.",
+                        String(inPanel + 1), String(p.bins.length), b.label,
+                        this.pct(b.pctShare, 1), this.pct(b.cumPct, 1), this.int(b.nEntities));
+                if (b.cmpShare != null && b.cmpCum != null) {
+                    txt += " " + this.tf("UI_AriaCmp", "Comparison {0}, change {1}.",
+                        this.pct(b.cmpShare, 1), this.pp(b.pctShare - b.cmpShare));
+                }
+                return txt;
+            });
 
         const focusBin = (i: number): void => {
-            const clamped = Math.max(0, Math.min(this.bins.length - 1, i));
+            const clamped = Math.max(0, Math.min(total - 1, i));
             this.focusedBin = clamped;
             barSel.attr("tabindex", (_d, j) => (j === clamped ? 0 : -1));
             (barSel.nodes()[clamped] as SVGRectElement | undefined)?.focus();
@@ -1208,7 +2066,7 @@ export class Visual implements IVisual {
         const openMenu = (event: Event, b: BinDatum): void => {
             const rect = (event.currentTarget as SVGRectElement).getBoundingClientRect();
             const selId = b.indices.length && this.lastCatCol
-                ? (this.getSelIds(b.indices, 1)[0] ?? null)
+                ? (this.binSelIds(b, 1)[0] ?? null)
                 : null;
             this.selectionManager.showContextMenu(selId, {
                 x: rect.left + rect.width / 2,
@@ -1225,7 +2083,7 @@ export class Visual implements IVisual {
                     case "ArrowRight": case "ArrowDown": focusBin(i + 1); break;
                     case "ArrowLeft":  case "ArrowUp":   focusBin(i - 1); break;
                     case "Home":                         focusBin(0); break;
-                    case "End":                          focusBin(this.bins.length - 1); break;
+                    case "End":                          focusBin(total - 1); break;
                     case "Enter": case " ": case "Spacebar":
                         this.toggleBinSelection(b, event.ctrlKey || event.metaKey);
                         break;
@@ -1247,14 +2105,8 @@ export class Visual implements IVisual {
             .on("focus", (event: FocusEvent, b: BinDatum) => {
                 const rect = (event.currentTarget as SVGRectElement).getBoundingClientRect();
                 this.host.tooltipService?.show({
-                    dataItems: [
-                        { displayName: "Entities",         value: b.label },
-                        { displayName: "Count",            value: String(b.nEntities) },
-                        { displayName: "% of total value", value: `${b.pctShare.toFixed(2)}%` },
-                        { displayName: "Cumulative",       value: `${b.cumPct.toFixed(2)}%` },
-                        ...(b.customTooltips || [])
-                    ],
-                    identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
+                    dataItems: this.tipItems(b),
+                    identities: b.indices.length && this.lastCatCol ? this.binSelIds(b, 1) : [],
                     coordinates: [rect.left + rect.width / 2, rect.top],
                     isTouchEvent: false,
                 });
@@ -1267,129 +2119,6 @@ export class Visual implements IVisual {
         if (this.restoreFocusAfterRender) {
             this.restoreFocusAfterRender = false;
             (barSel.nodes()[this.focusedBin] as SVGRectElement | undefined)?.focus();
-        }
-
-        // Value labels (Pro)
-        if (s.showLabels && this.previewOf("value labels")) {
-            const labelColor = this.resolveColor(s.labelColor, hcFg, isHC);
-            g.selectAll(".bar-label")
-                .data(this.bins)
-                .enter().append("text")
-                .classed("bar-label", true)
-                .attr("x", b => xScale(b.label) + xScale.bandwidth() / 2)
-                .attr("y", b => yL(b.pctShare) - 4)
-                .attr("text-anchor", "middle")
-                .style("font-size", Math.max(7, Math.min(s.labelFontSize, xScale.bandwidth() * 0.4)) + "px")
-                .style("fill", labelColor)
-                .text(b => s.showPercent ? `${b.pctShare.toFixed(1)}%` : b.pctShare.toFixed(1));
-        }
-
-        // Cumulative line
-        const lineGen = d3.line<BinDatum>()
-            .x(b => xScale(b.label) + xScale.bandwidth() / 2)
-            .y(b => yR(b.cumPct))
-            .curve(d3.curveMonotoneX);
-
-        g.append("path")
-            .datum(this.bins)
-            .attr("fill", "none")
-            .attr("stroke", lineColor)
-            .attr("stroke-width", isHC ? Math.max(s.lineWidth, 2) : s.lineWidth)
-            .attr("d", lineGen);
-
-        if (s.showDots) {
-            g.selectAll(".cum-dot")
-                .data(this.bins)
-                .enter().append("circle")
-                .attr("cx", b => xScale(b.label) + xScale.bandwidth() / 2)
-                .attr("cy", b => yR(b.cumPct))
-                .attr("r", isHC ? Math.max(s.dotRadius, 5) : s.dotRadius)
-                .attr("fill", dotColor)
-                .attr("stroke", isHC ? hcBg : "#fff")
-                .attr("stroke-width", 1.5)
-                .style("cursor", "crosshair")
-                .on("mouseover", (event: MouseEvent, b: BinDatum) => {
-                    this.host.tooltipService?.show({
-                        dataItems: [
-                            { displayName: "Entities",   value: b.label },
-                            { displayName: "Cumulative", value: `${b.cumPct.toFixed(2)}%` },
-                            { displayName: "Bin share",  value: `${b.pctShare.toFixed(2)}%` },
-                            ...(b.customTooltips || [])
-                        ],
-                        identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
-                        coordinates: [event.clientX, event.clientY],
-                        isTouchEvent: false,
-                    });
-                })
-                .on("mousemove", (event: MouseEvent, b: BinDatum) => {
-                    this.host.tooltipService?.move({
-                        dataItems: [
-                            { displayName: "Entities",   value: b.label },
-                            { displayName: "Cumulative", value: `${b.cumPct.toFixed(2)}%` },
-                            { displayName: "Bin share",  value: `${b.pctShare.toFixed(2)}%` },
-                            ...(b.customTooltips || [])
-                        ],
-                        identities: b.indices.length && this.lastCatCol ? this.getSelIds(b.indices, 1) : [],
-                        coordinates: [event.clientX, event.clientY],
-                        isTouchEvent: false,
-                    });
-                })
-                .on("mouseout", () =>
-                    this.host.tooltipService?.hide({ immediately: false, isTouchEvent: false })
-                );
-        }
-
-        // Reference lines
-        const refLines = [
-            { show: s.showRef1, value: s.ref1Value, color: s.ref1Color, label: s.ref1Label },
-            { show: s.showRef2, value: s.ref2Value, color: s.ref2Color, label: s.ref2Label },
-            { show: s.showRef3 && this.previewOf("a third reference line"), value: s.ref3Value, color: s.ref3Color, label: s.ref3Label },
-        ];
-
-        refLines.forEach(ref => {
-            if (!ref.show || ref.value <= 0 || ref.value >= 100) return;
-
-            const refColor = this.resolveColor(ref.color, hcFg, isHC);
-            const yH = yR(ref.value);
-
-            this.drawDashedLine(g, 0, W, yH, yH, refColor, 1.5);
-
-            g.append("text")
-                .attr("x", -4).attr("y", yH + 4)
-                .attr("text-anchor", "end")
-                .style("font-size", "10px").style("fill", refColor)
-                .text(ref.label || `${ref.value}%`);
-
-            const crossBin = this.bins.find(b => b.cumPct >= ref.value);
-            if (crossBin) {
-                const xV = xScale(crossBin.label) + xScale.bandwidth() / 2;
-                this.drawDashedLine(g, xV, xV, 0, H, refColor, 1.5, true);
-
-                g.append("text")
-                    .attr("x", xV).attr("y", -4)
-                    .attr("text-anchor", "middle")
-                    .style("font-size", "10px").style("fill", refColor)
-                    .text(crossBin.label);
-            }
-        });
-
-        // The Free tier upsell caption used to live here. Removed: Microsoft is
-        // explicit that a visual "shouldn't display its own licensing UX, instead
-        // use one of Power BI supported predefined notifications". The Pro
-        // settings now carry "(Pro)" in the format pane and reaching for one
-        // raises the platform's own banner, which — unlike a grey caption in a
-        // corner — the user can actually act on.
-
-        // Truncation notice (Desktop only, when ≥30k rows)
-        if (isTruncated) {
-            const shown = this.truncatedAt.toLocaleString();
-            g.append("text")
-                .attr("x", 0).attr("y", -10)
-                .attr("text-anchor", "start")
-                .style("font-size", "10px").style("fill", isHC ? hcFgNeutral : "#E8A020")
-                .text(this.isDesktop
-                    ? `⚠ Partial data: ${shown} rows. Power BI Desktop cannot load more — publish to the Service for the full dataset.`
-                    : `⚠ Partial data: ${shown} rows. Power BI's 100 MB data limit was reached — reduce bound tooltip measures or narrow the filter.`);
         }
     }
 
@@ -1415,9 +2144,10 @@ export class Visual implements IVisual {
 
     // ── Filter-in opacity ─────────────────────────────────────────────────────
 
-    // ── On-demand selId factory (1 SelectionId per category selection action to prevent DS0 query errors) ──
     /**
-     * A BasicFilter over every entity in the given bins.
+     * A BasicFilter over every entity in the given bins — plus, with small
+     * multiples, a second one on the panel field, so clicking bin 1 of plant A
+     * filters plant A's top entities and not the same customers in every plant.
      *
      * This is what makes bin filtering exact. selectionManager.select() needs one
      * selection ID per entity — each carrying a full scope identity — so a bin of
@@ -1425,23 +2155,16 @@ export class Visual implements IVisual {
      * a subset. A BasicFilter carries plain scalars instead, which is the same
      * mechanism native slicers use for large value lists, so there is no cap.
      *
-     * Returns null when the category's queryName cannot be split into a
-     * table/column target — drilldown levels and some model shapes do not expose
-     * one. The caller falls back to selection IDs in that case, so behavior
-     * degrades to the previous mechanism instead of breaking.
+     * Returns null when a column cannot be split into a table/column target —
+     * drilldown levels and some model shapes do not expose one. The caller falls
+     * back to selection IDs in that case, so behavior degrades to the previous
+     * mechanism instead of breaking.
      */
-    private buildBinFilter(bins: BinDatum[]): powerbi.IFilter | null {
+    private buildBinFilter(bins: BinDatum[]): powerbi.IFilter | powerbi.IFilter[] | null {
         const cat = this.lastCatCol;
         if (!cat) return null;
-
-        // Require exactly one dot. "table.column" is a usable target; a hierarchy
-        // level arrives as "table.hierarchy.level", and splitting that on the
-        // first dot would build a target for a column that does not exist —
-        // a wrong filter rather than no filter. Anything else falls back.
-        const queryName = cat.source?.queryName ?? "";
-        const parts = queryName.split(".");
-        if (parts.length !== 2 || !parts[0] || !parts[1]) return null;
-        const dot = parts[0].length;
+        const target = this.columnTarget(cat.source);
+        if (!target) return null;
 
         const values: powerbi.PrimitiveValue[] = [];
         const seen = new Set<string>();
@@ -1457,16 +2180,24 @@ export class Visual implements IVisual {
         }
         if (!values.length) return null;
 
-        return {
+        const basic = (t: { table: string; column: string }, vs: powerbi.PrimitiveValue[]) => ({
             $schema: "https://powerbi.com/product/schema#basic",
             filterType: 1,                    // FilterType.Basic
-            target: {
-                table:  queryName.slice(0, dot),
-                column: queryName.slice(dot + 1),
-            },
+            target: t,
             operator: "In",
-            values,
-        } as unknown as powerbi.IFilter;
+            values: vs,
+        } as unknown as powerbi.IFilter);
+
+        const entityFilter = basic(target, values);
+        const panel = this.panels[bins[0].panel];
+        if (!panel || panel.value === null || panel.value === undefined) return entityFilter;
+
+        // Small multiples: the panel half is mandatory. Without a usable target the
+        // entity filter alone would select those customers in every panel, so fall
+        // back to selection IDs, which carry the panel in their scope.
+        const pTarget = this.columnTarget(this.panelSource);
+        if (!pTarget) return null;
+        return [entityFilter, basic(pTarget, [panel.value])];
     }
 
     /** FilterAction is a const enum — the literals are required at runtime. */
@@ -1490,28 +2221,29 @@ export class Visual implements IVisual {
      *
      * This version keeps the laziness, deduplicates by category value (the
      * actual DS0 cause), builds a fresh builder per ID — reusing one across
-     * categories accumulates selectors — and honors the cap.
+     * categories accumulates selectors — and honors the cap. With small multiples
+     * each ID also carries the panel category, so it scopes to that panel only.
      *
      * NOTE: the cap means a bin holding more entities than `max` cross-filters
      * only the first `max` of them. Pre-grouping entities with a DAX quantile
      * column keeps bins well under it; see docs/TIPS-AND-HINTS.md.
      */
-    private getSelIds(indices: number[], max: number = MAX_SEL_IDS_PER_BIN): ISelectionId[] {
-        if (!this.lastCatCol || !indices.length) return [];
-        const cat  = this.lastCatCol;
+    private binSelIds(b: BinDatum, max: number = MAX_SEL_IDS_PER_BIN): ISelectionId[] {
+        if (!this.lastCatCol || !b.indices.length) return [];
+        const cat    = this.lastCatCol;
+        const panCol = this.panels[b.panel]?.value !== null && this.panels[b.panel]?.value !== undefined
+            ? this.lastPanCol : null;
         const out  = [] as ISelectionId[];
         const seen = new Set<string>();
 
-        for (const i of indices) {
+        for (const i of b.indices) {
             if (out.length >= max) break;
             const key = String(cat.values[i]);
             if (seen.has(key)) continue;
             seen.add(key);
-            out.push(
-                this.host.createSelectionIdBuilder()
-                    .withCategory(cat, i)
-                    .createSelectionId()
-            );
+            let builder = this.host.createSelectionIdBuilder().withCategory(cat, i);
+            if (panCol) builder = builder.withCategory(panCol, i);
+            out.push(builder.createSelectionId());
         }
         return out;
     }
@@ -1526,12 +2258,12 @@ export class Visual implements IVisual {
     private applyOpacity(_selectedIds?: ISelectionId[]): void {
         const opacity = this.settings.barOpacity;
         const hasSel  = this.selectedBins.size > 0;
-        const hasHL   = this.bins.some(b => b.highlighted);
+        const hasHL   = this.bins.some(b => b.hlShare !== null);
 
         this.svg.selectAll<SVGRectElement, BinDatum>(".bar")
             .attr("opacity", b => {
-                if (hasSel) return this.selectedBins.has(b.label) ? opacity : opacity * 0.25;
-                if (hasHL)  return b.highlighted                  ? opacity : opacity * 0.25;
+                if (hasSel) return this.selectedBins.has(b.key) ? opacity : opacity * 0.25;
+                if (hasHL)  return opacity * 0.3;   // the highlighted part is drawn on top
                 return opacity;
             });
     }
@@ -1540,8 +2272,8 @@ export class Visual implements IVisual {
     /** Says why a click did nothing, and what lever fixes it. */
     private renderOversizedNotice(): void {
         this.container.selectAll(".oversized-notice").remove();
-        const n   = this.oversizedSelection.toLocaleString();
-        const cap = MAX_FILTER_VALUES.toLocaleString();
+        const n   = this.int(this.oversizedSelection);
+        const cap = this.int(MAX_FILTER_VALUES);
 
         const note = this.container.append("div")
             .classed("oversized-notice", true)
@@ -1551,12 +2283,12 @@ export class Visual implements IVisual {
             .style("font-size", "11px").style("color", "#7A4E12")
             .style("line-height", "1.4");
 
-        note.append("div").text(
-            `This bin holds ${n} entities — more than the ${cap} Power BI can cross-filter at once.`);
+        note.append("div").text(this.tf("UI_Oversized",
+            "This bin holds {0} entities — more than the {1} Power BI can cross-filter at once.", n, cap));
         note.append("div").text(
             this.isPro
-                ? "Reduce the bin size (Pareto → Bin size %) so each bar covers fewer entities."
-                : "Pro lets you reduce the bin size so each bar covers fewer entities.");
+                ? this.t("UI_OversizedPro", "Reduce the bin size (Pareto → Bin size %) so each bar covers fewer entities.")
+                : this.t("UI_OversizedFree", "Pro lets you reduce the bin size so each bar covers fewer entities."));
 
         setTimeout(() => this.container.selectAll(".oversized-notice").remove(), 6000);
     }
@@ -1583,7 +2315,7 @@ export class Visual implements IVisual {
         }
 
         indicator.select<HTMLDivElement>(".loading-text")
-            .text(`Loading data… ${loadedCount.toLocaleString()} rows`);
+            .text(this.tf("UI_Loading", "Loading data… {0} rows", this.int(loadedCount)));
     }
 
     // ── Landing page ──────────────────────────────────────────────────────────
@@ -1617,11 +2349,11 @@ export class Visual implements IVisual {
             .style("font-size", "12px")
             .style("color", "#aaa");
 
-        hint.append("span").text("Add an ");
-        hint.append("b").text("Entity");
-        hint.append("span").text(" (customer/product) and a ");
-        hint.append("b").text("Value");
-        hint.append("span").text(" (sales/revenue)");
+        hint.append("span").text(this.t("UI_LandingAdd", "Add an "));
+        hint.append("b").text(this.t("Role_category", "Entity"));
+        hint.append("span").text(this.t("UI_LandingMid", " (customer/product) and a "));
+        hint.append("b").text(this.t("Role_measure", "Value"));
+        hint.append("span").text(this.t("UI_LandingEnd", " (sales/revenue)"));
     }
 
     // ── Format Pane (new Formatting Model API) ────────────────────────────────

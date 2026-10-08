@@ -1,47 +1,46 @@
-Pareto Chart Pro 1.4.2.0 GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-Repo (branch certification, full notes in docs/):
-github.com/tinocallarisa-web/pareto-chart-pro
-Support/privacy/terms: tinocallarisa-web.github.io/pareto-chart-pro/
-Video: youtube.com/watch?v=qtN0ckSXNZQ
+Pareto Chart Pro 1.5.0.0 GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
+Repo (branch certification): github.com/tinocallarisa-web/pareto-chart-pro
+Docs/privacy/terms: tinocallarisa-web.github.io/pareto-chart-pro/
+Video: youtube.com/watch?v=abzBwDW_wkE
 
-PLEASE READ FIRST - PRO PREVIEW (NEW IN 1.4.2.0)
-Without a licence, IN EDIT MODE ONLY, a Pro setting the user turns on is drawn
-WORKING under a "Pro preview" watermark naming it. Intentional, not missing
-gating: it is how the user sees what they would be buying. In reading
-view, before the licence resolves, and where licences cannot be read (Publish to
-Web, embed, export) the FREE result is drawn, no watermark, no notice. The gate
-is options.viewMode, not Desktop vs Service, and the preview is PER FEATURE,
-only for the one actually turned on.
+PLEASE READ FIRST - PRO PREVIEW
+Without a licence, IN EDIT MODE ONLY, a Pro feature the user turns on is drawn
+WORKING under a "Pro preview" watermark naming it, plus Power BI's banner and,
+~10 s later, the Upgrade bar. Intentional, not missing gating. Reading view,
+before the licence resolves and where licences cannot be read: FREE result, no
+watermark. Gate = options.viewMode; preview is per feature.
 
-WHY THIS VERSION
-Replaces 1.4.1.0. The Upgrade bar was overwritten: Power BI shows one
-notification at a time and notifyLicenseRequired ran before notifyFeatureBlocked
-in the same update(), so the banner wiped the purchase path. Order is now
-clear -> banner -> (~10 s) Upgrade bar. Also: sorting declared implicit, and bar
-border/width/gap are Free - the render never gated them, only the label was
-wrong.
+NEW IN 1.5.0.0
+- Comparison value role (Pro): comparison bars, dashed cumulative line, change
+  pills in percentage points.
+- Small multiples role (Pro): mapped as a 2nd category column; one Pareto per
+  value. Bar click = BasicFilter on entities AND on the panel value.
+- ABC zones (Pro), summary sentence, named bars when <= 30 entities.
+- Highlights draw the highlighted part of each bar.
+- Localization en-US + es-ES (stringResources declared, displayNameKey on all
+  roles/objects/properties). Number formats: source.format + host.locale.
 
 TESTING - FREE (no licence)
-1. Entity + Value: 5 bars, cumulative line, 80% reference line.
-2. Click a bar to cross-filter; Ctrl+click adds. Tab in, arrows, Enter, Escape,
-   Shift+F10 for the menu. Bar color > fx is conditional formatting.
-3. In EDIT mode set Bin size % to 5: 20 bars render under the watermark, the
-   banner names it, and after ~10 s the Upgrade bar appears. Back to 20 and
-   watermark, bars and notice all revert.
-4. Reading view: 5 bars, no watermark, no notice.
-With an active plan the same settings render with no watermark and no notice.
+1. Entity + Value: 5 bars, cumulative line, 80% line, summary sentence.
+2. Click a bar to cross-filter; Ctrl+click adds. Tab, arrows, Enter, Escape,
+   Shift+F10 menu. Bar color > fx = conditional formatting.
+3. EDIT mode: bind Comparison value or Small multiples, or turn on ABC zones:
+   drawn under the watermark with the banner. Reading view: plain Free chart
+   (panels summed, comparison ignored), no watermark.
+With an active plan the same features render with no watermark and no notice.
 
 PRIVACY / NETWORK
-No external calls, telemetry, CDN or endpoints; privileges: []. Licensing goes
-through IVisualLicenseManager only, carrying no report data. No file access,
-localStorage or cookies. One persisted property: general.filter.
+No external calls, telemetry, CDN or endpoints; privileges: []. Licensing only
+through IVisualLicenseManager. No file access, localStorage or cookies. One
+persisted property: general.filter.
 
 LICENSING
 Plan pareto-chart-pro-tcviz, matched on a Service ID ending in it. Requested
-once and cached; on failure the visual stays Free. Active and Warning accepted.
-isLicenseUnsupportedEnv and isLicenseInfoAvailable respected. No licensing UI
-of our own.
+once, cached; on failure Free. Active and Warning accepted.
+isLicenseUnsupportedEnv / isLicenseInfoAvailable respected. No own licence UI.
 
-FREE: the whole Pareto, 20% bins, 2 reference lines, conditional formatting,
-bar border and gap. PRO: bin size 1-20%, outlier trimming, value labels, 3rd
-line.
+RENDERING EVENTS: one renderingStarted and one renderingFinished/Failed per
+update().
+
+Tools 7.2.1, API 5.10, ESLint 0 errors. npm audit: only braces (no fix;
+build-time).
