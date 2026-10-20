@@ -166,5 +166,13 @@
   "Landing_Start": "3 步开始",
   "Landing_Help": "帮助",
   "Landing_Pro": "更细的条形、ABC 区域、与去年或计划比较、小型序列图和值标签。",
-  "Landing_ProShort": "更细的条形、ABC 区域、比较。"
+  "Landing_ProShort": "更细的条形、ABC 区域、比较。",
+  "Obj_legend": "图例",
+  "Prop_legend_show": "显示图例",
+  "Prop_legend_position": "位置",
+  "Enum_legend_top": "顶部",
+  "Enum_legend_bottom": "底部",
+  "Prop_legend_fontSize": "字号",
+  "Prop_legend_color": "文本颜色",
+  "Legend_Cumulative": "累计 %"
 }

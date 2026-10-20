@@ -166,5 +166,13 @@
   "Landing_Start": "3단계로 시작",
   "Landing_Help": "도움말",
   "Landing_Pro": "더 세밀한 막대, ABC 영역, 전년도 또는 계획과 비교, 작은 배수, 값 레이블.",
-  "Landing_ProShort": "더 세밀한 막대, ABC 영역, 비교."
+  "Landing_ProShort": "더 세밀한 막대, ABC 영역, 비교.",
+  "Obj_legend": "범례",
+  "Prop_legend_show": "범례 표시",
+  "Prop_legend_position": "위치",
+  "Enum_legend_top": "위쪽",
+  "Enum_legend_bottom": "아래쪽",
+  "Prop_legend_fontSize": "글꼴 크기",
+  "Prop_legend_color": "텍스트 색",
+  "Legend_Cumulative": "누적 %"
 }

@@ -166,5 +166,13 @@
   "Landing_Start": "Start in 3 steps",
   "Landing_Help": "Help",
   "Landing_Pro": "Finer bars, ABC zones, comparison with last year or plan, small multiples and value labels.",
-  "Landing_ProShort": "Finer bars, ABC zones, comparison."
+  "Landing_ProShort": "Finer bars, ABC zones, comparison.",
+  "Obj_legend": "Legend",
+  "Prop_legend_show": "Show legend",
+  "Prop_legend_position": "Position",
+  "Enum_legend_top": "Top",
+  "Enum_legend_bottom": "Bottom",
+  "Prop_legend_fontSize": "Font size",
+  "Prop_legend_color": "Text color",
+  "Legend_Cumulative": "Cumulative %"
 }

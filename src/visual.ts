@@ -149,6 +149,10 @@ interface Settings {
     smTitleColor: string;
     // abcZones group (Pro)
     abcShow:      boolean;
+    legShow:      boolean;
+    legPos:       string;
+    legFontSize:  number;
+    legColor:     string;
     abcA:         number;
     abcB:         number;
     abcAColor:    string;
@@ -253,6 +257,10 @@ function readSettings(dv: DataView): Settings {
         smTitleColor:  col("smallMultiples", "titleColor",    "#333333"),
 
         abcShow:       boo("abcZones", "show",       false),
+        legShow:       boo("legend", "show",     false),
+        legPos:        txt("legend", "position", "top"),
+        legFontSize:   num("legend", "fontSize", 10),
+        legColor:      col("legend", "color",    "#605E5C"),
         abcA:          num("abcZones", "aCut",       80),
         abcB:          num("abcZones", "bCut",       95),
         abcAColor:     col("abcZones", "aColor",     "#2B6CB0"),
@@ -431,6 +439,8 @@ export class Visual implements IVisual {
 
     /** Asistente de configuración y plantillas (1.6). */
     private tplVisto: string | null = null;
+    private measureName = "";
+    private cmpName = "";
     private formatMode = false;
     private guideStep = 1;
     private guideEl: HTMLDivElement | null = null;
@@ -1038,6 +1048,8 @@ export class Visual implements IVisual {
             try { return valueFormatter.getFormatStringByColumn(col.source as any) || col.source?.format; } catch (_) { return col.source?.format; }
         };
         this.measureFormat = fmtCol(mCol);
+        this.measureName   = mCol?.source?.displayName ?? "";
+        this.cmpName       = cCol?.source?.displayName ?? "";
         this.cmpFormat     = fmtCol(cCol);
 
         const usePanels = !!panCol && this.previewOf("small multiples");
@@ -1556,7 +1568,10 @@ export class Visual implements IVisual {
 
         const multi = this.panels.length > 1 || (this.panels[0].value !== null && this.panels[0].value !== undefined);
         const n = this.panels.length;
-        const noticeH = isTruncated ? 16 : 0;
+        const legFs   = Math.max(7, s.legFontSize);
+        const legendH = s.legShow && VH >= 150 && VW >= 220 ? legFs + 12 : 0;
+        const legTop  = s.legPos !== "bottom";
+        const noticeH = (isTruncated ? 16 : 0) + (legTop ? legendH : 0);
         let cols = 1;
         if (multi) {
             cols = s.smColumns >= 1
@@ -1569,7 +1584,7 @@ export class Visual implements IVisual {
         const gap    = multi ? 14 : 0;
         const titleH = multi ? Math.max(9, s.smTitleSize) + 8 : 0;
         const cellW  = (VW - gap * (cols - 1)) / cols;
-        const cellH  = (VH - noticeH - gap * (rows - 1)) / rows;
+        const cellH  = (VH - noticeH - (legTop ? 0 : legendH) - gap * (rows - 1)) / rows;
 
         // Shared left axis. Headroom for value labels and change pills on top of
         // the tallest bar, so neither is clipped at the top.
@@ -1599,6 +1614,7 @@ export class Visual implements IVisual {
         });
 
         this.wireBars();
+        if (legendH > 0) this.drawLegend(VW, legTop ? (isTruncated ? 16 : 0) : VH - legendH, legFs, ctx);
 
         // Truncation notice (Desktop only, when ≥30k rows)
         if (isTruncated) {
@@ -2586,6 +2602,50 @@ export class Visual implements IVisual {
         return this.formattingSettingsService.buildFormattingModel(model);
     }
 
+    /**
+     * Leyenda (1.6): una para todo el visual. Las barras con el nombre de la medida, la curva acumulada y, si están
+     * activas, la comparación y las clases ABC. Centrada; si no cabe, recorta lo último antes que solaparse.
+     */
+    private drawLegend(VW: number, y: number, fs: number, ctx: RenderCtx): void {
+        const s = this.settings;
+        const isHC = ctx.isHC;
+        const txt = isHC ? ctx.hcFg : s.legColor;
+        const items: { label: string; kind: "bar" | "line" | "dash" | "swatch"; color: string }[] = [
+            { label: this.measureName || this.t("Role_measure", "Value"), kind: "bar", color: ctx.barColor },
+            { label: this.t("Legend_Cumulative", "Cumulative %"), kind: "line", color: ctx.lineColor },
+        ];
+        if (this.panels.some(p => p.hasCmp) && this.previewOf("comparison")) {
+            items.push({ label: this.cmpName || this.t("Role_comparison", "Comparison value (Pro)"), kind: "dash", color: ctx.cmpLine });
+        }
+        if (s.abcShow && this.previewOf("ABC zones")) {
+            items.push({ label: "A", kind: "swatch", color: isHC ? ctx.hcFg : s.abcAColor });
+            items.push({ label: "B", kind: "swatch", color: isHC ? ctx.hcFg : s.abcBColor });
+            items.push({ label: "C", kind: "swatch", color: isHC ? ctx.hcFg : s.abcCColor });
+        }
+        const g = this.svg.append("g").classed("pc-legend", true).attr("role", "list");
+        const mide = (t: string) => t.length * fs * 0.58;
+        const ancho = items.reduce((acc, it) => acc + 18 + mide(it.label) + 14, 0);
+        let x = Math.max(4, (VW - ancho) / 2);
+        const cy = y + fs / 2 + 6;
+        for (const it of items) {
+            const w = 18 + mide(it.label);
+            if (x + w > VW) break;
+            const ig = g.append("g").attr("role", "listitem");
+            if (it.kind === "bar" || it.kind === "swatch") {
+                ig.append("rect").attr("x", x).attr("y", cy - 5).attr("width", 12).attr("height", 10).attr("rx", 2)
+                    .attr("fill", it.color).attr("fill-opacity", it.kind === "swatch" ? 0.35 : 1)
+                    .attr("stroke", isHC ? ctx.hcFg : "none");
+            } else {
+                ig.append("line").attr("x1", x).attr("x2", x + 12).attr("y1", cy).attr("y2", cy)
+                    .attr("stroke", it.color).attr("stroke-width", 2).attr("stroke-dasharray", it.kind === "dash" ? "4,3" : null);
+                if (it.kind === "line") ig.append("circle").attr("cx", x + 6).attr("cy", cy).attr("r", 2.5).attr("fill", it.color);
+            }
+            ig.append("text").attr("x", x + 16).attr("y", cy).attr("dominant-baseline", "central")
+                .style("font-size", fs + "px").style("fill", txt).text(it.label);
+            x += w + 14;
+        }
+    }
+
     // ── Formato desde el lienzo (on-object) ───────────────────────────────────
 
     private cardLabel(obj: string): string {
@@ -2593,6 +2653,7 @@ export class Visual implements IVisual {
             pareto: ["Obj_pareto", "Pareto"], cumulativeLine: ["Obj_cumulativeLine", "Cumulative Line"], summary: ["Obj_summary", "Summary"],
             axes: ["Obj_axes", "Axes"], valueLabels: ["Obj_valueLabels", "Value Labels (Pro)"], abcZones: ["Obj_abcZones", "ABC zones (Pro)"],
             referenceLines: ["Obj_referenceLines", "Reference Lines"], comparison: ["Obj_comparison", "Comparison (Pro)"],
+            legend: ["Obj_legend", "Legend"],
         };
         return this.t(m[obj]?.[0] ?? obj, m[obj]?.[1] ?? obj);
     }
@@ -2619,6 +2680,7 @@ export class Visual implements IVisual {
         marcar(".axis", "axes", powerbi.visuals.SubSelectionStylesType.Text);
         marcar(".bar-label", "valueLabels", powerbi.visuals.SubSelectionStylesType.Text);
         marcar(".abc-label", "abcZones", powerbi.visuals.SubSelectionStylesType.Text);
+        marcar(".pc-legend", "legend", powerbi.visuals.SubSelectionStylesType.Text);
     }
 
     private getSubSelectionStyles(subs: powerbi.visuals.CustomVisualSubSelection[]): powerbi.visuals.SubSelectionStyles | undefined {
@@ -2637,6 +2699,8 @@ export class Visual implements IVisual {
                 return { type: powerbi.visuals.SubSelectionStylesType.Text, fontSize: ref("valueLabels", "fontSize", "Font size"), fontColor: ref("valueLabels", "color", "Color") } as any;
             case "abcZones":
                 return { type: powerbi.visuals.SubSelectionStylesType.Text, fontColor: ref("abcZones", "aColor", "Class A color") } as any;
+            case "legend":
+                return { type: powerbi.visuals.SubSelectionStylesType.Text, fontSize: ref("legend", "fontSize", "Font size"), fontColor: ref("legend", "color", "Text color") } as any;
         }
         return undefined;
     }
@@ -2664,6 +2728,9 @@ export class Visual implements IVisual {
                 return [toggle("valueLabels", "showPercent", "Show % sign"), div, reset("valueLabels", ["fontSize", "color"]), nav("valueLabels")] as any;
             case "abcZones":
                 return [toggle("abcZones", "showLabels", "Show zone labels"), div, reset("abcZones", ["aColor", "bColor", "cColor"]), nav("abcZones")] as any;
+            case "legend":
+                return [{ type: powerbi.visuals.VisualShortcutType.Picker, ...id("legend", "position"), label: this.propLabel("legend", "position", "Position") },
+                    toggle("legend", "show", "Show legend"), div, reset("legend", ["fontSize", "color"]), nav("legend")] as any;
         }
         return undefined;
     }

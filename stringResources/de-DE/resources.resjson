@@ -166,5 +166,13 @@
   "Landing_Start": "In 3 Schritten starten",
   "Landing_Help": "Hilfe",
   "Landing_Pro": "Feinere Balken, ABC-Zonen, Vergleich mit Vorjahr oder Plan, kleine Vielfache und Wertbeschriftungen.",
-  "Landing_ProShort": "Feinere Balken, ABC-Zonen, Vergleich."
+  "Landing_ProShort": "Feinere Balken, ABC-Zonen, Vergleich.",
+  "Obj_legend": "Legende",
+  "Prop_legend_show": "Legende anzeigen",
+  "Prop_legend_position": "Position",
+  "Enum_legend_top": "Oben",
+  "Enum_legend_bottom": "Unten",
+  "Prop_legend_fontSize": "Schriftgröße",
+  "Prop_legend_color": "Textfarbe",
+  "Legend_Cumulative": "Kumulierte %"
 }

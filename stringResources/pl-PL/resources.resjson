@@ -166,5 +166,13 @@
   "Landing_Start": "Zacznij w 3 krokach",
   "Landing_Help": "Pomoc",
   "Landing_Pro": "Węższe słupki, strefy ABC, porównanie z poprzednim rokiem lub planem, małe wielokrotności i etykiety wartości.",
-  "Landing_ProShort": "Węższe słupki, strefy ABC, porównanie."
+  "Landing_ProShort": "Węższe słupki, strefy ABC, porównanie.",
+  "Obj_legend": "Legenda",
+  "Prop_legend_show": "Pokaż legendę",
+  "Prop_legend_position": "Położenie",
+  "Enum_legend_top": "Góra",
+  "Enum_legend_bottom": "Dół",
+  "Prop_legend_fontSize": "Rozmiar czcionki",
+  "Prop_legend_color": "Kolor tekstu",
+  "Legend_Cumulative": "% skumulowany"
 }

@@ -166,5 +166,13 @@
   "Landing_Start": "Begin in 3 stappen",
   "Landing_Help": "Help",
   "Landing_Pro": "Fijnere balken, ABC-zones, vergelijking met vorig jaar of plan, kleine veelvouden en waardelabels.",
-  "Landing_ProShort": "Fijnere balken, ABC-zones, vergelijking."
+  "Landing_ProShort": "Fijnere balken, ABC-zones, vergelijking.",
+  "Obj_legend": "Legenda",
+  "Prop_legend_show": "Legenda weergeven",
+  "Prop_legend_position": "Positie",
+  "Enum_legend_top": "Boven",
+  "Enum_legend_bottom": "Onder",
+  "Prop_legend_fontSize": "Tekengrootte",
+  "Prop_legend_color": "Tekstkleur",
+  "Legend_Cumulative": "Cumulatief %"
 }

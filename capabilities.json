@@ -757,6 +757,55 @@
           }
         }
       }
+    },
+    "legend": {
+      "displayName": "Legend",
+      "displayNameKey": "Obj_legend",
+      "properties": {
+        "show": {
+          "displayName": "Show legend",
+          "displayNameKey": "Prop_legend_show",
+          "type": {
+            "bool": true
+          }
+        },
+        "position": {
+          "displayName": "Position",
+          "displayNameKey": "Prop_legend_position",
+          "type": {
+            "enumeration": [
+              {
+                "value": "top",
+                "displayName": "Top",
+                "displayNameKey": "Enum_legend_top"
+              },
+              {
+                "value": "bottom",
+                "displayName": "Bottom",
+                "displayNameKey": "Enum_legend_bottom"
+              }
+            ]
+          }
+        },
+        "fontSize": {
+          "displayName": "Font size",
+          "displayNameKey": "Prop_legend_fontSize",
+          "type": {
+            "numeric": true
+          }
+        },
+        "color": {
+          "displayName": "Text color",
+          "displayNameKey": "Prop_legend_color",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
     }
   },
   "supportsHighlight": true,

@@ -166,5 +166,13 @@
   "Landing_Start": "Commencer en 3 étapes",
   "Landing_Help": "Aide",
   "Landing_Pro": "Barres plus fines, zones ABC, comparaison avec l’année précédente ou le plan, petits multiples et étiquettes de valeur.",
-  "Landing_ProShort": "Barres plus fines, zones ABC, comparaison."
+  "Landing_ProShort": "Barres plus fines, zones ABC, comparaison.",
+  "Obj_legend": "Légende",
+  "Prop_legend_show": "Afficher la légende",
+  "Prop_legend_position": "Position",
+  "Enum_legend_top": "Haut",
+  "Enum_legend_bottom": "Bas",
+  "Prop_legend_fontSize": "Taille de police",
+  "Prop_legend_color": "Couleur du texte",
+  "Legend_Cumulative": "% cumulé"
 }

@@ -223,6 +223,18 @@ export class StyleCard extends SimpleCard {
     slices = [this.template, this.guide];
 }
 
+// ─── Legend (1.6) ─────────────────────────────────────────────────────────────
+export class LegendCard extends SimpleCard {
+    name = "legend";
+    displayName = "Legend";
+    displayNameKey = "Obj_legend";
+    show     = new ToggleSwitch({ name: "show", displayName: "Show legend", displayNameKey: "Prop_legend_show", value: false });
+    position = new AutoDropdown({ name: "position", displayName: "Position", displayNameKey: "Prop_legend_position", value: "top" });
+    fontSize = new NumUpDown({ name: "fontSize", displayName: "Font size", displayNameKey: "Prop_legend_fontSize", value: 10 });
+    color    = new ColorPicker({ name: "color", displayName: "Text color", displayNameKey: "Prop_legend_color", value: { value: "#605E5C" } });
+    slices = [this.show, this.position, this.fontSize, this.color];
+}
+
 export class ParetoFormattingSettings extends Model {
     style           = new StyleCard();
     pareto          = new ParetoCard();
@@ -235,6 +247,7 @@ export class ParetoFormattingSettings extends Model {
     smallMultiples  = new SmallMultiplesCard();
     abcZones        = new AbcZonesCard();
     valueLabels     = new ValueLabelsCard();
+    legend          = new LegendCard();
 
     cards = [
         this.style,
@@ -248,5 +261,6 @@ export class ParetoFormattingSettings extends Model {
         this.smallMultiples,
         this.abcZones,
         this.valueLabels,
+        this.legend,
     ];
 }
