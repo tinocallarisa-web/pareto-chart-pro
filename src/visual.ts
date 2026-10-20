@@ -22,6 +22,10 @@ import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { ParetoFormattingSettings } from "./settings";
 import { STRINGS } from "./strings";
 import { LANDING_ICON } from "./landingIcon";
+import {
+    HtmlSubSelectableClass, HtmlSubSelectionHelper, SubSelectableDisplayNameAttribute,
+    SubSelectableObjectNameAttribute, SubSelectableTypeAttribute,
+} from "powerbi-visuals-utils-onobjectutils";
 // Solo los estilos de la 1.6 en adelante. visual.less no se ha importado nunca (la 1.5 publicada no lleva CSS) y sus
 // reglas chocarían con lo que se ve hoy (p. ej. .bar:hover con !important pisaría el atenuado de la selección).
 import "./../style/pareto.less";
@@ -430,6 +434,9 @@ export class Visual implements IVisual {
     private formatMode = false;
     private guideStep = 1;
     private guideEl: HTMLDivElement | null = null;
+    /** Formato desde el lienzo (on-object). */
+    public visualOnObjectFormatting: powerbi.extensibility.visual.VisualOnObjectFormatting;
+    private subSelectionHelper: HtmlSubSelectionHelper;
 
     constructor(options: VisualConstructorOptions) {
         this.host             = options.host;
@@ -444,6 +451,17 @@ export class Visual implements IVisual {
             .append("div").classed("pareto-visual", true)
             .style("width", "100%").style("height", "100%")
             .style("overflow", "hidden").style("position", "relative");
+
+        this.subSelectionHelper = HtmlSubSelectionHelper.createHtmlSubselectionHelper({
+            hostElement: options.element,
+            subSelectionService: options.host.subSelectionService,
+            selectionIdCallback: () => undefined,
+        });
+        this.visualOnObjectFormatting = {
+            getSubSelectionStyles: (subs) => this.getSubSelectionStyles(subs),
+            getSubSelectionShortcuts: (subs) => this.getSubSelectionShortcuts(subs),
+            getSubSelectables: (filter) => this.subSelectionHelper.getAllSubSelectables(filter),
+        };
 
         this.svg = this.container.append("svg")
             .style("width", "100%").style("height", "100%");
@@ -581,6 +599,7 @@ export class Visual implements IVisual {
             const viewMode = (options as any).viewMode;
             this.editing = typeof viewMode === "number" && viewMode !== 0;
             this.formatMode = !!(options as any).formatMode;
+            this.subSelectionHelper.setFormatMode(this.formatMode);
             // Elegir una plantilla (panel o asistente) la aplica de verdad: se borran los ajustes que define, porque
             // un ajuste guardado manda sobre ella. Solo al CAMBIARLA y editando; nunca al abrir el informe.
             const tplAhora = String(((dv?.metadata?.objects as any)?.style?.template) ?? "clean");
@@ -705,6 +724,8 @@ export class Visual implements IVisual {
                 this.renderChart(options.viewport, truncated);
                 this.updateWatermark();
                 this.renderGuide();
+                this.markSubSelectables();
+                if (this.formatMode) this.subSelectionHelper.updateOutlinesFromSubSelections((options as any).subSelections ?? [], true);
                 // renderChart sets opacity from highlight state only; re-apply the
                 // selection dimming on top of the fresh nodes.
                 this.applyOpacity();
@@ -1483,6 +1504,7 @@ export class Visual implements IVisual {
     /** Power BI can disable all interaction (e.g. in some embed scenarios).
      *  Not present in the powerbi-visuals-api 5.x types, hence the cast. */
     private get canInteract(): boolean {
+        if (this.formatMode) return false;
         // hostCapabilities es donde la API 5.x lo pone; host.allowInteractions era el sitio antiguo.
         const h: any = this.host;
         return (h?.hostCapabilities?.allowInteractions ?? h?.allowInteractions) !== false;
@@ -1998,7 +2020,7 @@ export class Visual implements IVisual {
                 .style("pointer-events", "none");
         }
 
-        gp.append("path")
+        gp.append("path").classed("cum-line", true)
             .datum(bins)
             .attr("fill", "none")
             .attr("stroke", lineColor)
@@ -2562,6 +2584,88 @@ export class Visual implements IVisual {
         th.crossingColor.visible     = th.show.value && th.highlightCrossing.value;
 
         return this.formattingSettingsService.buildFormattingModel(model);
+    }
+
+    // ── Formato desde el lienzo (on-object) ───────────────────────────────────
+
+    private cardLabel(obj: string): string {
+        const m: Record<string, [string, string]> = {
+            pareto: ["Obj_pareto", "Pareto"], cumulativeLine: ["Obj_cumulativeLine", "Cumulative Line"], summary: ["Obj_summary", "Summary"],
+            axes: ["Obj_axes", "Axes"], valueLabels: ["Obj_valueLabels", "Value Labels (Pro)"], abcZones: ["Obj_abcZones", "ABC zones (Pro)"],
+            referenceLines: ["Obj_referenceLines", "Reference Lines"], comparison: ["Obj_comparison", "Comparison (Pro)"],
+        };
+        return this.t(m[obj]?.[0] ?? obj, m[obj]?.[1] ?? obj);
+    }
+
+    private propLabel(obj: string, prop: string, def: string): string {
+        return this.t(`Prop_${obj}_${prop}`, def);
+    }
+
+    /** Marca lo que se puede elegir en modo formato. Fuera de él, no deja rastro. */
+    private markSubSelectables(): void {
+        const raiz = this.container.node() as HTMLElement;
+        const marcar = (sel: string, objeto: string, tipo: powerbi.visuals.SubSelectionStylesType) => {
+            raiz.querySelectorAll(sel).forEach(el => {
+                if (!this.formatMode) { el.classList.remove(HtmlSubSelectableClass); return; }
+                el.classList.add(HtmlSubSelectableClass);
+                el.setAttribute(SubSelectableObjectNameAttribute, objeto);
+                el.setAttribute(SubSelectableDisplayNameAttribute, this.cardLabel(objeto));
+                el.setAttribute(SubSelectableTypeAttribute, String(tipo));
+            });
+        };
+        marcar(".bar", "pareto", powerbi.visuals.SubSelectionStylesType.Shape);
+        marcar(".cum-line", "cumulativeLine", powerbi.visuals.SubSelectionStylesType.Shape);
+        marcar(".pareto-summary", "summary", powerbi.visuals.SubSelectionStylesType.Text);
+        marcar(".axis", "axes", powerbi.visuals.SubSelectionStylesType.Text);
+        marcar(".bar-label", "valueLabels", powerbi.visuals.SubSelectionStylesType.Text);
+        marcar(".abc-label", "abcZones", powerbi.visuals.SubSelectionStylesType.Text);
+    }
+
+    private getSubSelectionStyles(subs: powerbi.visuals.CustomVisualSubSelection[]): powerbi.visuals.SubSelectionStyles | undefined {
+        const name = subs[0]?.customVisualObjects[0]?.objectName;
+        const ref = (o: string, p: string, def: string) => ({ reference: { objectName: o, propertyName: p }, label: this.propLabel(o, p, def) });
+        switch (name) {
+            case "pareto":
+                return { type: powerbi.visuals.SubSelectionStylesType.Shape, fill: ref("pareto", "barColor", "Bar color"), stroke: ref("pareto", "borderColor", "Border color") } as any;
+            case "cumulativeLine":
+                return { type: powerbi.visuals.SubSelectionStylesType.Shape, stroke: ref("cumulativeLine", "lineColor", "Line color") } as any;
+            case "summary":
+                return { type: powerbi.visuals.SubSelectionStylesType.Text, fontSize: ref("summary", "fontSize", "Font size"), fontColor: ref("summary", "color", "Color") } as any;
+            case "axes":
+                return { type: powerbi.visuals.SubSelectionStylesType.Text, fontSize: ref("axes", "fontSize", "Font size"), fontColor: ref("axes", "axisColor", "Axis text color") } as any;
+            case "valueLabels":
+                return { type: powerbi.visuals.SubSelectionStylesType.Text, fontSize: ref("valueLabels", "fontSize", "Font size"), fontColor: ref("valueLabels", "color", "Color") } as any;
+            case "abcZones":
+                return { type: powerbi.visuals.SubSelectionStylesType.Text, fontColor: ref("abcZones", "aColor", "Class A color") } as any;
+        }
+        return undefined;
+    }
+
+    private getSubSelectionShortcuts(subs: powerbi.visuals.CustomVisualSubSelection[]): powerbi.visuals.VisualSubSelectionShortcuts | undefined {
+        const name = subs[0]?.customVisualObjects[0]?.objectName;
+        const id = (o: string, p: string) => ({ objectName: o, propertyName: p });
+        const toggle = (o: string, p: string, def: string) => ({ type: powerbi.visuals.VisualShortcutType.Toggle, ...id(o, p),
+            relatedToggledFormattingIds: [id(o, p)], disabledLabel: this.propLabel(o, p, def), enabledLabel: this.propLabel(o, p, def) });
+        const reset = (o: string, props: string[]) => ({ type: powerbi.visuals.VisualShortcutType.Reset, relatedResetFormattingIds: props.map(p => id(o, p)) });
+        const nav = (o: string) => ({ type: powerbi.visuals.VisualShortcutType.Navigate, destinationInfo: { cardUid: "Visual-" + o + "-card" }, label: this.cardLabel(o) });
+        const div = { type: powerbi.visuals.VisualShortcutType.Divider };
+        switch (name) {
+            case "pareto":
+                return [toggle("abcZones", "show", "Show ABC zones"), toggle("valueLabels", "show", "Show"), div,
+                    reset("pareto", ["barColor", "barOpacity", "borderColor", "borderWidth", "barGap"]), nav("pareto")] as any;
+            case "cumulativeLine":
+                return [toggle("cumulativeLine", "showDots", "Show dots"), div, reset("cumulativeLine", ["lineColor", "lineWidth", "dotRadius"]), nav("cumulativeLine")] as any;
+            case "summary":
+                return [toggle("summary", "show", "Show summary"), div, reset("summary", ["fontSize", "color"]), nav("summary")] as any;
+            case "axes":
+                return [toggle("axes", "showXLabel", "Show X axis label"), toggle("axes", "showYLabel", "Show Y axis label"), div,
+                    reset("axes", ["fontSize", "axisColor", "gridColor"]), nav("axes")] as any;
+            case "valueLabels":
+                return [toggle("valueLabels", "showPercent", "Show % sign"), div, reset("valueLabels", ["fontSize", "color"]), nav("valueLabels")] as any;
+            case "abcZones":
+                return [toggle("abcZones", "showLabels", "Show zone labels"), div, reset("abcZones", ["aColor", "bColor", "cColor"]), nav("abcZones")] as any;
+        }
+        return undefined;
     }
 
     // ── Plantillas y asistente (1.6) ──────────────────────────────────────────
