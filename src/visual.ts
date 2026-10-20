@@ -20,6 +20,7 @@ import * as d3 from "d3";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { ParetoFormattingSettings } from "./settings";
+import { STRINGS } from "./strings";
 // Solo los estilos de la 1.6 en adelante. visual.less no se ha importado nunca (la 1.5 publicada no lleva CSS) y sus
 // reglas chocarían con lo que se ve hoy (p. ej. .bar:hover con !important pisaría el atenuado de la selección).
 import "./../style/pareto.less";
@@ -478,6 +479,10 @@ export class Visual implements IVisual {
     // ── Localization and number format ────────────────────────────────────────
     /** A string from stringResources, or the English fallback when the key is missing. */
     private t(key: string, fallback: string): string {
+        // Primero la tabla del bundle (Desktop no traduce con getDisplayName lo que no está en capabilities.json).
+        const loc = String(this.host?.locale || "");
+        const tabla = STRINGS[loc] || STRINGS[Object.keys(STRINGS).find(l => l.slice(0, 2) === loc.slice(0, 2)) || ""];
+        if (tabla && tabla[key]) return tabla[key];
         try {
             const s = this.loc?.getDisplayName(key);
             return s && s !== key ? s : fallback;
