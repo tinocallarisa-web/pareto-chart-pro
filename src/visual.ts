@@ -2127,6 +2127,9 @@ export class Visual implements IVisual {
 
         barSel
             .on("click", (event: MouseEvent, b: BinDatum) => {
+                // En modo formato el clic es para elegir qué formatear: tiene que llegar al ayudante de
+                // subselección, que escucha más arriba. Cortarlo aquí dejaba las barras sin formato en el lienzo.
+                if (this.formatMode) return;
                 event.stopPropagation();
                 this.toggleBinSelection(b, event.ctrlKey || event.metaKey);
             })
