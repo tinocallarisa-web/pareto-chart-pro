@@ -20,6 +20,9 @@ import * as d3 from "d3";
 import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel";
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { ParetoFormattingSettings } from "./settings";
+// Solo los estilos de la 1.6 en adelante. visual.less no se ha importado nunca (la 1.5 publicada no lleva CSS) y sus
+// reglas chocarían con lo que se ve hoy (p. ej. .bar:hover con !important pisaría el atenuado de la selección).
+import "./../style/pareto.less";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PLAN_ID               = "pareto-chart-pro-tcviz";
@@ -1424,7 +1427,9 @@ export class Visual implements IVisual {
     /** Power BI can disable all interaction (e.g. in some embed scenarios).
      *  Not present in the powerbi-visuals-api 5.x types, hence the cast. */
     private get canInteract(): boolean {
-        return (this.host as any).allowInteractions !== false;
+        // hostCapabilities es donde la API 5.x lo pone; host.allowInteractions era el sitio antiguo.
+        const h: any = this.host;
+        return (h?.hostCapabilities?.allowInteractions ?? h?.allowInteractions) !== false;
     }
 
     // ── Resolve color (high contrast aware) ───────────────────────────────────
