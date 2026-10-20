@@ -157,6 +157,7 @@
   <a href="#accessibility">Accessibility</a>
   <a href="#performance">Performance</a>
   <a href="#free-pro">Free vs Pro</a>
+  <a href="#usecases">Use cases</a>
   <a href="#faq">FAQ</a>
   <a href="tips.html">Tips</a>
   <a href="changelog.html">Changelog</a>
@@ -177,14 +178,15 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.5.0.0 &nbsp;·&nbsp; docs updated 8 Oct 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.6.0.0 &nbsp;·&nbsp; docs updated 20 Oct 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <p class="lead">Supported Power BI features: <strong>conditional formatting (fx)</strong> on bar colour ·
   <strong>small multiples</strong> · <strong>period comparison</strong> (current vs prior) · drilldown on a
   hierarchy · cross-filtering, <strong>highlighting</strong> and multi-select · standard and
   <strong>report page tooltips</strong> · bookmarks · context menu · keyboard navigation with ARIA labels ·
-  high contrast · <strong>number formats from the model</strong> · <strong>localization</strong> (English,
-  Spanish) · IBCS mode. Analysis: an exact <strong>80/20 summary sentence</strong>, <strong>ABC
+  high contrast · <strong>number formats from the model</strong> and <strong>dynamic format strings</strong> ·
+  <strong>12 languages</strong> · <strong>format on the canvas</strong> (on-object) · <strong>style templates</strong> and a
+  <strong>setup guide</strong> inside the visual · a <strong>legend</strong> · IBCS mode. Analysis: an exact <strong>80/20 summary sentence</strong>, <strong>ABC
   classification</strong> zones, threshold colours, outlier exclusion. Worked examples — customer
   concentration, SKU rationalisation, defect prioritisation — are in
   <a href="tips.html#scenarios">Tips &amp; scenarios</a>.</p>
@@ -317,7 +319,7 @@
     <p>Values in tooltips use the <strong>format string of the measure in your model</strong> — currency,
     thousands separators, decimals — and every percentage the visual computes follows the
     <strong>report's locale</strong> (12.5% in English, 12,5% in Spanish). The format pane, tooltips, notices and
-    screen-reader labels are localized in <strong>English and Spanish</strong> and follow Power BI's language
+    screen-reader labels are localized in <strong>12 languages</strong> and follow Power BI's language
     setting.</p>
   </div>
 
@@ -354,6 +356,13 @@
 
   <!-- Format Pane -->
   <h2 id="format">Format Pane Reference</h2>
+
+  <h3>Style template</h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Template</td><td>Clean</td><td>Clean (the default look), Minimal, Contrast, Soft, Compact or IBCS style. Choosing one replaces the colours, line widths, font sizes and gaps it defines; your other settings stay.</td></tr>
+    <tr><td>Setup guide</td><td>On</td><td>The guide in the corner while you edit: your fields, the Pro features to try on your data, and the templates. Never shown in reading view.</td></tr>
+  </table>
 
   <h3>Pareto</h3>
   <table>
@@ -460,6 +469,16 @@
     <tr><td>Class A / B / C color</td><td>blue / green / grey</td><td>Color of each band (drawn at low opacity).</td></tr>
     <tr><td>Show zone labels</td><td>On</td><td>Label each band with its class and share of entities.</td></tr>
   </table>
+
+  <h3>Legend</h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Show legend</td><td>Off</td><td>The bars (with your measure's name), the cumulative line and, when on, the comparison and the A, B and C classes.</td></tr>
+    <tr><td>Position</td><td>Top</td><td>Top or bottom of the visual.</td></tr>
+    <tr><td>Font size</td><td>10</td><td>Size of the legend text.</td></tr>
+    <tr><td>Text color</td><td>#605E5C</td><td>Color of the legend text.</td></tr>
+  </table>
+  <p>Format on the canvas: in format mode, click the bars, the cumulative line, the summary, an axis, the value labels, the ABC labels or the legend to format them where they are.</p>
 
   <!-- Accessibility -->
   <h2 id="accessibility">Accessibility</h2>
@@ -593,7 +612,7 @@
     <tr><td>One named bar per entity (30 or fewer)</td><td>✅</td><td>✅</td></tr>
     <tr><td>Highlighting from other visuals (partial bars)</td><td>✅</td><td>✅</td></tr>
     <tr><td>Conditional formatting (fx) on bar color</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Number formats from the model, English and Spanish</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Number formats from the model, 12 languages, templates, legend, setup guide</td><td>✅</td><td>✅</td></tr>
     <tr><td>Max entities (Power BI Service)</td><td>500,000+</td><td>500,000+</td></tr>
     <tr><td>Bin size % (1–20%)</td><td>Fixed at 20% (5 bars)</td><td>✅ Configurable 1–20% (up to 100 bars)</td></tr>
     <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
@@ -609,6 +628,21 @@
   <p>To activate Pro features, purchase a license from <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" style="color:var(--acc);font-weight:600;">AppSource</a>. License validation happens automatically inside Power BI — no configuration needed.</p>
 
   <!-- FAQ -->
+  <!-- Use cases -->
+  <h2 id="usecases">Use cases</h2>
+  <div class="card">
+    <p>A Pareto chart answers one question: <em>which few make most of the total?</em> Worked examples with sample data are in
+    <a href="tips.html#scenarios">Tips &amp; scenarios</a>, and the article <a href="blog-post.html">Pareto Chart in Power BI: 80/20 Analysis Made Easy</a>
+    walks through one end to end.</p>
+    <ul>
+      <li><strong>Customer concentration</strong> — Entity = Customer, Value = Revenue. How many customers make 80% of revenue, and is that share growing (Comparison = last year)?</li>
+      <li><strong>SKU rationalisation</strong> — Entity = SKU, Value = Margin. ABC zones split the range into A, B and C items for stock and listing decisions.</li>
+      <li><strong>Defect and complaint causes</strong> — Entity = Cause, Value = Count. The few causes worth fixing first; small multiples by plant or line.</li>
+      <li><strong>Supplier spend</strong> — Entity = Supplier, Value = Spend. Where negotiation pays off; exclude the top outlier to see the rest of the curve.</li>
+      <li><strong>Inventory ABC</strong> — Entity = Item, Value = Consumption value. Classes A, B and C with your own cut-offs (80% and 95% by default).</li>
+    </ul>
+  </div>
+
   <h2 id="faq">FAQ</h2>
 
   <details>
@@ -745,8 +779,9 @@
   <details>
     <summary>Which language does the visual use?</summary>
     <div class="faq-body">
-      <p>Power BI's own language setting (in Desktop, <strong>File → Options → Regional settings</strong>). English
-      and Spanish are included; other languages show English text. Numbers follow the report's locale either way.</p>
+      <p>Power BI's own language setting (in Desktop, <strong>File → Options → Regional settings</strong>). The format pane,
+      the setup guide and every text the chart writes are available in 12 languages: English, Spanish, Portuguese (Brazil and
+      Portugal), French, German, Italian, Dutch, Polish, Japanese, Chinese (Simplified) and Korean. Numbers follow the report's locale.</p>
     </div>
   </details>
 
@@ -790,19 +825,97 @@
     </div>
   </details>
 
+  <details>
+    <summary>Why does the free version show five bars?</summary>
+    <div class="faq-body">
+      <p>Without Pro the bin size is fixed at 20%, so the chart shows five bars: the top fifth of your entities, the next fifth, and so on. It is a complete, correct Pareto — the summary sentence and the cumulative line are exact. Pro lets you set the bin size from 1% to 20% (Pareto → Bin size %) for finer bars; with 30 entities or fewer the chart shows one named bar per entity in both versions.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>What is the setup guide, and how do I hide or reopen it?</summary>
+    <div class="faq-body">
+      <p>While you edit a report, a small panel in the corner lists your fields, lets you try the Pro features on your own data and offers the style templates. It never appears in reading view. ✕ or Finish closes it; <strong>Format → Style template → Setup guide</strong> brings it back.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>What do the “Try” buttons in the setup guide do?</summary>
+    <div class="faq-body">
+      <p>Each one turns a Pro feature on (or off) on your own data: finer bins of 5%, ABC classes, value labels or a third reference line. With a licence it is simply a shortcut to the setting. Without one, the feature is drawn working under a “Pro preview” watermark while you edit, and Power BI shows its licence notice; reading view shows the free chart.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How do style templates work?</summary>
+    <div class="faq-body">
+      <p><strong>Format → Style template</strong> offers Clean (the default look), Minimal, Contrast, Soft, Compact and IBCS style. Choosing a template applies it: the settings it defines — colours, line width, font sizes, gaps — replace the ones in the report, and everything else stays. A report that never changes template does not change.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Is “IBCS style” compliant with the IBCS standard?</summary>
+    <div class="faq-body">
+      <p>It is a style inspired by IBCS notation: charcoal bars, a dark cumulative line and black reference lines, using the visual's IBCS mode. The visual does not claim compliance with the IBCS standard, which covers far more than one chart.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How do I show a legend?</summary>
+    <div class="faq-body">
+      <p><strong>Format → Legend → Show legend</strong>. It lists the bars (with the name of your measure), the cumulative line and, when they are on, the comparison and the A, B and C classes. Choose top or bottom, the font size and the text colour. It is off by default and steps aside in very small visuals.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Can I format the chart by clicking on it?</summary>
+    <div class="faq-body">
+      <p>Yes. In Power BI Desktop with on-object interaction turned on, choose Format and click the bars, the cumulative line, the summary sentence, an axis, the value labels, the ABC labels or the legend to format them where they are, with shortcuts to the matching card.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>My value labels disappeared in a small visual.</summary>
+    <div class="faq-body">
+      <p>When a bar is too narrow for its label, the labels are left out instead of overlapping each other; the share is still in the tooltip of every bar. Make the visual wider, or use fewer bins (a larger bin size), to bring them back.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>I changed the bar colour and nothing happened, or I cannot get the default back.</summary>
+    <div class="faq-body">
+      <p>A conditional formatting (fx) rule on the bar colour takes precedence over the fixed colour, and threshold colours override both while they are on. Use <strong>Reset to default</strong> on the Pareto card to clear an old rule or colour.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Does it use my measure's number format?</summary>
+    <div class="faq-body">
+      <p>Yes — the format of the measure from the model, <strong>dynamic format strings</strong> included, in the report's language. Shares and cumulative values are percentages of the total.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>What can I use it for?</summary>
+    <div class="faq-body">
+      <p>Any question of the form “which few make most of the total”: customer or revenue concentration, SKU rationalisation, defect or complaint causes, supplier spend, inventory ABC classification. See <a href="#usecases">Use cases</a> for worked examples.</p>
+    </div>
+  </details>
+
   <!-- Contact -->
   <h2 id="contact">Contact &amp; Support</h2>
   <div class="contact-box">
     <div class="icon">✉️</div>
     <div>
-      <h3>Need help? We reply within 1 business day.</h3>
+      <h3>Need help? Every message is answered by a person — the developer of the visual.</h3>
       <p>For bug reports, feature requests, and licensing questions:<br>
       <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
     </div>
   </div>
 
   <p style="margin-top:24px;font-size:13px;color:var(--t3);">
-    You can also open an issue directly on
+    You can also ask in <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/discussions" style="color:var(--acc);" target="_blank">GitHub Discussions</a>
+    or open an issue directly on
     <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" style="color:var(--acc);" target="_blank">GitHub</a>
     for bug reports and feature requests, or browse the
     <a href="https://github.com/tinocallarisa-web/pareto-chart-pro/blob/main/CHANGELOG.md" style="color:var(--acc);" target="_blank">Changelog</a>

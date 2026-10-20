@@ -1,4 +1,4 @@
-Pareto Chart Pro 1.5.0.0 GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
+Pareto Chart Pro 1.6.0.0 GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
 Repo (branch certification): github.com/tinocallarisa-web/pareto-chart-pro
 Docs/privacy/terms: tinocallarisa-web.github.io/pareto-chart-pro/
 Video: youtube.com/watch?v=abzBwDW_wkE
@@ -10,29 +10,29 @@ WORKING under a "Pro preview" watermark naming it, plus Power BI's banner and,
 before the licence resolves and where licences cannot be read: FREE result, no
 watermark. Gate = options.viewMode; preview is per feature.
 
-NEW IN 1.5.0.0
-- Comparison value role (Pro): comparison bars, dashed cumulative line, change
-  pills in percentage points.
-- Small multiples role (Pro): mapped as a 2nd category column; one Pareto per
-  value. Bar click = BasicFilter on entities AND on the panel value.
-- ABC zones (Pro), summary sentence, named bars when <= 30 entities.
-- Highlights draw the highlighted part of each bar.
-- Localization en-US + es-ES (stringResources declared, displayNameKey on all
-  roles/objects/properties). Number formats: source.format + host.locale.
+NEW IN 1.6.0.0
+- Setup guide (edit mode only): fields, "Try" buttons that turn a Pro feature
+  on/off (persistProperties only on click), style templates.
+- Style templates (Clean = 1.5 look), legend (off by default), on-object
+  formatting, 12 languages (texts in the bundle), dynamic format strings,
+  new start screen (links open only on click via host.launchUrl).
+- Bar color fx: altConstantValueSelector null. allowInteractions from
+  hostCapabilities; in format mode a click selects, it does not filter.
 
 TESTING - FREE (no licence)
 1. Entity + Value: 5 bars, cumulative line, 80% line, summary sentence.
 2. Click a bar to cross-filter; Ctrl+click adds. Tab, arrows, Enter, Escape,
    Shift+F10 menu. Bar color > fx = conditional formatting.
-3. EDIT mode: bind Comparison value or Small multiples, or turn on ABC zones:
-   drawn under the watermark with the banner. Reading view: plain Free chart
-   (panels summed, comparison ignored), no watermark.
+3. EDIT mode: setup guide step 2, "Try" ABC classes: drawn under the watermark
+   with the banner. Reading view: plain Free chart, no watermark.
+4. Format > Legend > Show legend. Format mode: click a bar or an axis.
 With an active plan the same features render with no watermark and no notice.
 
 PRIVACY / NETWORK
 No external calls, telemetry, CDN or endpoints; privileges: []. Licensing only
-through IVisualLicenseManager. No file access, localStorage or cookies. One
-persisted property: general.filter.
+through IVisualLicenseManager. No file access, localStorage or cookies.
+Persisted: general.filter, and from the setup guide style.template/guide and
+the settings its buttons toggle (only on click).
 
 LICENSING
 Plan pareto-chart-pro-tcviz, matched on a Service ID ending in it. Requested
@@ -42,5 +42,4 @@ isLicenseUnsupportedEnv / isLicenseInfoAvailable respected. No own licence UI.
 RENDERING EVENTS: one renderingStarted and one renderingFinished/Failed per
 update().
 
-Tools 7.2.1, API 5.10, ESLint 0 errors. npm audit: only braces (no fix;
-build-time).
+Tools 7.2.1, API 5.11.1, ESLint 0 errors. npm audit --omit=dev: 0.

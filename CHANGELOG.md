@@ -1,5 +1,25 @@
 # Changelog — Pareto Chart Pro
 
+## [1.6.0.0] — 2026-10
+
+### Added
+- **Setup guide inside the visual.** While you edit, a small panel in the corner lists your fields, then lets you **try the Pro features on your own data** — finer 5% bins, ABC classes, value labels, a third reference line — each with one click (without a licence, under the "Pro preview" watermark and with Power BI's licence notice), then offers the style templates. Never shown in reading view; reopen it under Format → Style template.
+- **Style templates:** Clean (the look of 1.5), Minimal, Contrast, Soft, Compact and IBCS style. Choosing one replaces the settings it defines; everything else stays, and a report that does not change template does not change. "IBCS style" uses the existing IBCS mode; it is a style, not a claim of compliance with the standard.
+- **Legend:** the bars with the measure's name, the cumulative line and, when on, the comparison and the A, B and C classes. Top or bottom, font size and colour. Off by default.
+- **Format on the canvas (on-object formatting):** bars, cumulative line, summary, axes, value labels, ABC labels and legend, with shortcuts to the matching card.
+- **12 languages:** English, Spanish, Portuguese (Brazil and Portugal), French, German, Italian, Dutch, Polish, Japanese, Chinese (Simplified) and Korean — the format pane and every text the visual writes. Before: English and Spanish.
+- **Dynamic format strings** of the measure (`general.formatString`).
+- **New start screen,** the same as the other TCViz visuals: what the chart does, the three wells, links to the guide, the product page and the video (opened only when you click them), and what Pro adds.
+
+### Changed
+- **The chart text uses Segoe UI.** No stylesheet reached the package before 1.6, so in a host without a default font the summary and axis titles could fall back to a serif font.
+- **Small tiles:** value labels are left out when they do not fit their bar instead of overlapping, and the cumulative dots scale with the bar width.
+- **The "Pro preview" watermark names two features and a counter** ("+2"); with four it ran off the chart.
+- **ABC zone labels sit above the cumulative line,** with a halo, so the C label is readable where the curve passes.
+- **Bar colour:** a fixed colour is now saved once for the whole chart, so the format pane shows it and Reset to default clears it; conditional formatting (fx) rules still colour each bar. Reports saved with 1.5 keep their colour.
+- Clicks respect the report author turning interactions off (read from `hostCapabilities`). In format mode a click selects what to format and does not filter.
+- Power BI visuals API 5.11.1.
+
 ## [1.5.0.0] — 2026-10
 
 ### Added

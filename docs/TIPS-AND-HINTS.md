@@ -1,4 +1,4 @@
-# Tips & Hints — Pareto Chart Pro (v1.5.0.0)
+# Tips & Hints — Pareto Chart Pro (v1.6.0.0)
 
 ## Getting started
 1. **Entity** — a categorical dimension (Customer, Product, SKU, Supplier). A hierarchy here enables drilldown.
@@ -8,6 +8,16 @@
 5. **Small multiples** *(Pro)* — a field such as Region or Plant, for one Pareto per value.
 
 No DAX, no pre-sorting, no cumulative measure. Ranking, binning and the cumulative line are automatic.
+
+## New in 1.6.0.0
+
+- **Setup guide.** While you edit, a panel in the corner lists your fields and lets you **try each Pro
+  feature on your own data** with one click — finer 5% bins, ABC classes, value labels, a third reference
+  line — then offers the style templates. Reopen it under *Format → Style template → Setup guide*.
+- **Style templates:** Clean, Minimal, Contrast, Soft, Compact and IBCS style. Choosing one replaces the
+  colours and sizes it defines; your other settings stay.
+- **Legend** (*Format → Legend*), **format on the canvas**, **12 languages**, dynamic format strings.
+- **Small tiles:** value labels that do not fit their bar are left out; the share is still in the tooltip.
 
 ## New in 1.5.0.0
 
@@ -27,7 +37,7 @@ No DAX, no pre-sorting, no cumulative measure. Ranking, binning and the cumulati
 - **Highlighting from other visuals** draws the highlighted part of each bar. If you want the Pareto
   recalculated instead, set that interaction to *Filter* in **Format → Edit interactions**.
 - **Number formats and language.** Tooltip values use the measure's format from the model; percentages
-  follow the report's locale. English and Spanish.
+  follow the report's locale. Twelve languages since 1.6.
 
 ## Bin size is the scale control, not a cosmetic setting
 
@@ -163,7 +173,7 @@ opens the context menu. Tooltips open on focus, not only on hover.
 | Value labels on bars | — | ✓ |
 | Bar border & gap styling | ✓ | ✓ |
 | Summary sentence, named bars, partial highlighting | ✓ | ✓ |
-| Number formats from the model, English and Spanish | ✓ | ✓ |
+| Number formats from the model, 12 languages, templates, legend, setup guide | ✓ | ✓ |
 | Period comparison | — | ✓ |
 | Small multiples | — | ✓ |
 | ABC zones | — | ✓ |

@@ -1,4 +1,6 @@
-# Certification Notes — Pareto Chart Pro v1.5.0.0
+# Certification Notes — Pareto Chart Pro v1.6.0.0
+
+> 1.6.0.0: what is new is in `CERTIFICATION-NOTES-SHORT.txt` (the text pasted into Partner Center) and CHANGELOG.md. The sections below describe 1.5 and still hold.
 
 ## New in 1.5.0.0 (paste-ready summary: `CERTIFICATION-NOTES-SHORT.txt`)
 - **Data roles added:** `comparison` (Measure, Pro) and `panel` (Grouping, Pro). `panel` is mapped as a
@@ -18,7 +20,7 @@
 ## General Information
 - **Visual Name:** Pareto Chart Pro
 - **GUID:** ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-- **Version:** 1.5.0.0
+- **Version:** 1.6.0.0
 - **Plan ID / spIdentifier:** pareto-chart-pro-tcviz
 - **Certification Branch:** https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
 - **Support URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
@@ -86,7 +88,7 @@ Free tier:
 - IBCS Mode
 - Drilldown, cross-filtering, multi-select, partial highlighting
 - Keyboard navigation, screen-reader labels, high contrast mode
-- Summary sentence, named bars (30 entities or fewer), English and Spanish, model number formats
+- Summary sentence, named bars (30 entities or fewer), 12 languages, model number formats
 
 Pro tier (plan `pareto-chart-pro-tcviz`):
 - Custom bin size 1–20% (up to 100 bars)

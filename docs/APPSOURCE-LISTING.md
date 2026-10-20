@@ -1,4 +1,4 @@
-# AppSource listing copy — Pareto Chart Pro v1.5.0.0
+# AppSource listing copy — Pareto Chart Pro v1.6.0.0
 
 Paste-ready text for Partner Center. **Editing this file does not change the offer**: the fields
 Microsoft reviews live only in Partner Center, and have to be pasted by hand.
@@ -39,10 +39,10 @@ PRO: COMPARE, SPLIT, CLASSIFY
 • Bin sizes from 1% to 20%, outlier exclusion, value labels
 
 FREE AND PRO
-The free tier is a complete, correct Pareto: nothing is hidden or capped, and with a small-multiples field bound it sums the panels into one chart rather than dropping data. Turn on a Pro feature without a licence while editing and it is drawn working under a "Pro preview" watermark, on your own data. Reading view shows the free result.
+The free tier is a complete, correct Pareto: nothing is hidden or capped, and with a small-multiples field bound it sums the panels into one chart rather than dropping data. The setup guide inside the visual lets you try each Pro feature with one click: without a licence it is drawn working under a "Pro preview" watermark, on your own data, while you edit. Reading view shows the free result.
 
 NATIVE INTEGRATION
-Cross-filtering and multi-select, drilldown on a hierarchy, standard and report page tooltips, bookmarks, context menu. Keyboard navigation (one Tab stop, arrow keys between bars) with screen-reader labels, high contrast, the measure's format string from your model, and English and Spanish.
+Cross-filtering and multi-select, drilldown on a hierarchy, standard and report page tooltips, bookmarks, context menu. Keyboard navigation (one Tab stop, arrow keys between bars) with screen-reader labels, high contrast, the measure's format string from your model (dynamic format strings included), format on the canvas, six style templates including an IBCS style, a legend, and twelve languages.
 
 PRIVACY
 Certified by Microsoft. No network requests, no telemetry: everything is calculated inside Power BI. Licences are checked through Microsoft's own licensing API.
@@ -55,8 +55,8 @@ GETTING STARTED
 Documentation, scenarios and sample data: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 Support: support@tcviz.com
 
-WHAT'S NEW IN 1.5.0.0
-Period comparison, small multiples and ABC zones (Pro); the exact summary sentence; named bars for small entity counts; partial highlighting from other visuals; number formats from the model; Spanish.
+WHAT'S NEW IN 1.6.0.0
+A setup guide that lets you try every Pro feature on your own data with one click; six style templates including an IBCS style; a legend; format on the canvas; twelve languages; dynamic format strings; a chart that stays readable in small tiles.
 ```
 
 ---
