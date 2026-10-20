@@ -9,6 +9,7 @@ import ToggleSwitch = formattingSettings.ToggleSwitch;
 import NumUpDown    = formattingSettings.NumUpDown;
 import TextInput    = formattingSettings.TextInput;
 import Model        = formattingSettings.Model;
+import AutoDropdown = formattingSettings.AutoDropdown;
 
 // Every card and slice carries a displayNameKey: FormattingSettingsService gets the
 // localization manager, and the key resolves against stringResources/<locale>. The
@@ -211,7 +212,19 @@ export class ValueLabelsCard extends SimpleCard {
 }
 
 // ─── Root Model ───────────────────────────────────────────────────────────────
+// ─── Style template (1.6) ─────────────────────────────────────────────────────
+// Las opciones y su traducción salen del enum de capabilities.json (AutoDropdown).
+export class StyleCard extends SimpleCard {
+    name = "style";
+    displayName = "Style template";
+    displayNameKey = "Obj_style";
+    template = new AutoDropdown({ name: "template", displayName: "Template", displayNameKey: "Prop_style_template", value: "clean" });
+    guide    = new ToggleSwitch({ name: "guide", displayName: "Setup guide", displayNameKey: "Prop_style_guide", value: true });
+    slices = [this.template, this.guide];
+}
+
 export class ParetoFormattingSettings extends Model {
+    style           = new StyleCard();
     pareto          = new ParetoCard();
     summary         = new SummaryCard();
     thresholdColors = new ThresholdColorsCard();
@@ -224,6 +237,7 @@ export class ParetoFormattingSettings extends Model {
     valueLabels     = new ValueLabelsCard();
 
     cards = [
+        this.style,
         this.pareto,
         this.summary,
         this.thresholdColors,

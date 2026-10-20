@@ -148,14 +148,35 @@ interface Settings {
     abcLabels:    boolean;
 }
 
+/**
+ * Plantillas de estilo (1.6). Un punto de partida: solo rellenan lo que el usuario no ha tocado (lo escrito en
+ * metadata.objects gana siempre) y, al ELEGIR una, se borran los ajustes que ella define (aplicarPlantilla).
+ * "clean" no cambia nada: es el aspecto de siempre. "ibcs" usa el modo IBCS que ya existía. Es un estilo inspirado
+ * en la notación IBCS; no afirma cumplir el estándar.
+ */
+const TEMPLATES: Record<string, Record<string, Record<string, any>>> = {
+    clean: {},
+    minimal: { pareto: { barOpacity: 100, borderWidth: 0, barGap: 3 }, cumulativeLine: { showDots: false, lineWidth: 1.5 },
+        axes: { gridColor: "#F3F2F1" }, referenceLines: { ref1Color: "#8A8886" } },
+    contrast: { pareto: { barColor: "#1F3864", barOpacity: 100 }, cumulativeLine: { lineColor: "#C00000", lineWidth: 2.5 },
+        axes: { axisColor: "#000000" }, referenceLines: { ref1Color: "#000000" }, summary: { color: "#000000" } },
+    soft: { pareto: { barColor: "#9DC3E6", barOpacity: 100, borderWidth: 1, borderColor: "#5B9BD5" },
+        cumulativeLine: { lineColor: "#F4B183" }, referenceLines: { ref1Color: "#C9A0DC" } },
+    compact: { axes: { fontSize: 9 }, summary: { fontSize: 10 }, cumulativeLine: { dotRadius: 3, lineWidth: 1.5 },
+        valueLabels: { fontSize: 8 }, pareto: { barGap: 1 } },
+    ibcs: { pareto: { ibcsMode: true }, referenceLines: { ref1Color: "#000000" }, summary: { color: "#000000" } },
+};
+
 function readSettings(dv: DataView): Settings {
     const o   = dv?.metadata?.objects;
+    const tpl = TEMPLATES[String((o?.["style"]?.["template"] as string) ?? "clean")] ?? {};
+    const tv  = (g: string, p: string): any => tpl[g]?.[p];
     const col = (g: string, p: string, def: string) =>
-        ((o?.[g]?.[p] as powerbi.Fill)?.solid?.color) ?? def;
+        ((o?.[g]?.[p] as powerbi.Fill)?.solid?.color) ?? tv(g, p) ?? def;
     const boo = (g: string, p: string, def: boolean) =>
-        (o?.[g]?.[p] as boolean) ?? def;
+        (o?.[g]?.[p] as boolean) ?? tv(g, p) ?? def;
     const num = (g: string, p: string, def: number) =>
-        (o?.[g]?.[p] as number) ?? def;
+        (o?.[g]?.[p] as number) ?? tv(g, p) ?? def;
     const txt = (g: string, p: string, def: string) =>
         (o?.[g]?.[p] as string) ?? def;
 
@@ -399,6 +420,12 @@ export class Visual implements IVisual {
 
     // ─────────────────────────────────────────────────────────────────────────
 
+    /** Asistente de configuración y plantillas (1.6). */
+    private tplVisto: string | null = null;
+    private formatMode = false;
+    private guideStep = 1;
+    private guideEl: HTMLDivElement | null = null;
+
     constructor(options: VisualConstructorOptions) {
         this.host             = options.host;
         this.events           = options.host.eventService;
@@ -548,6 +575,12 @@ export class Visual implements IVisual {
             // dejaria la vista previa visible en un informe publicado.
             const viewMode = (options as any).viewMode;
             this.editing = typeof viewMode === "number" && viewMode !== 0;
+            this.formatMode = !!(options as any).formatMode;
+            // Elegir una plantilla (panel o asistente) la aplica de verdad: se borran los ajustes que define, porque
+            // un ajuste guardado manda sobre ella. Solo al CAMBIARLA y editando; nunca al abrir el informe.
+            const tplAhora = String(((dv?.metadata?.objects as any)?.style?.template) ?? "clean");
+            if (this.editing && this.tplVisto !== null && this.tplVisto !== tplAhora) { this.aplicarPlantilla(tplAhora); }
+            this.tplVisto = tplAhora;
 
             if (!dv?.categorical?.categories?.[0]?.values?.length) {
                 this.container.selectAll(".loading-indicator").remove();
@@ -666,6 +699,7 @@ export class Visual implements IVisual {
 
                 this.renderChart(options.viewport, truncated);
                 this.updateWatermark();
+                this.renderGuide();
                 // renderChart sets opacity from highlight state only; re-apply the
                 // selection dimming on top of the fresh nodes.
                 this.applyOpacity();
@@ -2414,6 +2448,19 @@ export class Visual implements IVisual {
             }
         }
 
+        // Plantilla: el panel enseña lo que se pinta. Lo escrito por el usuario ya lo ha puesto populate.
+        const objs: any = this.lastDataView?.metadata?.objects ?? {};
+        const tplM = TEMPLATES[String(objs?.style?.template ?? "clean")] ?? {};
+        for (const g of Object.keys(tplM)) {
+            for (const p of Object.keys(tplM[g])) {
+                if (objs?.[g]?.[p] !== undefined) continue;
+                const slice: any = (model as any)[g]?.[p];
+                if (!slice) continue;
+                const val = tplM[g][p];
+                slice.value = typeof val === "string" && val.startsWith("#") ? { value: val } : val;
+            }
+        }
+
         // Threshold color slices are noise until the toggle is on.
         const th = model.thresholdColors;
         th.thresholdValue.visible    = th.show.value;
@@ -2423,6 +2470,190 @@ export class Visual implements IVisual {
         th.crossingColor.visible     = th.show.value && th.highlightCrossing.value;
 
         return this.formattingSettingsService.buildFormattingModel(model);
+    }
+
+    // ── Plantillas y asistente (1.6) ──────────────────────────────────────────
+
+    /** Quita los ajustes guardados que la plantilla define, para que se vea. Lo demás se queda como estaba. */
+    private aplicarPlantilla(nombre: string): void {
+        const t = TEMPLATES[nombre] ?? {};
+        const remove: any[] = Object.keys(t).map(obj => ({
+            objectName: obj, selector: null,
+            properties: Object.keys(t[obj]).reduce((acc: any, p) => { acc[p] = null; return acc; }, {})
+        }));
+        if (remove.length) this.host.persistProperties({ remove });
+    }
+
+    private persistir(objectName: string, properties: any): void {
+        this.host.persistProperties({ merge: [{ objectName, selector: null as any, properties }] });
+    }
+
+    /**
+     * Asistente, solo editando y con datos: (1) los campos, (2) "Pruébalo con tus datos": las funciones Pro se encienden
+     * y apagan con un clic y se ven funcionando (sin licencia, bajo la marca de agua y con el aviso de Power BI), (3) las
+     * plantillas. No toca los pozos. persistProperties solo desde un clic. ✕ o Terminar lo cierran (style.guide = false);
+     * se reabre en Formato → Plantilla de estilo.
+     */
+    private renderGuide(): void {
+        const host = this.container.node() as HTMLElement;
+        if (!this.guideEl) {
+            this.guideEl = document.createElement("div");
+            this.guideEl.className = "pc-guide";
+            host.appendChild(this.guideEl);
+        } else if (this.guideEl.parentNode !== host) {
+            host.appendChild(this.guideEl);
+        }
+        const el = this.guideEl;
+        while (el.firstChild) el.removeChild(el.firstChild);
+        el.style.display = "none";
+        const objs: any = this.lastDataView?.metadata?.objects ?? {};
+        const on = objs?.style?.guide !== false;
+        if (!this.editing || this.formatMode || !on || !this.canInteract) return;
+        const pal: any = this.host.colorPalette;
+        const hc = !!pal?.isHighContrast;
+        const azul = hc ? (pal.foregroundSelected?.value || "#FFFF00") : "#2B6CB0";
+        const fg = hc ? (pal.foreground?.value || "#FFFFFF") : "#252423";
+        const muted = hc ? fg : "#605E5C";
+        el.style.display = "block";
+        el.style.background = hc ? (pal.background?.value || "#000000") : "#FFFFFF";
+        el.style.borderColor = azul;
+        el.style.color = fg;
+        el.setAttribute("role", "dialog");
+        el.setAttribute("aria-label", this.t("Guide_Title", "Setup guide"));
+        el.onclick = e => e.stopPropagation();
+        el.onkeydown = e => e.stopPropagation();
+        const mk = (tag: string, cls: string, text?: string): HTMLElement => {
+            const n = document.createElement(tag); n.className = cls; if (text !== undefined) n.textContent = text; return n;
+        };
+        const boton = (texto: string, principal: boolean, accion: () => void): HTMLButtonElement => {
+            const b = mk("button", "pc-g-btn", texto) as HTMLButtonElement;
+            b.type = "button";
+            b.style.borderColor = azul;
+            b.style.background = principal ? azul : "transparent";
+            b.style.color = principal ? (hc ? (pal.background?.value || "#000000") : "#FFFFFF") : azul;
+            b.addEventListener("click", accion);
+            return b;
+        };
+        const terminar = () => { this.guideStep = 1; this.persistir("style", { guide: false }); };
+        const cab = mk("div", "pc-g-head");
+        const paso = mk("div", "", this.tf("Guide_Step", "Setup · step {0} of 3", String(this.guideStep)));
+        paso.style.color = azul;
+        const cerrar = mk("button", "pc-g-close", "✕") as HTMLButtonElement;
+        cerrar.type = "button";
+        cerrar.title = this.t("Guide_Close", "Close the guide");
+        cerrar.setAttribute("aria-label", cerrar.title);
+        cerrar.style.color = muted;
+        cerrar.addEventListener("click", terminar);
+        cab.appendChild(paso); cab.appendChild(cerrar);
+        el.appendChild(cab);
+        const titulo = mk("div", "pc-g-title");
+        el.appendChild(titulo);
+        const pie = mk("div", "pc-g-foot");
+        const fila = (hecho: boolean, nombre: string, porque: string) => {
+            const f = mk("div", "pc-g-item");
+            const marca = mk("span", "", hecho ? "✓" : "○");
+            marca.setAttribute("aria-label", hecho ? this.t("Guide_Done", "added") : this.t("Guide_Todo", "not added"));
+            marca.style.color = hecho ? (hc ? fg : "#107C10") : muted;
+            const txt = mk("span", "");
+            txt.appendChild(mk("b", "", nombre));
+            txt.appendChild(document.createTextNode(" — " + porque));
+            txt.style.color = hecho ? muted : fg;
+            f.appendChild(marca); f.appendChild(txt);
+            el.appendChild(f);
+        };
+        if (this.guideStep === 1) {
+            titulo.textContent = this.t("Guide_Fields", "Your data");
+            fila(true, this.t("Role_category", "Entity"), this.t("Guide_EntityWhy", "customers, products, causes — one ranked list"));
+            fila(true, this.t("Role_measure", "Value"), this.t("Guide_ValueWhy", "sales, cost, defects — what each one contributes"));
+            fila(this.hasCmpField, this.t("Role_comparison", "Comparison value (Pro)"), this.t("Guide_CmpWhy", "last year or plan: the change in share on every bar"));
+            fila(this.hasPanelField, this.t("Role_panel", "Small multiples (Pro)"), this.t("Guide_PanelWhy", "one Pareto per region, team or year"));
+            const nota = mk("div", "pc-g-note", this.t("Guide_Wells", "Drag the fields into the field wells; this list updates by itself."));
+            nota.style.color = muted;
+            el.appendChild(nota);
+            pie.appendChild(boton(this.t("Guide_Next", "Next"), true, () => { this.guideStep = 2; this.renderGuide(); }));
+        } else if (this.guideStep === 2) {
+            titulo.textContent = this.isPro ? this.t("Guide_TryPro2", "Pro features on your data") : this.t("Guide_TryPro", "Try Pro on your data");
+            const s = this.settings;
+            const pruebas: [string, string, boolean, () => void][] = [
+                [this.t("Guide_TryBins", "Finer bars: 20 bins of 5%"), this.t("Guide_TryBinsWhy", "see exactly where the 80% is reached"),
+                    objs?.pareto?.binSizePct !== undefined && Number(objs.pareto.binSizePct) !== 20,
+                    () => objs?.pareto?.binSizePct !== undefined
+                        ? this.host.persistProperties({ remove: [{ objectName: "pareto", selector: null as any, properties: { binSizePct: null } }] })
+                        : this.persistir("pareto", { binSizePct: 5 })],
+                [this.t("Guide_TryAbc", "ABC classes"), this.t("Guide_TryAbcWhy", "classes A, B and C shaded on the chart"),
+                    objs?.abcZones?.show === true, () => this.persistir("abcZones", { show: objs?.abcZones?.show !== true })],
+                [this.t("Guide_TryLabels", "Value labels"), this.t("Guide_TryLabelsWhy", "the share of every bar, written on it"),
+                    objs?.valueLabels?.show === true, () => this.persistir("valueLabels", { show: objs?.valueLabels?.show !== true })],
+                [this.t("Guide_TryRef3", "A third reference line"), this.t("Guide_TryRef3Why", "for example 50%, next to 80%"),
+                    s.showRef3 && objs?.referenceLines?.showRef3 === true, () => this.persistir("referenceLines", { showRef3: objs?.referenceLines?.showRef3 !== true })],
+            ];
+            for (const [nombre, porque, activa, accion] of pruebas) {
+                const f = mk("div", "pc-g-try");
+                const txt = mk("span", "");
+                txt.appendChild(mk("b", "", nombre));
+                if (!this.isPro) {
+                    const chip = mk("span", "pc-g-chip", "Pro");
+                    if (hc) { chip.style.background = "transparent"; chip.style.border = "1px solid " + fg; chip.style.color = fg; }
+                    txt.appendChild(chip);
+                }
+                txt.appendChild(document.createTextNode(" — " + porque));
+                const b = boton(activa ? this.t("Guide_On", "On") : this.t("Guide_Try", "Try"), activa, accion);
+                b.setAttribute("aria-pressed", String(activa));
+                f.appendChild(txt); f.appendChild(b);
+                el.appendChild(f);
+            }
+            if (!this.isPro) {
+                const nota = mk("div", "pc-g-note", this.t("Guide_TryNote", "Without a licence they show under a watermark while you edit; reading view shows the free chart."));
+                nota.style.color = muted;
+                el.appendChild(nota);
+            }
+            pie.appendChild(boton(this.t("Guide_Back", "Back"), false, () => { this.guideStep = 1; this.renderGuide(); }));
+            pie.appendChild(boton(this.t("Guide_Next", "Next"), true, () => { this.guideStep = 3; this.renderGuide(); }));
+        } else {
+            titulo.textContent = this.t("Guide_Style", "Pick a style");
+            const actual = String(objs?.style?.template ?? "clean");
+            const rejilla = mk("div", "pc-g-grid");
+            const nombres: [string, string, string][] = [["clean", "Enum_tpl_clean", "Clean"], ["minimal", "Enum_tpl_minimal", "Minimal"],
+                ["contrast", "Enum_tpl_contrast", "Contrast"], ["soft", "Enum_tpl_soft", "Soft"], ["compact", "Enum_tpl_compact", "Compact"],
+                ["ibcs", "Enum_tpl_ibcs", "IBCS style"]];
+            for (const [nombre, clave, def] of nombres) {
+                const chip = mk("button", "pc-g-tpl") as HTMLButtonElement;
+                chip.type = "button";
+                chip.setAttribute("aria-pressed", String(nombre === actual));
+                chip.style.borderColor = nombre === actual ? azul : "#C8C6C4";
+                chip.style.borderWidth = nombre === actual ? "2px" : "1px";
+                chip.appendChild(this.miniPareto(nombre, hc));
+                chip.appendChild(mk("div", "", this.t(clave, def)));
+                chip.addEventListener("click", () => this.persistir("style", { template: nombre }));
+                rejilla.appendChild(chip);
+            }
+            el.appendChild(rejilla);
+            pie.appendChild(boton(this.t("Guide_Back", "Back"), false, () => { this.guideStep = 2; this.renderGuide(); }));
+            pie.appendChild(boton(this.t("Guide_Finish", "Finish"), true, terminar));
+        }
+        el.appendChild(pie);
+    }
+
+    /** Miniatura de una plantilla: barras decrecientes y la curva acumulada con los colores de la plantilla. */
+    private miniPareto(nombre: string, hc: boolean): SVGSVGElement {
+        const t: any = TEMPLATES[nombre] ?? {};
+        const ibcs = t.pareto?.ibcsMode === true;
+        const bar = hc ? "#FFFFFF" : (ibcs ? "#404040" : (t.pareto?.barColor ?? this.settings.barColor));
+        const line = hc ? "#FFFFFF" : (ibcs ? "#262626" : (t.cumulativeLine?.lineColor ?? this.settings.lineColor));
+        const NS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(NS, "svg") as SVGSVGElement;
+        svg.setAttribute("width", "64"); svg.setAttribute("height", "40"); svg.setAttribute("aria-hidden", "true");
+        [30, 20, 13, 8, 5].forEach((h, i) => {
+            const r = document.createElementNS(NS, "rect");
+            r.setAttribute("x", String(4 + i * 12)); r.setAttribute("y", String(38 - h)); r.setAttribute("width", "10"); r.setAttribute("height", String(h));
+            r.setAttribute("fill", bar);
+            svg.appendChild(r);
+        });
+        const p = document.createElementNS(NS, "polyline");
+        p.setAttribute("points", "9,20 21,10 33,6 45,4 57,3");
+        p.setAttribute("fill", "none"); p.setAttribute("stroke", line); p.setAttribute("stroke-width", "2");
+        svg.appendChild(p);
+        return svg;
     }
 
     public destroy(): void {

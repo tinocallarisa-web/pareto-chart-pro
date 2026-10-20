@@ -1,1 +1,36 @@
 // Pareto Chart Pro — estilos que SÍ entran en el paquete (importado en src/visual.ts), desde la 1.6.
+
+// Fuente del gráfico. Hasta la 1.5 ninguna hoja de estilos llegaba al paquete y el SVG no declaraba fuente: en un
+// host sin fuente por defecto los textos salían en Times. Segoe UI es la de Power BI.
+.pareto-visual { font-family: "Segoe UI", wf_segoe-ui_normal, helvetica, arial, sans-serif; }
+
+// Asistente de configuración (1.6): panel compacto en la esquina, solo editando
+.pc-guide {
+    display: none;
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 340px;
+    max-width: calc(100% - 16px);
+    max-height: calc(100% - 16px);
+    overflow: auto;
+    border: 1px solid #2B6CB0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    padding: 8px 10px;
+    box-sizing: border-box;
+    z-index: 20;
+    font: 11.5px/1.35 "Segoe UI", sans-serif;
+    cursor: default;
+    .pc-g-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-weight: 700; div { flex: 1; } }
+    .pc-g-close { border: none; background: transparent; cursor: pointer; font-size: 13px; }
+    .pc-g-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+    .pc-g-item { display: flex; gap: 6px; align-items: baseline; margin: 2px 0; span:first-child { font-weight: 700; width: 12px; flex-shrink: 0; } }
+    .pc-g-try { display: flex; gap: 8px; align-items: center; justify-content: space-between; margin: 4px 0; span { flex: 1; } }
+    .pc-g-chip { display: inline-block; margin-left: 5px; font-size: 9px; font-weight: 700; letter-spacing: .5px; padding: 1px 5px; border-radius: 999px; background: #E3F2E8; color: #2F7A47; vertical-align: 1px; }
+    .pc-g-note { font-size: 11px; margin-top: 4px; }
+    .pc-g-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+    .pc-g-btn { font: 600 12px "Segoe UI", sans-serif; border-radius: 4px; padding: 3px 12px; cursor: pointer; border: 1px solid; flex-shrink: 0; }
+    .pc-g-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
+    .pc-g-tpl { border-style: solid; border-radius: 6px; padding: 4px; cursor: pointer; background: #FFFFFF; font: 11px "Segoe UI", sans-serif; color: #252423; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+}
