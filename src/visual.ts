@@ -1965,9 +1965,12 @@ export class Visual implements IVisual {
 
         // Value labels (Pro)
         let labelH = 0;
-        if (s.showLabels && this.previewOf("value labels")) {
+        // Solo si caben en su barra: en un mosaico estrecho se pisaban ("3.5%3.5%…"). El dato sigue en el tooltip.
+        const lfsPrev = Math.max(7, Math.min(s.labelFontSize, curW * 0.4));
+        const caben   = bins.every(b => (s.showPercent ? this.pct(b.pctShare, 1) : this.formatter("0.0").format(b.pctShare)).length * lfsPrev * 0.58 <= curW + 2);
+        if (s.showLabels && this.previewOf("value labels") && caben) {
             const labelColor = this.resolveColor(s.labelColor, hcFg, isHC);
-            const lfs = Math.max(7, Math.min(s.labelFontSize, curW * 0.4));
+            const lfs = lfsPrev;
             labelH = lfs + 2;
             gp.selectAll(".bar-label")
                 .data(bins)
@@ -2049,7 +2052,8 @@ export class Visual implements IVisual {
                 .enter().append("circle")
                 .attr("cx", b => centre(b))
                 .attr("cy", b => yR(b.cumPct))
-                .attr("r", isHC ? Math.max(s.dotRadius, 5) : s.dotRadius)
+                // El punto no puede ser más ancho que su barra: en un mosaico pequeño tapaba la curva.
+                .attr("r", Math.max(1.5, Math.min(isHC ? Math.max(s.dotRadius, 5) : s.dotRadius, curW * 0.3)))
                 .attr("fill", dotColor)
                 .attr("stroke", isHC ? hcBg : "#fff")
                 .attr("stroke-width", 1.5)
