@@ -868,7 +868,11 @@ export class Visual implements IVisual {
         if (!activa) return;
 
         if (this.watermarkTitle) { this.watermarkTitle.textContent = this.t("UI_ProPreview", "Pro preview"); }
-        if (this.watermarkWhy) { this.watermarkWhy.textContent = labels.map(l => this.featName(l)).join(" · "); }
+        // Dos nombres y un contador: con cuatro funciones la línea cruzaba el gráfico y se salía por la derecha.
+        if (this.watermarkWhy) {
+            const nombres = labels.map(l => this.featName(l));
+            this.watermarkWhy.textContent = (nombres.length <= 2 ? nombres : nombres.slice(0, 2).concat([`+${nombres.length - 2}`])).join(" · ");
+        }
 
         // Escala con el visual y se limita por el alto tambien: en un Pareto muy ancho y
         // bajo, dimensionar solo por ancho daria un texto que no cabe en vertical. El
@@ -1757,9 +1761,13 @@ export class Visual implements IVisual {
                 .attr("stroke-dasharray", isHC ? "3,3" : null);
             if (s.abcLabels) {
                 zg.selectAll("text").data(zones.filter(z => z.x1 - z.x0 > 34)).enter().append("text")
+                    .classed("abc-label", true)
                     .attr("x", z => z.x0 + 4).attr("y", 11)
                     .style("font-size", "10px").style("font-weight", "700")
                     .style("fill", z => isHC ? hcFg : z.color)
+                    // Halo del color de fondo: la curva acumulada pasa por arriba justo en la zona C.
+                    .style("paint-order", "stroke").style("stroke", isHC ? hcBg : "#FFFFFF")
+                    .style("stroke-width", "3px").style("stroke-linejoin", "round")
                     .text(z => (z.x1 - z.x0 > 110)
                         ? this.tf("UI_AbcLabel", "{0} · {1} of entities", z.cls, this.pct(100 * z.n / p.nEntities, 1))
                         : z.cls);
@@ -2014,6 +2022,10 @@ export class Visual implements IVisual {
                     this.host.tooltipService?.hide({ immediately: false, isTouchEvent: false })
                 );
         }
+
+        // Las etiquetas de las zonas ABC, por encima de la curva y los puntos (se dibujan antes, con las zonas).
+        const gpNodo = gp.node() as SVGGElement;
+        gp.selectAll<SVGTextElement, unknown>(".abc-label").each(function () { gpNodo.appendChild(this); });
 
         // Reference lines
         const refLines = [
