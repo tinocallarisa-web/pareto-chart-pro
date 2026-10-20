@@ -21,6 +21,7 @@ import { FormattingSettingsService } from "powerbi-visuals-utils-formattingmodel
 import { valueFormatter } from "powerbi-visuals-utils-formattingutils";
 import { ParetoFormattingSettings } from "./settings";
 import { STRINGS } from "./strings";
+import { LANDING_ICON } from "./landingIcon";
 // Solo los estilos de la 1.6 en adelante. visual.less no se ha importado nunca (la 1.5 publicada no lleva CSS) y sus
 // reglas chocarían con lo que se ve hoy (p. ej. .bar:hover con !important pisaría el atenuado de la selección).
 import "./../style/pareto.less";
@@ -65,6 +66,10 @@ const MAX_SEL_IDS_PER_BIN   = 100;
 // visual declines and names the lever that fixes it.
 const MAX_FILTER_VALUES     = 10000;
 const FREE_BIN_SIZE_PCT = 20;
+// Enlaces de la pantalla de inicio: solo se abren con un clic, a través de host.launchUrl.
+const URL_GUIDE = "https://tinocallarisa-web.github.io/pareto-chart-pro/support.html";
+const URL_PRODUCT = "https://tcviz.com/product/pareto-pro/?ref=visual-pareto";
+const URL_VIDEO = "https://www.youtube.com/watch?v=abzBwDW_wkE";
 /**
  * Up to this many entities, one bar per entity with its name: the classic Pareto of
  * defect types or segments. Binning 3 segments into "0–33%" bars hid the one thing a
@@ -2371,41 +2376,116 @@ export class Visual implements IVisual {
     }
 
     // ── Landing page ──────────────────────────────────────────────────────────
+    /**
+     * Pantalla de inicio (1.6), la de la serie: qué es, cómo empezar con los pozos reales, ayuda y qué añade el Pro.
+     * Tres tamaños. Los enlaces solo se abren con un clic (host.launchUrl); el Pro es texto, sin botón de compra.
+     */
     private renderLandingPage(): void {
         this.svg.selectAll("*").remove();
         this.container.selectAll(".landing-page").remove();
-
-        const landing = this.container
-            .append("div").classed("landing-page", true)
-            .style("position", "absolute").style("top", "0").style("left", "0")
-            .style("width", "100%").style("height", "100%")
-            .style("display", "flex").style("align-items", "center")
-            .style("justify-content", "center");
-
-        const wrapper = landing.append("div")
-            .style("text-align", "center");
-
-        wrapper.append("div")
-            .style("font-size", "40px")
-            .style("margin-bottom", "8px")
-            .text("📊");
-
-        wrapper.append("div")
-            .style("font-size", "15px")
-            .style("font-weight", "600")
-            .style("color", "#555")
-            .style("margin-bottom", "6px")
-            .text("Pareto Chart Pro");
-
-        const hint = wrapper.append("div")
-            .style("font-size", "12px")
-            .style("color", "#aaa");
-
-        hint.append("span").text(this.t("UI_LandingAdd", "Add an "));
-        hint.append("b").text(this.t("Role_category", "Entity"));
-        hint.append("span").text(this.t("UI_LandingMid", " (customer/product) and a "));
-        hint.append("b").text(this.t("Role_measure", "Value"));
-        hint.append("span").text(this.t("UI_LandingEnd", " (sales/revenue)"));
+        if (this.guideEl) this.guideEl.style.display = "none";
+        const nodo = this.container.node() as HTMLElement;
+        const w = nodo.clientWidth || 0, h = nodo.clientHeight || 0;
+        const size = (w >= 600 && h >= 340) ? "l" : (w >= 360 && h >= 220) ? "m" : "s";
+        const pal: any = this.host.colorPalette;
+        const hc = !!pal?.isHighContrast;
+        const fg = hc ? (pal.foreground?.value || "#FFFFFF") : "";
+        const bg = hc ? (pal.background?.value || "#000000") : "";
+        const el = document.createElement("div");
+        el.className = "landing-page pc-landing pc-landing-" + size;
+        if (hc) el.style.background = bg;
+        const mk = (tag: string, cls?: string, text?: string): HTMLElement => {
+            const n = document.createElement(tag);
+            if (cls) n.className = cls;
+            if (text !== undefined) n.textContent = text;
+            if (fg) n.style.color = fg;
+            return n;
+        };
+        const ent = this.t("Role_category", "Entity"), val = this.t("Role_measure", "Value"), cmp = this.t("Role_comparison", "Comparison value (Pro)");
+        const head = mk("div", "pc-l-head");
+        const img = document.createElement("img");
+        img.src = LANDING_ICON; img.alt = ""; img.className = "pc-l-icon";
+        head.appendChild(img);
+        const titles = mk("div");
+        titles.appendChild(mk("div", "pc-l-title", "Pareto Chart Pro"));
+        if (size !== "s") {
+            titles.appendChild(mk("div", "pc-l-tag", size === "l"
+                ? this.t("Landing_Tagline", "Which few make most of the total: the 80/20, measured, not guessed.")
+                : this.t("Landing_TaglineShort", "The 80/20, measured.")));
+        }
+        head.appendChild(titles);
+        el.appendChild(head);
+        const link = (txt: string, url: string, cls: string): HTMLElement => {
+            const a = mk("a", cls) as HTMLAnchorElement;
+            a.href = url; a.tabIndex = 0; a.textContent = txt;
+            if (hc) { a.style.background = "transparent"; a.style.borderColor = fg; }
+            const open = (e: Event) => { e.preventDefault(); e.stopPropagation(); if (this.canInteract) this.host.launchUrl(url); };
+            a.addEventListener("click", open);
+            a.addEventListener("keydown", (e: KeyboardEvent) => { if (e.key === "Enter" || e.key === " ") open(e); });
+            return a;
+        };
+        const links: [string, string, string][] = [
+            [this.t("Landing_Guide", "Guide"), this.t("Landing_GuideSub", "support page"), URL_GUIDE],
+            [this.t("Landing_Product", "Product page"), "tcviz.com", URL_PRODUCT],
+            [this.t("Landing_Video", "Video"), "YouTube", URL_VIDEO],
+        ];
+        if (size === "s") {
+            el.appendChild(mk("p", "pc-l-do", this.tf("Landing_Small", "Add {0} and {1}.", ent, val)));
+            const row = mk("div", "pc-l-inline");
+            row.appendChild(link(links[0][0], links[0][2], "pc-l-a"));
+            el.appendChild(row);
+            (this.container.node() as HTMLElement).appendChild(el);
+            return;
+        }
+        const L = size === "l";
+        const steps = mk("ol", "pc-l-steps");
+        const step = (n: number, well: string, txt: string) => {
+            const li = mk("li");
+            const num = mk("b", "pc-l-n", String(n));
+            if (hc) { num.style.background = fg; num.style.color = bg; }
+            li.appendChild(num);
+            const sp = mk("span");
+            sp.appendChild(mk("strong", "pc-l-well", well));
+            sp.appendChild(document.createTextNode(" · " + txt));
+            li.appendChild(sp);
+            steps.appendChild(li);
+        };
+        step(1, ent, L ? this.t("Landing_Step1", "customers, products or causes — one row each") : this.t("Landing_Step1Short", "one row per item"));
+        step(2, val, L ? this.t("Landing_Step2", "sales, cost or defects: the chart ranks and adds them up") : this.t("Landing_Step2Short", "what each one contributes"));
+        step(3, cmp, L ? this.t("Landing_Step3", "optional: last year or plan, the change in share per bar") : this.t("Landing_Step3Short", "optional: last year or plan"));
+        if (L) {
+            const cols = mk("div", "pc-l-cols");
+            const c1 = mk("div");
+            c1.appendChild(mk("div", "pc-l-lbl", this.t("Landing_Start", "Start in 3 steps")));
+            c1.appendChild(steps);
+            const c2 = mk("div");
+            c2.appendChild(mk("div", "pc-l-lbl", this.t("Landing_Help", "Help")));
+            const list = mk("div", "pc-l-links");
+            for (const [txt, sub, url] of links) {
+                const a = link(txt, url, "pc-l-card");
+                a.appendChild(mk("small", "pc-l-sub", sub));
+                list.appendChild(a);
+            }
+            c2.appendChild(list);
+            cols.appendChild(c1); cols.appendChild(c2);
+            el.appendChild(cols);
+        } else {
+            el.appendChild(steps);
+            const row = mk("div", "pc-l-inline");
+            for (const l of links) row.appendChild(link(l[1] === "tcviz.com" ? "tcviz.com" : l[0], l[2], "pc-l-a"));
+            el.appendChild(row);
+        }
+        if (!this.isPro) {
+            const pro = mk("div", "pc-l-pro");
+            const chip = mk("span", "pc-l-chip", "Pro");
+            if (hc) { chip.style.background = "transparent"; chip.style.border = "1px solid " + fg; }
+            pro.appendChild(chip);
+            pro.appendChild(mk("span", undefined, L
+                ? this.t("Landing_Pro", "Finer bars, ABC zones, comparison with last year or plan, small multiples and value labels.")
+                : this.t("Landing_ProShort", "Finer bars, ABC zones, comparison.")));
+            el.appendChild(pro);
+        }
+        (this.container.node() as HTMLElement).appendChild(el);
     }
 
     // ── Format Pane (new Formatting Model API) ────────────────────────────────
