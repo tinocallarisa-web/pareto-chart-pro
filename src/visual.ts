@@ -960,8 +960,16 @@ export class Visual implements IVisual {
         const mCol = roleCol("measure");
         const cCol = roleCol("comparison");
         const tCols = vals.filter(v => v.source?.roles?.["tooltips"]);
-        this.measureFormat = mCol?.source?.format;
-        this.cmpFormat     = cCol?.source?.format;
+        // Formato de la medida, con las cadenas de formato DINÁMICAS (1.6): con general.formatString declarado en
+        // capabilities, Power BI manda el formato que decide el DAX en los objetos de cada fila; si no hay, el de la columna.
+        const fmtCol = (col: DataViewValueColumn | undefined): string | undefined => {
+            if (!col) return undefined;
+            const dyn = ((col as any).objects as any[] | undefined)?.find(o => typeof o?.general?.formatString === "string" && o.general.formatString)?.general?.formatString;
+            if (dyn) return dyn;
+            try { return valueFormatter.getFormatStringByColumn(col.source as any) || col.source?.format; } catch (_) { return col.source?.format; }
+        };
+        this.measureFormat = fmtCol(mCol);
+        this.cmpFormat     = fmtCol(cCol);
 
         const usePanels = !!panCol && this.previewOf("small multiples");
         const useCmp    = !!cCol && this.previewOf("comparison");
