@@ -45,6 +45,10 @@ export class ParetoCard extends SimpleCard {
         value: { value: "#4472C4" },
         selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] } as any,
         instanceKind: 3,
+        // 1.6: el color FIJO se guarda a nivel general (metadata.objects); solo las reglas se evalúan por entidad.
+        // Sin esto el fijo se guardaba entidad a entidad (ver uniformBarColor en visual.ts, que se queda para los
+        // informes guardados antes de la 1.6).
+        altConstantSelector: null as any,
     });
     barOpacity  = new NumUpDown({ name: "barOpacity",  displayName: "Bar opacity %", displayNameKey: "Prop_pareto_barOpacity", value: 85 });
     borderColor = new ColorPicker({ name: "borderColor", displayName: "Border color", displayNameKey: "Prop_pareto_borderColor", value: { value: "#2E5BA8" } });
