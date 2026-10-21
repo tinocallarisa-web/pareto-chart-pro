@@ -1,6 +1,6 @@
-MAIN TAG BLOCK (paste as-is — 355 characters, under YouTube's 500 limit)
+MAIN TAG BLOCK (paste as-is — 352 characters, under YouTube's 500 limit)
 
-pareto chart power bi,pareto analysis power bi,80 20 rule power bi,abc analysis power bi,power bi pareto without dax,power bi small multiples,power bi year over year comparison,customer concentration analysis,pareto chart tutorial,power bi custom visual,power bi tutorial,cumulative percentage power bi,abc classification,power bi data visualization,tcviz
+pareto chart power bi,pareto analysis power bi,80 20 rule power bi,abc analysis power bi,power bi pareto without dax,power bi small multiples,power bi year over year comparison,customer concentration analysis,pareto chart tutorial,power bi custom visual,power bi tutorial,cumulative percentage power bi,ibcs power bi,power bi on-object formatting,tcviz
 
 
 VARIANTS, depending on the angle you lead with
@@ -16,6 +16,8 @@ customer concentration analysis,sku rationalisation,abc classification,supplier 
 
 
 NOTES
+- 1.6: "abc classification" and "power bi data visualization" out (duplicate and too broad);
+  "ibcs power bi" and "power bi on-object formatting" in, for the new templates and canvas formatting.
 - Removed from the previous version: "power bi big data 150k" — the figure was understated
   and version-stamped. Numbers in tags date badly.
 - Keep "tcviz" last. Brand tags do nothing for discovery; they only help people who already

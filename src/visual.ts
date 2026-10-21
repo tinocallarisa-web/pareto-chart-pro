@@ -73,7 +73,7 @@ const FREE_BIN_SIZE_PCT = 20;
 // Enlaces de la pantalla de inicio: solo se abren con un clic, a través de host.launchUrl.
 const URL_GUIDE = "https://tinocallarisa-web.github.io/pareto-chart-pro/support.html";
 const URL_PRODUCT = "https://tcviz.com/product/pareto-pro/?ref=visual-pareto";
-const URL_VIDEO = "https://www.youtube.com/watch?v=abzBwDW_wkE";
+const URL_VIDEO = "https://www.youtube.com/watch?v=1LLgEmXuA_8";
 /**
  * Up to this many entities, one bar per entity with its name: the classic Pareto of
  * defect types or segments. Binning 3 segments into "0–33%" bars hid the one thing a

@@ -1,7 +1,7 @@
 Pareto Chart Pro 1.6.0.0 GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
 Repo (branch certification): github.com/tinocallarisa-web/pareto-chart-pro
 Docs/privacy/terms: tinocallarisa-web.github.io/pareto-chart-pro/
-Video: youtube.com/watch?v=abzBwDW_wkE
+Video: youtube.com/watch?v=1LLgEmXuA_8
 
 PLEASE READ FIRST - PRO PREVIEW
 Without a licence, IN EDIT MODE ONLY, a Pro feature the user turns on is drawn

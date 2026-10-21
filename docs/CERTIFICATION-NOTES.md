@@ -26,7 +26,7 @@
 - **Support URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 - **Privacy URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html
 - **Terms URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html
-- **Video Walkthrough:** https://www.youtube.com/watch?v=abzBwDW_wkE
+- **Video Walkthrough:** https://www.youtube.com/watch?v=1LLgEmXuA_8
 
 ## What the visual does
 Ranks the entities bound to `Entity` by the measure bound to `Value`, groups them into bins of a

@@ -11,7 +11,7 @@ actually depends on — without the sorted-column-plus-DAX workaround.
 📘 **[Documentation](https://tinocallarisa-web.github.io/pareto-chart-pro/support.html)** ·
 💡 **[Tips & best practices](https://tinocallarisa-web.github.io/pareto-chart-pro/tips.html)** ·
 📋 **[Changelog](https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html)** ·
-🎥 **[Video walkthrough](https://www.youtube.com/watch?v=abzBwDW_wkE)**
+🎥 **[Video walkthrough](https://www.youtube.com/watch?v=1LLgEmXuA_8)**
 
 ---
 

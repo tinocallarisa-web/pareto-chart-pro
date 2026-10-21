@@ -90,7 +90,7 @@ The price of an existing plan cannot be changed (USD 4.99 per user per month).
 | Privacy | https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html |
 | Terms | https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html |
 | Changelog | https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html |
-| Video | https://www.youtube.com/watch?v=abzBwDW_wkE |
+| Video | https://www.youtube.com/watch?v=1LLgEmXuA_8 |
 | Source | https://github.com/tinocallarisa-web/pareto-chart-pro |
 
 ---
