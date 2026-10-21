@@ -1,6 +1,6 @@
 # Changelog — Pareto Chart Pro
 
-## [1.6.0.0] — 2026-10
+## [1.6.0.0] — 2026-10-21
 
 ### Added
 - **Setup guide inside the visual.** While you edit, a small panel in the corner lists your fields, then lets you **try the Pro features on your own data** — finer 5% bins, ABC classes, value labels, a third reference line — each with one click (without a licence, under the "Pro preview" watermark and with Power BI's licence notice), then offers the style templates. Never shown in reading view; reopen it under Format → Style template.

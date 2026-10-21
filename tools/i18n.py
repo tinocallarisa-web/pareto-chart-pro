@@ -44,7 +44,9 @@ def main():
     es = {}
     for k, v in en.items():
         fila = P.get(v, [])
-        es[k] = es_pub.get(k) or (fila[9] if len(fila) > 9 else v)
+        col = fila[9] if len(fila) > 9 else None
+        # El es-ES publicado manda, salvo donde se quedó en inglés y la tabla ya trae la traducción.
+        es[k] = col if col and es_pub.get(k) in (None, v) else (es_pub.get(k) or col or v)
     out["es-ES"] = es
     for i, lg in enumerate(L):
         out[lg] = {k: (P[v][i] if v in P else v) for k, v in en.items()}

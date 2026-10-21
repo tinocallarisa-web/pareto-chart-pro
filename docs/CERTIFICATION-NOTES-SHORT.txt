@@ -12,10 +12,10 @@ watermark. Gate = options.viewMode; preview is per feature.
 
 NEW IN 1.6.0.0
 - Setup guide (edit mode only): fields, "Try" buttons that turn a Pro feature
-  on/off (persistProperties only on click), style templates.
-- Style templates (Clean = 1.5 look), legend (off by default), on-object
-  formatting, 12 languages (texts in the bundle), dynamic format strings,
-  new start screen (links open only on click via host.launchUrl).
+  on/off (persistProperties on click), templates. A template change in the
+  pane removes the props it defines, once.
+- Templates, legend (off by default), on-object, 12 languages (texts in
+  the bundle), dynamic formats, start screen (launchUrl only on click).
 - Bar color fx: altConstantValueSelector null. allowInteractions from
   hostCapabilities; in format mode a click selects, it does not filter.
 
@@ -32,14 +32,14 @@ PRIVACY / NETWORK
 No external calls, telemetry, CDN or endpoints; privileges: []. Licensing only
 through IVisualLicenseManager. No file access, localStorage or cookies.
 Persisted: general.filter, and from the setup guide style.template/guide and
-the settings its buttons toggle (only on click).
+the settings its buttons toggle (on click). Never in the selection callback.
 
 LICENSING
 Plan pareto-chart-pro-tcviz, matched on a Service ID ending in it. Requested
 once, cached; on failure Free. Active and Warning accepted.
-isLicenseUnsupportedEnv / isLicenseInfoAvailable respected. No own licence UI.
+isLicenseUnsupportedEnv / isLicenseInfoAvailable respected. No purchase UI:
+only "Pro" tags and Power BI's notifications.
 
-RENDERING EVENTS: one renderingStarted and one renderingFinished/Failed per
-update().
+RENDERING EVENTS: one Started and one Finished/Failed per update().
 
 Tools 7.2.1, API 5.11.1, ESLint 0 errors. npm audit --omit=dev: 0.
