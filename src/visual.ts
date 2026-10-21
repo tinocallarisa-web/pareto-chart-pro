@@ -2065,10 +2065,6 @@ export class Visual implements IVisual {
                 );
         }
 
-        // Las etiquetas de las zonas ABC, por encima de la curva y los puntos (se dibujan antes, con las zonas).
-        const gpNodo = gp.node() as SVGGElement;
-        gp.selectAll<SVGTextElement, unknown>(".abc-label").each(function () { gpNodo.appendChild(this); });
-
         // Reference lines
         const refLines = [
             { show: s.showRef1, value: s.ref1Value, color: s.ref1Color, label: s.ref1Label },
@@ -2107,6 +2103,11 @@ export class Visual implements IVisual {
                     .text(crossBin.label);
             }
         });
+
+        // Las pastillas de cambio y las etiquetas ABC, encima de todo: la curva, sus puntos y las líneas
+        // de referencia (que cruzan en vertical justo por la barra donde se alcanza el valor) las tapaban.
+        const gpNodo = gp.node() as SVGGElement;
+        gp.selectAll<SVGElement, unknown>(".cmp-pill, .abc-label").each(function () { gpNodo.appendChild(this); });
 
         // The Free tier upsell caption used to live here. Removed: Microsoft is
         // explicit that a visual "shouldn't display its own licensing UX, instead
