@@ -116,7 +116,14 @@
   "Obj_style": "Style template",
   "Prop_style_template": "Template",
   "Prop_style_guide": "Setup guide",
+  "Enum_tpl_report": "Report theme",
   "Enum_tpl_clean": "Clean",
+  "Enum_tpl_boardroom": "Boardroom (Pro)",
+  "Enum_tpl_ledger": "Ledger (Pro)",
+  "Enum_tpl_editorial": "Editorial (Pro)",
+  "Enum_tpl_signal": "Signal (Pro)",
+  "Enum_tpl_aurora": "Aurora (Pro)",
+  "Enum_tpl_terrace": "Terrace (Pro)",
   "Enum_tpl_minimal": "Minimal",
   "Enum_tpl_contrast": "Contrast",
   "Enum_tpl_soft": "Soft",
@@ -174,5 +181,6 @@
   "Enum_legend_bottom": "Bottom",
   "Prop_legend_fontSize": "Font size",
   "Prop_legend_color": "Text color",
-  "Legend_Cumulative": "Cumulative %"
+  "Legend_Cumulative": "Cumulative %",
+  "Feat_styles": "collection styles"
 }

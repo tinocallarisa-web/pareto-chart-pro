@@ -116,7 +116,14 @@
   "Obj_style": "Plantilla de estilo",
   "Prop_style_template": "Plantilla",
   "Prop_style_guide": "Asistente de configuración",
+  "Enum_tpl_report": "Tema del informe",
   "Enum_tpl_clean": "Limpia",
+  "Enum_tpl_boardroom": "Boardroom (Pro)",
+  "Enum_tpl_ledger": "Ledger (Pro)",
+  "Enum_tpl_editorial": "Editorial (Pro)",
+  "Enum_tpl_signal": "Signal (Pro)",
+  "Enum_tpl_aurora": "Aurora (Pro)",
+  "Enum_tpl_terrace": "Terrace (Pro)",
   "Enum_tpl_minimal": "Mínima",
   "Enum_tpl_contrast": "Contraste",
   "Enum_tpl_soft": "Suave",
@@ -174,5 +181,6 @@
   "Enum_legend_bottom": "Abajo",
   "Prop_legend_fontSize": "Tamaño de fuente",
   "Prop_legend_color": "Color del texto",
-  "Legend_Cumulative": "% acumulado"
+  "Legend_Cumulative": "% acumulado",
+  "Feat_styles": "estilos de la colección"
 }

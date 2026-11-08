@@ -116,7 +116,14 @@
   "Obj_style": "스타일 템플릿",
   "Prop_style_template": "템플릿",
   "Prop_style_guide": "설정 가이드",
+  "Enum_tpl_report": "보고서 테마",
   "Enum_tpl_clean": "깔끔",
+  "Enum_tpl_boardroom": "Boardroom (Pro)",
+  "Enum_tpl_ledger": "Ledger (Pro)",
+  "Enum_tpl_editorial": "Editorial (Pro)",
+  "Enum_tpl_signal": "Signal (Pro)",
+  "Enum_tpl_aurora": "Aurora (Pro)",
+  "Enum_tpl_terrace": "Terrace (Pro)",
   "Enum_tpl_minimal": "미니멀",
   "Enum_tpl_contrast": "대비",
   "Enum_tpl_soft": "부드럽게",
@@ -174,5 +181,6 @@
   "Enum_legend_bottom": "아래쪽",
   "Prop_legend_fontSize": "글꼴 크기",
   "Prop_legend_color": "텍스트 색",
-  "Legend_Cumulative": "누적 %"
+  "Legend_Cumulative": "누적 %",
+  "Feat_styles": "컬렉션 스타일"
 }

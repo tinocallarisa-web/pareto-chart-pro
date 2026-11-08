@@ -178,11 +178,80 @@ const TEMPLATES: Record<string, Record<string, Record<string, any>>> = {
     compact: { axes: { fontSize: 9 }, summary: { fontSize: 10 }, cumulativeLine: { dotRadius: 3, lineWidth: 1.5 },
         valueLabels: { fontSize: 8 }, pareto: { barGap: 1 } },
     ibcs: { pareto: { ibcsMode: true }, referenceLines: { ref1Color: "#000000" }, summary: { color: "#000000" } },
+    // The six styles of the TCViz collection (1.7), Pro with preview: the same looks as KPI Card and Histogram.
+    boardroom: estilo({ bar: "#C9A45C", line: "#F2F0E8", ref: "#EB8A7B", axis: "#9FB0C6", grid: "#2A3E5C", text: "#F2F0E8", beyond: "#3A4E6C",
+        cross: "#6FCF97", a: "#C9A45C", b: "#8FB8E8", c: "#5A6E8C", cmp: "#6E7F96", up: "#6FCF97", down: "#EB8A7B", bg: "#16263D" }),
+    ledger: estilo({ bar: "#3A3528", line: "#7A1F1F", ref: "#946A10", axis: "#6E6652", grid: "#D9D2BE", text: "#231F16", beyond: "#D9D2BE",
+        cross: "#7A1F1F", a: "#7A1F1F", b: "#946A10", c: "#B7AD92", cmp: "#B7AD92", up: "#2F6B3B", down: "#A32A2A", bg: "#FBF8EF" }),
+    editorial: estilo({ bar: "#111111", line: "#D7263D", ref: "#5F5F5F", axis: "#5F5F5F", grid: "#E2E2E2", text: "#111111", beyond: "#BDBDBD",
+        cross: "#D7263D", a: "#111111", b: "#5F5F5F", c: "#BDBDBD", cmp: "#BDBDBD", up: "#111111", down: "#D7263D", bg: "#FFFFFF" }),
+    signal: estilo({ bar: "#14202B", line: "#1F7A4D", ref: "#B7791F", axis: "#566472", grid: "#D9DEE4", text: "#14202B", beyond: "#C9D1DA",
+        cross: "#1F7A4D", a: "#1F7A4D", b: "#B7791F", c: "#9AA5B1", cmp: "#9AA5B1", up: "#1F7A4D", down: "#C0392B", bg: "#FFFFFF" }),
+    aurora: estilo({ bar: "#7CE7D0", line: "#FFD27D", ref: "#FF9DB0", axis: "#C5D3E3", grid: "#3A5C7E", text: "#FFFFFF", beyond: "#2D5A7A",
+        cross: "#FFD27D", a: "#7CE7D0", b: "#FFD27D", c: "#FF9DB0", cmp: "#6F8BA8", up: "#7CE7D0", down: "#FF9DB0", bg: "#10395E" }),
+    terrace: estilo({ bar: "#B5532A", line: "#5E7128", ref: "#B5372A", axis: "#7A6450", grid: "#E5D6C2", text: "#3A2A1E", beyond: "#E5D6C2",
+        cross: "#5E7128", a: "#B5532A", b: "#B5782A", c: "#C9A77E", cmp: "#C9A77E", up: "#5E7128", down: "#B5372A", bg: "#FBF5EC" }),
 };
 
-function readSettings(dv: DataView): Settings {
+const NUEVOS_GUIA: [string, string, string][] = [["boardroom", "Enum_tpl_boardroom", "Boardroom (Pro)"],
+    ["ledger", "Enum_tpl_ledger", "Ledger (Pro)"], ["editorial", "Enum_tpl_editorial", "Editorial (Pro)"],
+    ["signal", "Enum_tpl_signal", "Signal (Pro)"], ["aurora", "Enum_tpl_aurora", "Aurora (Pro)"], ["terrace", "Enum_tpl_terrace", "Terrace (Pro)"]];
+
+/** Collection styles: Pro. Without a licence (and outside the preview) the visual draws the report's theme. */
+const PRO_STYLES = new Set(["boardroom", "ledger", "editorial", "signal", "aurora", "terrace"]);
+
+/** What a template sets beyond the settings: the visual's background and font. */
+const STYLE_LOOK: Record<string, { bg?: string; grad?: string; font?: string }> = {
+    boardroom: { bg: "#16263D" },
+    ledger: { bg: "#FBF8EF", font: "Georgia, serif" },
+    editorial: { bg: "#FFFFFF", font: "Georgia, serif" },
+    signal: { bg: "#FFFFFF" },
+    aurora: { grad: "linear-gradient(135deg, #1B1147, #10395E 50%, #0B5A5E)" },
+    terrace: { bg: "#FBF5EC" },
+};
+
+interface Paleta { bar: string; line: string; ref: string; axis: string; grid: string; text: string; beyond: string; cross: string;
+    a: string; b: string; c: string; cmp: string; up: string; down: string; bg: string; }
+
+/** One palette spread over every colour the Pareto paints. */
+function estilo(p: Paleta): Record<string, Record<string, any>> {
+    return {
+        pareto: { barColor: p.bar, borderColor: p.bg, barOpacity: 100 },
+        thresholdColors: { withinColor: p.bar, beyondColor: p.beyond, crossingColor: p.cross },
+        axes: { axisColor: p.axis, gridColor: p.grid },
+        cumulativeLine: { lineColor: p.line },
+        referenceLines: { ref1Color: p.ref, ref2Color: p.axis, ref3Color: p.cross },
+        valueLabels: { color: p.text },
+        summary: { color: p.text },
+        comparison: { barColor: p.cmp, lineColor: p.cmp, upColor: p.up, downColor: p.down },
+        smallMultiples: { titleColor: p.text },
+        legend: { color: p.axis },
+        abcZones: { aColor: p.a, bColor: p.b, cColor: p.c },
+    };
+}
+
+/**
+ * "Report theme" (1.7, the default): the colours of the report's own theme, as a native visual. No background of its
+ * own: Power BI paints it. Rebuilt on every update, so a theme change shows at once.
+ */
+function reportTemplate(host: IVisualHost): Record<string, Record<string, any>> {
+    const pal: any = host.colorPalette;
+    const fg: string = pal?.foreground?.value ?? "#252423";
+    const soft: string = pal?.foregroundNeutralSecondary?.value ?? fg;
+    const grid: string = pal?.backgroundNeutral?.value ?? pal?.backgroundLight?.value ?? "#E1DFDD";
+    const bg: string = pal?.background?.value ?? "#FFFFFF";
+    const c = (k: string, def: string): string => pal?.getColor?.(k)?.value ?? def;
+    const bar = c("pc-bars", "#4472C4"), line = c("pc-line", "#ED7D31"), ref = c("pc-ref", "#E84444");
+    const t = estilo({ bar, line, ref, axis: soft, grid, text: fg, beyond: grid, cross: line,
+        a: bar, b: c("pc-b", "#3E9C5B"), c: c("pc-c", "#A0A0A0"), cmp: soft, up: c("pc-up", "#2E7D32"), down: c("pc-down", "#C62828"), bg });
+    delete t.pareto.borderColor;
+    t.pareto.barOpacity = 85;
+    return t;
+}
+
+function readSettings(dv: DataView, efectiva?: string): Settings {
     const o   = dv?.metadata?.objects;
-    const tpl = TEMPLATES[String((o?.["style"]?.["template"] as string) ?? "clean")] ?? {};
+    const tpl = TEMPLATES[efectiva ?? String((o?.["style"]?.["template"] as string) ?? "report")] ?? {};
     const tv  = (g: string, p: string): any => tpl[g]?.[p];
     const col = (g: string, p: string, def: string) =>
         ((o?.[g]?.[p] as powerbi.Fill)?.solid?.color) ?? tv(g, p) ?? def;
@@ -395,6 +464,8 @@ export class Visual implements IVisual {
      * first frame, and a published report would ship an unpaid feature.
      */
     private proPreview = false;
+    /** Template drawn in this update (see plantillaEfectiva). */
+    private tplEfectiva = "report";
     private watermarkEl: HTMLDivElement | null = null;
     /**
      * Un unico color distinto en categories[0].objects significa que el usuario eligio
@@ -598,7 +669,9 @@ export class Visual implements IVisual {
         try {
             const dv = options.dataViews?.[0];
             this.lastDataView = dv;
-            this.settings = readSettings(dv);
+            TEMPLATES.report = reportTemplate(this.host);
+            this.tplEfectiva = this.plantillaEfectiva(dv);
+            this.settings = readSettings(dv, this.tplEfectiva);
             const cols = dv?.metadata?.columns ?? [];
             this.hasCmpField   = cols.some(c => c.roles?.["comparison"]);
             this.hasPanelField = cols.some(c => c.roles?.["panel"]);
@@ -612,7 +685,7 @@ export class Visual implements IVisual {
             this.subSelectionHelper.setFormatMode(this.formatMode);
             // Elegir una plantilla (panel o asistente) la aplica de verdad: se borran los ajustes que define, porque
             // un ajuste guardado manda sobre ella. Solo al CAMBIARLA y editando; nunca al abrir el informe.
-            const tplAhora = String(((dv?.metadata?.objects as any)?.style?.template) ?? "clean");
+            const tplAhora = String(((dv?.metadata?.objects as any)?.style?.template) ?? "report");
             if (this.editing && this.tplVisto !== null && this.tplVisto !== tplAhora) { this.aplicarPlantilla(tplAhora); }
             this.tplVisto = tplAhora;
 
@@ -709,6 +782,10 @@ export class Visual implements IVisual {
                 // frame de un cliente Pro saldria con marca de agua.
                 this.proPreview = !this.isPro && this.editing && this.isProChecked
                     && this.licenseEnvSupported && this.licenseInfoAvailable;
+                // A collection style needs the licence (or the preview): known only now, so the settings are read again.
+                const efectiva = this.plantillaEfectiva(dv);
+                if (efectiva !== this.tplEfectiva) { this.tplEfectiva = efectiva; this.settings = readSettings(dv, efectiva); }
+                this.aplicarAspecto();
 
                 // After the licence is known, and only if the user actually
                 // reached for a Pro setting.
@@ -837,6 +914,9 @@ export class Visual implements IVisual {
             ["ABC zones",
              objs.abcZones?.show === true,
              `abc=${objs.abcZones?.show === true}`],
+            ["style templates",
+             PRO_STYLES.has(String(objs.style?.template ?? "")),
+             `style=${objs.style?.template ?? ""}`],
         ];
 
         const labels: string[] = [];
@@ -876,8 +956,22 @@ export class Visual implements IVisual {
             case "comparison":             return this.t("Feat_cmp",       "comparison");
             case "small multiples":        return this.t("Feat_panels",    "small multiples");
             case "ABC zones":              return this.t("Feat_abc",       "ABC zones");
+            case "style templates":        return this.t("Feat_styles",    "collection styles");
             default: return id;
         }
+    }
+
+    /** The template that is drawn: a collection style only with Pro or in the preview; otherwise the report's theme. */
+    private plantillaEfectiva(dv: DataView): string {
+        const t = String(((dv?.metadata?.objects as any)?.style?.template) ?? "report");
+        if (!TEMPLATES[t]) return "report";
+        return !PRO_STYLES.has(t) || this.previewOf("style templates") ? t : "report";
+    }
+
+    /** Background and font of a collection style, on the visual's own container. */
+    private aplicarAspecto(): void {
+        const look = this.host.colorPalette?.isHighContrast ? {} : (STYLE_LOOK[this.tplEfectiva] ?? {});
+        this.container.style("background", look.grad ?? look.bg ?? null).style("font-family", look.font ?? null);
     }
 
     private previewOf(feature: string): boolean {
@@ -2588,7 +2682,7 @@ export class Visual implements IVisual {
 
         // Plantilla: el panel enseña lo que se pinta. Lo escrito por el usuario ya lo ha puesto populate.
         const objs: any = this.lastDataView?.metadata?.objects ?? {};
-        const tplM = TEMPLATES[String(objs?.style?.template ?? "clean")] ?? {};
+        const tplM = TEMPLATES[this.tplEfectiva] ?? {};
         for (const g of Object.keys(tplM)) {
             for (const p of Object.keys(tplM[g])) {
                 if (objs?.[g]?.[p] !== undefined) continue;
@@ -2882,11 +2976,13 @@ export class Visual implements IVisual {
             pie.appendChild(boton(this.t("Guide_Next", "Next"), true, () => { this.guideStep = 3; this.renderGuide(); }));
         } else {
             titulo.textContent = this.t("Guide_Style", "Pick a style");
-            const actual = String(objs?.style?.template ?? "clean");
+            const actual = String(objs?.style?.template ?? "report");
             const rejilla = mk("div", "pc-g-grid");
-            const nombres: [string, string, string][] = [["clean", "Enum_tpl_clean", "Clean"], ["minimal", "Enum_tpl_minimal", "Minimal"],
-                ["contrast", "Enum_tpl_contrast", "Contrast"], ["soft", "Enum_tpl_soft", "Soft"], ["compact", "Enum_tpl_compact", "Compact"],
-                ["ibcs", "Enum_tpl_ibcs", "IBCS style"]];
+            // Report theme, Classic (Clean) and IBCS, free; the six collection styles, Pro. Minimal, Contrast, Soft and
+            // Compact stay in the Format pane for the reports that use them.
+            const nombres: [string, string, string][] = [["report", "Enum_tpl_report", "Report theme"], ["clean", "Enum_tpl_clean", "Clean"],
+                ["ibcs", "Enum_tpl_ibcs", "IBCS style"],
+                ...NUEVOS_GUIA];
             for (const [nombre, clave, def] of nombres) {
                 const chip = mk("button", "pc-g-tpl") as HTMLButtonElement;
                 chip.type = "button";
@@ -2914,6 +3010,8 @@ export class Visual implements IVisual {
         const NS = "http://www.w3.org/2000/svg";
         const svg = document.createElementNS(NS, "svg") as SVGSVGElement;
         svg.setAttribute("width", "64"); svg.setAttribute("height", "40"); svg.setAttribute("aria-hidden", "true");
+        const fondo = STYLE_LOOK[nombre];
+        if (fondo && !hc) svg.style.background = fondo.grad ?? fondo.bg ?? "";
         [30, 20, 13, 8, 5].forEach((h, i) => {
             const r = document.createElementNS(NS, "rect");
             r.setAttribute("x", String(4 + i * 12)); r.setAttribute("y", String(38 - h)); r.setAttribute("width", "10"); r.setAttribute("height", String(h));

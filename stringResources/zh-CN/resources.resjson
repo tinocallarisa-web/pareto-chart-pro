@@ -116,7 +116,14 @@
   "Obj_style": "样式模板",
   "Prop_style_template": "模板",
   "Prop_style_guide": "设置向导",
+  "Enum_tpl_report": "报表主题",
   "Enum_tpl_clean": "简洁",
+  "Enum_tpl_boardroom": "Boardroom (Pro)",
+  "Enum_tpl_ledger": "Ledger (Pro)",
+  "Enum_tpl_editorial": "Editorial (Pro)",
+  "Enum_tpl_signal": "Signal (Pro)",
+  "Enum_tpl_aurora": "Aurora (Pro)",
+  "Enum_tpl_terrace": "Terrace (Pro)",
   "Enum_tpl_minimal": "极简",
   "Enum_tpl_contrast": "对比",
   "Enum_tpl_soft": "柔和",
@@ -174,5 +181,6 @@
   "Enum_legend_bottom": "底部",
   "Prop_legend_fontSize": "字号",
   "Prop_legend_color": "文本颜色",
-  "Legend_Cumulative": "累计 %"
+  "Legend_Cumulative": "累计 %",
+  "Feat_styles": "系列样式"
 }

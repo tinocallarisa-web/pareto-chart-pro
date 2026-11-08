@@ -222,7 +222,7 @@ export class StyleCard extends SimpleCard {
     name = "style";
     displayName = "Style template";
     displayNameKey = "Obj_style";
-    template = new AutoDropdown({ name: "template", displayName: "Template", displayNameKey: "Prop_style_template", value: "clean" });
+    template = new AutoDropdown({ name: "template", displayName: "Template", displayNameKey: "Prop_style_template", value: "report" });
     guide    = new ToggleSwitch({ name: "guide", displayName: "Setup guide", displayNameKey: "Prop_style_guide", value: true });
     slices = [this.template, this.guide];
 }

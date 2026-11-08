@@ -116,7 +116,14 @@
   "Obj_style": "Modello di stile",
   "Prop_style_template": "Modello",
   "Prop_style_guide": "Procedura guidata",
+  "Enum_tpl_report": "Tema del report",
   "Enum_tpl_clean": "Pulito",
+  "Enum_tpl_boardroom": "Boardroom (Pro)",
+  "Enum_tpl_ledger": "Ledger (Pro)",
+  "Enum_tpl_editorial": "Editorial (Pro)",
+  "Enum_tpl_signal": "Signal (Pro)",
+  "Enum_tpl_aurora": "Aurora (Pro)",
+  "Enum_tpl_terrace": "Terrace (Pro)",
   "Enum_tpl_minimal": "Minimale",
   "Enum_tpl_contrast": "Contrasto",
   "Enum_tpl_soft": "Morbido",
@@ -174,5 +181,6 @@
   "Enum_legend_bottom": "In basso",
   "Prop_legend_fontSize": "Dimensione carattere",
   "Prop_legend_color": "Colore testo",
-  "Legend_Cumulative": "% cumulata"
+  "Legend_Cumulative": "% cumulata",
+  "Feat_styles": "stili della collezione"
 }

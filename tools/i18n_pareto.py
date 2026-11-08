@@ -236,4 +236,12 @@ P = {
 'Bottom': ['Inferior', 'Bas', 'Unten', 'In basso', 'Onder', 'Dół', '下', '底部', '아래쪽', 'Abajo'],
 'Text color': ['Cor do texto', 'Couleur du texte', 'Textfarbe', 'Colore testo', 'Tekstkleur', 'Kolor tekstu', 'テキストの色', '文本颜色', '텍스트 색', 'Color del texto'],
 'Cumulative %': ['% acumulado', '% cumulé', 'Kumulierte %', '% cumulata', 'Cumulatief %', '% skumulowany', '累積 %', '累计 %', '누적 %', '% acumulado'],
+"Report theme": ["Tema do relatório", "Thème du rapport", "Berichtsdesign", "Tema del report", "Rapportthema", "Motyw raportu", "レポートのテーマ", "报表主题", "보고서 테마", "Tema del informe"],
+"collection styles": ["estilos da coleção", "styles de la collection", "Kollektionsstile", "stili della collezione", "collectiestijlen", "style kolekcji", "コレクション スタイル", "系列样式", "컬렉션 스타일", "estilos de la colección"],
+"Boardroom (Pro)": ["Boardroom (Pro)", "Boardroom (Pro)", "Boardroom (Pro)", "Boardroom (Pro)", "Boardroom (Pro)", "Boardroom (Pro)", "Boardroom (Pro)", "Boardroom (Pro)", "Boardroom (Pro)", "Boardroom (Pro)"],
+"Ledger (Pro)": ["Ledger (Pro)", "Ledger (Pro)", "Ledger (Pro)", "Ledger (Pro)", "Ledger (Pro)", "Ledger (Pro)", "Ledger (Pro)", "Ledger (Pro)", "Ledger (Pro)", "Ledger (Pro)"],
+"Editorial (Pro)": ["Editorial (Pro)", "Editorial (Pro)", "Editorial (Pro)", "Editorial (Pro)", "Editorial (Pro)", "Editorial (Pro)", "Editorial (Pro)", "Editorial (Pro)", "Editorial (Pro)", "Editorial (Pro)"],
+"Signal (Pro)": ["Signal (Pro)", "Signal (Pro)", "Signal (Pro)", "Signal (Pro)", "Signal (Pro)", "Signal (Pro)", "Signal (Pro)", "Signal (Pro)", "Signal (Pro)", "Signal (Pro)"],
+"Aurora (Pro)": ["Aurora (Pro)", "Aurora (Pro)", "Aurora (Pro)", "Aurora (Pro)", "Aurora (Pro)", "Aurora (Pro)", "Aurora (Pro)", "Aurora (Pro)", "Aurora (Pro)", "Aurora (Pro)"],
+"Terrace (Pro)": ["Terrace (Pro)", "Terrace (Pro)", "Terrace (Pro)", "Terrace (Pro)", "Terrace (Pro)", "Terrace (Pro)", "Terrace (Pro)", "Terrace (Pro)", "Terrace (Pro)", "Terrace (Pro)"],
 }

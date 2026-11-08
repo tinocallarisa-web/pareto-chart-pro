@@ -116,7 +116,14 @@
   "Obj_style": "スタイル テンプレート",
   "Prop_style_template": "テンプレート",
   "Prop_style_guide": "セットアップ ガイド",
+  "Enum_tpl_report": "レポートのテーマ",
   "Enum_tpl_clean": "クリーン",
+  "Enum_tpl_boardroom": "Boardroom (Pro)",
+  "Enum_tpl_ledger": "Ledger (Pro)",
+  "Enum_tpl_editorial": "Editorial (Pro)",
+  "Enum_tpl_signal": "Signal (Pro)",
+  "Enum_tpl_aurora": "Aurora (Pro)",
+  "Enum_tpl_terrace": "Terrace (Pro)",
   "Enum_tpl_minimal": "ミニマル",
   "Enum_tpl_contrast": "コントラスト",
   "Enum_tpl_soft": "ソフト",
@@ -174,5 +181,6 @@
   "Enum_legend_bottom": "下",
   "Prop_legend_fontSize": "フォント サイズ",
   "Prop_legend_color": "テキストの色",
-  "Legend_Cumulative": "累積 %"
+  "Legend_Cumulative": "累積 %",
+  "Feat_styles": "コレクション スタイル"
 }

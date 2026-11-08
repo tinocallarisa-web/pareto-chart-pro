@@ -110,6 +110,11 @@
           "type": {
             "enumeration": [
               {
+                "value": "report",
+                "displayName": "Report theme",
+                "displayNameKey": "Enum_tpl_report"
+              },
+              {
                 "value": "clean",
                 "displayName": "Clean",
                 "displayNameKey": "Enum_tpl_clean"
@@ -138,6 +143,36 @@
                 "value": "ibcs",
                 "displayName": "IBCS style",
                 "displayNameKey": "Enum_tpl_ibcs"
+              },
+              {
+                "value": "boardroom",
+                "displayName": "Boardroom (Pro)",
+                "displayNameKey": "Enum_tpl_boardroom"
+              },
+              {
+                "value": "ledger",
+                "displayName": "Ledger (Pro)",
+                "displayNameKey": "Enum_tpl_ledger"
+              },
+              {
+                "value": "editorial",
+                "displayName": "Editorial (Pro)",
+                "displayNameKey": "Enum_tpl_editorial"
+              },
+              {
+                "value": "signal",
+                "displayName": "Signal (Pro)",
+                "displayNameKey": "Enum_tpl_signal"
+              },
+              {
+                "value": "aurora",
+                "displayName": "Aurora (Pro)",
+                "displayNameKey": "Enum_tpl_aurora"
+              },
+              {
+                "value": "terrace",
+                "displayName": "Terrace (Pro)",
+                "displayNameKey": "Enum_tpl_terrace"
               }
             ]
           }

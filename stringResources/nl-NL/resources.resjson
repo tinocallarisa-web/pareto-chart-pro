@@ -116,7 +116,14 @@
   "Obj_style": "Stijlsjabloon",
   "Prop_style_template": "Sjabloon",
   "Prop_style_guide": "Installatiehulp",
+  "Enum_tpl_report": "Rapportthema",
   "Enum_tpl_clean": "Strak",
+  "Enum_tpl_boardroom": "Boardroom (Pro)",
+  "Enum_tpl_ledger": "Ledger (Pro)",
+  "Enum_tpl_editorial": "Editorial (Pro)",
+  "Enum_tpl_signal": "Signal (Pro)",
+  "Enum_tpl_aurora": "Aurora (Pro)",
+  "Enum_tpl_terrace": "Terrace (Pro)",
   "Enum_tpl_minimal": "Minimaal",
   "Enum_tpl_contrast": "Contrast",
   "Enum_tpl_soft": "Zacht",
@@ -174,5 +181,6 @@
   "Enum_legend_bottom": "Onder",
   "Prop_legend_fontSize": "Tekengrootte",
   "Prop_legend_color": "Tekstkleur",
-  "Legend_Cumulative": "Cumulatief %"
+  "Legend_Cumulative": "Cumulatief %",
+  "Feat_styles": "collectiestijlen"
 }
