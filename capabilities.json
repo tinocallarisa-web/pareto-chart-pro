@@ -704,6 +704,40 @@
         }
       }
     },
+    "rangeBar": {
+      "displayName": "Range bar",
+      "displayNameKey": "Obj_rangeBar",
+      "properties": {
+        "show": {
+          "displayName": "Show range bar",
+          "displayNameKey": "Prop_rangeBar_show",
+          "description": "A bar with two handles under the axis to filter the report by a stretch of ranks: the top 20%, from #50 to #200.",
+          "type": {
+            "bool": true
+          }
+        },
+        "shortcuts": {
+          "displayName": "Shortcuts and summary (Pro)",
+          "displayNameKey": "Prop_rangeBar_shortcuts",
+          "description": "Vital few, A, B, C and the tail in one click, and what the range holds. Pro.",
+          "type": {
+            "bool": true
+          }
+        },
+        "color": {
+          "displayName": "Range color",
+          "displayNameKey": "Prop_rangeBar_color",
+          "description": "Color of the range and its handles.",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        }
+      }
+    },
     "abcZones": {
       "displayName": "ABC zones (Pro)",
       "displayNameKey": "Obj_abcZones",

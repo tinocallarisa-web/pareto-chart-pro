@@ -102,6 +102,20 @@ export class AxesCard extends SimpleCard {
     slices = [this.axisColor, this.gridColor, this.fontSize, this.showXLabel, this.showYLabel];
 }
 
+// ─── Range bar (1.7) ──────────────────────────────────────────────────────────
+export class RangeBarCard extends SimpleCard {
+    name        = "rangeBar";
+    displayName = "Range bar";
+    displayNameKey = "Obj_rangeBar";
+
+    show      = new ToggleSwitch({ name: "show",      displayName: "Show range bar", displayNameKey: "Prop_rangeBar_show", value: true });
+    shortcuts = new ToggleSwitch({ name: "shortcuts", displayName: "Shortcuts and summary (Pro)", displayNameKey: "Prop_rangeBar_shortcuts", value: true });
+    // No colour saved = the cumulative line's colour (getFormattingModel shows the one painted).
+    color     = new ColorPicker({  name: "color",     displayName: "Range color", displayNameKey: "Prop_rangeBar_color", value: { value: "#ED7D31" } });
+
+    slices = [this.show, this.shortcuts, this.color];
+}
+
 // ─── Cumulative Line Card ─────────────────────────────────────────────────────
 export class CumulativeLineCard extends SimpleCard {
     name        = "cumulativeLine";
@@ -248,6 +262,7 @@ export class ParetoFormattingSettings extends Model {
     summary         = new SummaryCard();
     thresholdColors = new ThresholdColorsCard();
     axes            = new AxesCard();
+    rangeBar        = new RangeBarCard();
     cumulativeLine  = new CumulativeLineCard();
     referenceLines  = new ReferenceLinesCard();
     comparison      = new ComparisonCard();
@@ -262,6 +277,7 @@ export class ParetoFormattingSettings extends Model {
         this.summary,
         this.thresholdColors,
         this.axes,
+        this.rangeBar,
         this.cumulativeLine,
         this.referenceLines,
         this.comparison,

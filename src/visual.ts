@@ -165,6 +165,10 @@ interface Settings {
     abcBColor:    string;
     abcCColor:    string;
     abcLabels:    boolean;
+    // rangeBar group (1.7): the bar is free, shortcuts and summary Pro
+    rangeShow:      boolean;
+    rangeShortcuts: boolean;
+    rangeColor:     string;
 }
 
 /**
@@ -344,6 +348,10 @@ function readSettings(dv: DataView, efectiva?: string): Settings {
         abcBColor:     col("abcZones", "bColor",     "#3E9C5B"),
         abcCColor:     col("abcZones", "cColor",     "#A0A0A0"),
         abcLabels:     boo("abcZones", "showLabels", true),
+
+        rangeShow:      boo("rangeBar", "show",      true),
+        rangeShortcuts: boo("rangeBar", "shortcuts", true),
+        rangeColor:     col("rangeBar", "color",     ""),
     };
 }
 
@@ -423,6 +431,21 @@ interface PanelDatum {
     /** ABC zones: entities in class A and in A+B, counted exactly. Null when off. */
     abcA:       number | null;
     abcAB:      number | null;
+    /** 1.7, range bar: the category rows in rank order (after the trim), and their values. */
+    order:      number[];
+    orderVals:  number[];
+    total:      number;
+    /** The ABC cuts counted whether the zones are drawn or not: the A, B and C range shortcuts. */
+    cutA:       number;
+    cutAB:      number;
+}
+
+/** What the range bar reads back from the filter in force. Ranks are 0-based, `hi` exclusive. */
+interface RangeRead {
+    lo: number;
+    hi: number;
+    /** The entities filtered are no longer the ones at those ranks: the filter is a fixed list. */
+    stale: boolean;
 }
 
 /** Per-panel input to the binning: one value per category row. */
@@ -545,6 +568,32 @@ export class Visual implements IVisual {
     /** Formato desde el lienzo (on-object). */
     public visualOnObjectFormatting: powerbi.extensibility.visual.VisualOnObjectFormatting;
     private subSelectionHelper: HtmlSubSelectionHelper;
+
+    // ── Range bar (1.7) ───────────────────────────────────────────────────────
+    /** A range shortcut was used in this editing session without a licence: it draws as Pro preview. */
+    private shortcutTried = false;
+    /** Which handle holds the keyboard, to give the focus back after the re-render. */
+    private rangeFocus: "lo" | "hi" | null = null;
+    private rangeTimer: number | null = null;
+    /** The svg is being emptied: the blur that follows is not the user leaving the handle. */
+    private painting = false;
+    /**
+     * The stretch of ranks asked for, with the signature of the filter it produced. The filter only
+     * holds entities; this is what says "#1–#120" was asked when those entities move.
+     */
+    private askedRange: { lo: number; hi: number; sig: string } | null = null;
+    /**
+     * The filter this visual has just applied. Power BI hands it back a moment later; an update in
+     * between still carries the previous one, and the range jumped back on release.
+     */
+    private ownFilter: { sig: string; at: number; filters: any[] } | null = null;
+    /** Whether the range bar can be drawn in this render (one panel, a filterable column, no drill). */
+    private rangeAllowedNow = false;
+    /** The filter in force in this update (after ownFilter), for the range bar to read back. */
+    private curFilters: any[] = [];
+    /** Unique per instance: the id of the range's clip path. */
+    private static instances = 0;
+    private readonly uid = String(++Visual.instances);
 
     constructor(options: VisualConstructorOptions) {
         this.host             = options.host;
@@ -790,7 +839,10 @@ export class Visual implements IVisual {
                 && (this.container.node() as HTMLElement).contains(activeEl);
 
             this.container.selectAll(".loading-indicator").remove();
+            this.painting = true;
             this.svg.selectAll("*").remove();
+            this.container.selectAll(".pc-range").remove();
+            this.painting = false;
             this.container.selectAll(".landing-page").remove();
 
             // Applying a filter persists it into this visual's own general.filter
@@ -801,6 +853,12 @@ export class Visual implements IVisual {
             //
             // Keep the selection instead, and only drop it when the filter is
             // genuinely gone (cleared elsewhere, or a bookmark switched it off).
+            if (this.ownFilter) {
+                const incoming = (options as any).jsonFilters as any[] | undefined;
+                if (Visual.filterSig(incoming) === this.ownFilter.sig || Date.now() - this.ownFilter.at > 3000) this.ownFilter = null;
+                else (options as any).jsonFilters = this.ownFilter.filters;
+            }
+            this.curFilters = ((options as any).jsonFilters as any[] | undefined) ?? [];
             const filterActive =
                 (options.jsonFilters?.length ?? 0) > 0 ||
                 !!(dv.metadata?.objects?.["general"]?.["filter"]);
@@ -955,6 +1013,10 @@ export class Visual implements IVisual {
             ["style templates",
              PRO_STYLES.has(String(objs.style?.template ?? "")),
              `style=${objs.style?.template ?? ""}`],
+            // Not a setting: a click on a shortcut, in this session.
+            ["range shortcuts",
+             this.shortcutTried,
+             `shortcuts=${this.shortcutTried}`],
         ];
 
         const labels: string[] = [];
@@ -996,6 +1058,7 @@ export class Visual implements IVisual {
             case "ABC zones":              return this.t("Feat_abc",       "ABC zones");
             case "style templates":        return this.t("Feat_styles",    "collection styles");
             case "vital few":              return this.t("Feat_vital",     "vital few by name");
+            case "range shortcuts":        return this.t("Feat_shortcuts", "range shortcuts");
             default: return id;
         }
     }
@@ -1399,19 +1462,20 @@ export class Visual implements IVisual {
         // ABC zones, exact like the summary: A reaches the first cut of the total,
         // B the second. Cut points are clamped so B can never end before A.
         let abcA: number | null = null, abcAB: number | null = null;
+        const cutOf = (pct: number): number => {
+            let acc = 0;
+            for (let j = 0; j < sortedVals.length; j++) {
+                acc += sortedVals[j];
+                if (acc >= total * pct / 100 - 1e-9) return j + 1;
+            }
+            return sortedVals.length;
+        };
+        const cutPctA = Math.min(99, Math.max(1, s.abcA));
+        const cutA  = cutOf(cutPctA);
+        const cutAB = Math.max(cutA, cutOf(Math.min(99.9, Math.max(cutPctA, s.abcB))));
         if (s.abcShow && this.previewOf("ABC zones")) {
-            const cutOf = (pct: number): number => {
-                let acc = 0;
-                for (let j = 0; j < sortedVals.length; j++) {
-                    acc += sortedVals[j];
-                    if (acc >= total * pct / 100 - 1e-9) return j + 1;
-                }
-                return sortedVals.length;
-            };
-            const a = Math.min(99, Math.max(1, s.abcA));
-            const b = Math.min(99.9, Math.max(a, s.abcB));
-            abcA  = cutOf(a);
-            abcAB = Math.max(abcA, cutOf(b));
+            abcA  = cutA;
+            abcAB = cutAB;
         }
         let cmpNeed: number | null = null;
 
@@ -1537,6 +1601,11 @@ export class Visual implements IVisual {
             leftVital,
             abcA,
             abcAB,
+            order: trimmedRows.map(r => r.index),
+            orderVals: sortedVals,
+            total,
+            cutA,
+            cutAB,
         };
     }
 
@@ -1581,7 +1650,8 @@ export class Visual implements IVisual {
         // Preferred path: an exact filter over every entity in the bins, no cap.
         const filter = this.buildBinFilter(chosen);
         if (filter) {
-            this.host.applyJsonFilter(filter, "general", "filter", this.FILTER_MERGE);
+            this.askedRange = null;
+            this.setOwnFilter(filter);
             this.applyOpacity([]);
             this.syncAria();
             return;
@@ -1743,6 +1813,13 @@ export class Visual implements IVisual {
 
         const multi = this.panels.length > 1 || (this.panels[0].value !== null && this.panels[0].value !== undefined);
         const n = this.panels.length;
+        // Range bar (1.7): one Pareto, a column the filter can target, and the last level when drilling.
+        // Not with the small-multiples field bound, licensed or not: one bar over several rankings would lie.
+        const dRoles = (this.lastDataView?.metadata as any)?.dataRoles;
+        const drillable = !dRoles?.isDrillDisabled
+            && ((dRoles?.drillableRoles?.["category"] ?? []) as number[]).indexOf(2 /* DrillType.Down */) >= 0;
+        this.rangeAllowedNow = s.rangeShow && !multi && !this.hasPanelField && !drillable
+            && !!this.columnTarget(this.lastCatCol?.source);
         const legFs   = Math.max(7, s.legFontSize);
         const legendH = s.legShow && VH >= 150 && VW >= 220 ? legFs + 12 : 0;
         const legTop  = s.legPos !== "bottom";
@@ -1785,10 +1862,15 @@ export class Visual implements IVisual {
                 this.fitText(title.node(), cellW);
             }
             const body = pg.append("g").attr("transform", `translate(0,${titleH})`);
-            this.drawPanel(body, p, cellW, cellH - titleH, yMax, ctx);
+            this.drawPanel(body, p, cellW, cellH - titleH, yMax, ctx, cx, cy + titleH);
         });
 
         this.wireBars();
+        // Keyboard on a handle: the re-render destroyed it, so the focus goes back to the new one.
+        if (this.rangeFocus && this.restoreFocusAfterRender) {
+            this.restoreFocusAfterRender = false;
+            (this.container.select(`.pc-handle-${this.rangeFocus}`).node() as HTMLElement | null)?.focus();
+        }
         if (legendH > 0) this.drawLegend(VW, legTop ? (isTruncated ? 16 : 0) : VH - legendH, legFs, ctx);
 
         // Truncation notice (Desktop only, when ≥30k rows)
@@ -1896,7 +1978,7 @@ export class Visual implements IVisual {
 
     private drawPanel(
         g: d3.Selection<SVGGElement, unknown, null, undefined>,
-        p: PanelDatum, VW: number, VH: number, yMax: number, ctx: RenderCtx
+        p: PanelDatum, VW: number, VH: number, yMax: number, ctx: RenderCtx, ox = 0, oy = 0
     ): void {
         const s = this.settings;
         const bins = p.bins;
@@ -1921,10 +2003,33 @@ export class Visual implements IVisual {
         const sumFs         = compact ? Math.max(9, s.sumFontSize - 2) : s.sumFontSize;
         const summaryH      = showSummary ? sumFs + 10 : 0;
 
+        const mTop = (tiny ? 10 : compact ? 16 : MARGIN.top) + summaryH;
+        const baseBottom0 = (tiny ? 26 : compact ? 40 : 52) + (showXLabel ? 16 : 0);
+        // Range bar (1.7), under the axis title. Not in a small tile (~220×160), nor when it would leave the bars
+        // less than 70 px. The rotated tick labels reach further down with long names: the bar goes below them.
+        let rangeOn = this.rangeAllowedNow && VW >= 220 && VH >= 160;
+        // Without interactions (an embed that forbids them) only a range in force is worth the space: it can still be
+        // out of date, and that has to be said. In format mode the bar stays, to be picked on the canvas.
+        if (rangeOn && !this.canInteract && !this.formatMode && !this.readRange(p)) rangeOn = false;
+        let baseBottom = baseBottom0;
+        if (rangeOn) {
+            const longest = Math.min(16, d3.max(bins, b => b.label.length + (this.rankMark(b) ? 3 : 0)) ?? 0);
+            baseBottom = Math.max(baseBottom0, Math.ceil(longest * fs * 0.55 * 0.643 + fs + 10) + (showXLabel ? 18 : 2));
+        }
+        // The shortcuts show to whoever can use them, and to an author without a licence as part of the Pro preview.
+        // A reader without a licence gets the free bar alone.
+        let shortcutsOn = rangeOn && s.rangeShortcuts && VW >= 380 && VH >= 260 && this.canInteract && (this.isPro || this.proPreview);
+        let rangeBandH = rangeOn ? 34 + (shortcutsOn ? 24 : 0) : 0;
+        // The shortcuts go before the bar: below 110 px of bars they cost more chart than they give.
+        if (shortcutsOn && VH - mTop - baseBottom - rangeBandH < 110) { shortcutsOn = false; rangeBandH = 34; }
+        if (rangeOn && VH - mTop - baseBottom - rangeBandH < 70) {
+            rangeOn = false; shortcutsOn = false; baseBottom = baseBottom0; rangeBandH = 0;
+        }
+
         const M = {
-            top:    (tiny ? 10 : compact ? 16 : MARGIN.top) + summaryH,
+            top:    mTop,
             right:  tiny ? 30 : compact ? 36 : MARGIN.right,
-            bottom: (tiny ? 26 : compact ? 40 : 52) + (showXLabel ? 16 : 0),
+            bottom: baseBottom + rangeBandH,
             left:   (tiny ? 28 : compact ? 38 : 48) + (showYLabel ? 16 : 0),
         };
 
@@ -2054,7 +2159,7 @@ export class Visual implements IVisual {
         }
         if (showXLabel) {
             gp.append("text")
-                .attr("x", W / 2).attr("y", H + M.bottom - 10)
+                .attr("x", W / 2).attr("y", H + baseBottom - 10)
                 .attr("text-anchor", "middle")
                 .style("font-size", fs + "px").style("fill", axisColor)
                 .text(bins[0]?.named
@@ -2313,6 +2418,8 @@ export class Visual implements IVisual {
         const gpNodo = gp.node() as SVGGElement;
         gp.selectAll<SVGElement, unknown>(".cmp-pill, .abc-label").each(function () { gpNodo.appendChild(this); });
 
+        if (rangeOn) this.drawRange(gp, p, bins, xScale, W, H, H + baseBottom + 4, shortcutsOn, ctx, fs, ox + M.left, oy + M.top);
+
         // The Free tier upsell caption used to live here. Removed: Microsoft is
         // explicit that a visual "shouldn't display its own licensing UX, instead
         // use one of Power BI supported predefined notifications". The Pro
@@ -2435,10 +2542,292 @@ export class Visual implements IVisual {
             );
 
         // A re-render destroys the focused node; put focus back where it was.
-        if (this.restoreFocusAfterRender) {
+        if (this.restoreFocusAfterRender && !this.rangeFocus) {
             this.restoreFocusAfterRender = false;
             (barSel.nodes()[this.focusedBin] as SVGRectElement | undefined)?.focus();
         }
+    }
+
+    // ── Range bar (1.7) ───────────────────────────────────────────────────────
+    /**
+     * The range bar under the axis: two handles over the ranking, in entities by rank, not in values. Free: dragging
+     * to the entity, the keyboard and the slider ARIA. Pro: Vital few, A, B, C and Tail in one click, and what the
+     * range holds. It is HTML over the chart: the svg is a listbox of bars and a slider inside it would be invalid
+     * ARIA. The stretch of bars it covers is lit in the svg. Dragging repaints only this band and that overlay — no
+     * update(), so no rendering events; the report is filtered on release.
+     */
+    private drawRange(
+        gp: d3.Selection<SVGGElement, unknown, null, undefined>, p: PanelDatum, bins: BinDatum[],
+        xScale: d3.ScaleBand<string>, W: number, H: number, y: number, shortcutsOn: boolean,
+        ctx: RenderCtx, fs: number, left: number, top: number
+    ): void {
+        const tn = p.order.length;
+        if (tn < 2 || !bins.length) return;
+        const pal: any = this.host.colorPalette;
+        const isHC = ctx.isHC;
+        const accent = isHC ? (pal?.foregroundSelected?.value ?? ctx.hcFg) : (this.settings.rangeColor || ctx.lineColor);
+        const knob = isHC ? ctx.hcBg : "#FFFFFF";
+        const txt = ctx.axisColor;
+        const interactive = this.canInteract;
+        const read = this.readRange(p);
+        const stale = !!read?.stale;
+        let active = !!read && !read.stale;
+        let lo = read ? read.lo : 0, hi = read ? read.hi : tn;
+        // Being dragged or keyed: the band shows what is asked, not what is in force.
+        let touched = false;
+
+        // Rank → x, bar by bar: a named bar holds one entity and a rank range thousands, so a handle sits under the
+        // bar whose entities it bounds. A boundary r sits between rank r and rank r + 1 (0-based).
+        const half = (xScale.step() - xScale.bandwidth()) / 2;
+        const E = bins.map(b => (xScale(b.key) ?? 0) - half);
+        E.push((xScale(bins[bins.length - 1].key) ?? 0) + xScale.bandwidth() + half);
+        const S0 = bins.map(b => b.rank - 1), N = bins.map(b => b.nEntities);
+        const xOf = (r: number): number => {
+            for (let k = 0; k < bins.length; k++) {
+                if (r <= S0[k] + N[k]) return E[k] + (E[k + 1] - E[k]) * Math.max(0, r - S0[k]) / Math.max(1, N[k]);
+            }
+            return E[bins.length];
+        };
+        const rOf = (x: number): number => {
+            if (x <= E[0]) return 0;
+            for (let k = 0; k < bins.length; k++) {
+                if (x < E[k + 1]) return S0[k] + Math.round(N[k] * (x - E[k]) / Math.max(1e-6, E[k + 1] - E[k]));
+            }
+            return tn;
+        };
+
+        // The stretch of the bars inside the range, at full strength over the dimmed bars: a range can end inside a bar.
+        const barsSel = gp.selectAll<SVGRectElement, BinDatum>(".bar");
+        barsSel.attr("data-op", function () { return this.getAttribute("opacity"); });
+        const clipId = `pc-range-clip-${this.uid}`;
+        const clipRect = gp.append("clipPath").attr("id", clipId).append("rect").attr("y", -2).attr("height", H + 4);
+        const over = gp.insert("g", ".bar-hl, .bar-label, .cmp-pill, .cmp-line, .cum-line")
+            .attr("class", "pc-range-over").attr("clip-path", `url(#${clipId})`)
+            .attr("pointer-events", "none").attr("aria-hidden", "true");
+        const overNode = over.node() as SVGGElement;
+        barsSel.each(function () {
+            const c = this.cloneNode(false) as SVGRectElement;
+            for (const a of ["class", "tabindex", "role", "aria-label", "aria-selected"]) c.removeAttribute(a);
+            c.style.cursor = "";
+            overNode.appendChild(c);
+        });
+
+        const band = this.container.append("div").classed("pc-range", true)
+            .style("position", "absolute").style("left", `${left}px`).style("top", `${top + y}px`)
+            .style("width", `${W}px`).style("height", `${shortcutsOn ? 58 : 34}px`).style("z-index", "3")
+            .style("font-size", `${Math.max(9, fs - 1)}px`).style("line-height", "1").style("color", txt)
+            .on("click", (e: MouseEvent) => e.stopPropagation());
+        const abs = (cls: string) => band.append("div").classed(cls, true).style("position", "absolute");
+        const trackY = 8;
+        abs("pc-range-track").style("left", "0").style("width", `${W}px`).style("top", `${trackY - 1.5}px`)
+            .style("height", "3px").style("border-radius", "2px").style("background", txt).style("opacity", "0.35");
+        const seg = abs("pc-range-seg").style("top", `${trackY - 1.5}px`).style("height", "3px").style("border-radius", "2px");
+        const dashed = `repeating-linear-gradient(90deg, ${accent} 0 5px, transparent 5px 9px)`;
+
+        // Grab area: a press near a handle moves it, inside the range moves both, anywhere else brings the nearest
+        // handle there.
+        const hit = interactive
+            ? abs("pc-range-hit").style("left", "-10px").style("top", "-4px").style("width", `${W + 20}px`).style("height", "24px")
+                .style("cursor", "ew-resize").style("touch-action", "none")
+            : null;
+
+        const handle = (side: "lo" | "hi", aria: string) => {
+            const h = abs(`pc-handle pc-handle-${side}`).style("top", `${trackY - 7}px`).style("width", "10px").style("height", "14px")
+                .style("box-sizing", "border-box").style("border-radius", "4px").style("background", knob)
+                .style("border", `2px solid ${accent}`).style("pointer-events", "none");
+            if (interactive) {
+                h.attr("tabindex", 0).attr("role", "slider").attr("aria-label", aria)
+                    .attr("aria-valuemin", 1).attr("aria-valuemax", tn).attr("aria-orientation", "horizontal");
+            } else h.attr("aria-hidden", "true");
+            return h;
+        };
+        const hLo = handle("lo", this.t("UI_RangeFirst", "Range: first rank"));
+        const hHi = handle("hi", this.t("UI_RangeLast", "Range: last rank"));
+
+        const label = abs("pc-range-label").style("top", `${trackY + 9}px`).style("white-space", "nowrap")
+            .style("transform", "translateX(-50%)").style("pointer-events", "none");
+        const share = (r: number) => this.pct(100 * r / tn, 1);
+
+        // A fixed list that no longer matches its ranks: said on the bar, in reading view too. Reapply only on a click.
+        let staleRow: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null;
+        const pill = (parent: d3.Selection<HTMLDivElement, unknown, null, undefined>, text: string, on: boolean) => {
+            const b = parent.append("button").attr("type", "button").text(text)
+                .style("font", "inherit").style("font-size", "10px").style("line-height", "1").style("height", "18px")
+                .style("padding", "0 8px").style("border-radius", "9px").style("cursor", "pointer").style("white-space", "nowrap")
+                .style("border", `1px solid ${on ? accent : txt}`).style("background", on ? accent : "transparent")
+                .style("color", on ? Visual.onColor(accent, isHC, ctx.hcBg) : txt)
+                .style("opacity", on ? "1" : "0.85");
+            b.on("keydown", (e: KeyboardEvent) => e.stopPropagation());
+            return b;
+        };
+        if (stale && read) {
+            staleRow = band.append("div").classed("pc-range-stale", true).attr("role", "status")
+                .style("position", "absolute").style("left", "0").style("top", `${trackY + 6}px`)
+                .style("display", "flex").style("gap", "6px").style("align-items", "center").style("white-space", "nowrap");
+            staleRow.append("span").text("⚠").style("color", isHC ? txt : "#E8A020").attr("aria-hidden", "true");
+            staleRow.append("span").text(this.t("UI_RangeStale", "Range out of date"))
+                .attr("title", this.t("UI_RangeStaleWhy", "The filter keeps the entities picked then; with the data shown now, those ranks hold others."));
+            if (interactive) {
+                pill(staleRow, this.t("UI_RangeReapply", "Reapply"), true)
+                    .on("click", (e: MouseEvent) => { e.stopPropagation(); this.applyRange(p, read.lo, read.hi); });
+                pill(staleRow, this.t("UI_RangeClear", "Clear"), false)
+                    .on("click", (e: MouseEvent) => { e.stopPropagation(); this.clearRange(); });
+            }
+        }
+
+        const paint = () => {
+            const a = xOf(lo), b = xOf(hi);
+            seg.style("left", `${a}px`).style("width", `${Math.max(0, b - a)}px`)
+                .style("display", active || stale || touched ? null : "none")
+                .style("background", stale && !touched ? dashed : accent);
+            hLo.style("left", `${a - 5}px`).attr("aria-valuenow", lo + 1)
+                .attr("aria-valuetext", this.tf("UI_RangeHandle", "#{0} · {1} of entities", this.int(lo + 1), share(lo)));
+            hHi.style("left", `${b - 5}px`).attr("aria-valuenow", hi)
+                .attr("aria-valuetext", this.tf("UI_RangeHandle", "#{0} · {1} of entities", this.int(hi), share(hi)));
+            clipRect.attr("x", a).attr("width", Math.max(0, b - a));
+            over.attr("display", active || touched ? null : "none");
+            if (touched) barsSel.attr("opacity", function () { return String(Number(this.getAttribute("data-op") ?? 1) * 0.25); });
+            const showLabel = (active && !stale) || touched;
+            label.style("display", showLabel ? null : "none")
+                .style("left", `${Math.max(70, Math.min(W - 70, (a + b) / 2))}px`)
+                .text(this.tf("UI_RangeLabel", "#{0}–#{1} · {2} of entities", this.int(lo + 1), this.int(hi), share(hi - lo)));
+            staleRow?.style("display", stale && !touched ? "flex" : "none");
+        };
+
+        // What is in force again, after a refused range (over the cap) or a range that ended where it began.
+        const revert = () => {
+            lo = read ? read.lo : 0; hi = read ? read.hi : tn; touched = false;
+            active = !!read && !read.stale;
+            this.applyOpacity();
+            paint();
+        };
+        const commit = () => {
+            if (lo <= 0 && hi >= tn) {
+                active = false; touched = false;
+                if (read) this.clearRange(); else this.applyOpacity();
+                lo = 0; hi = tn;
+                paint();
+                return;
+            }
+            if (read && !stale && lo === read.lo && hi === read.hi) { revert(); return; }
+            if (!this.applyRange(p, lo, hi)) revert();
+        };
+
+        if (hit) {
+            let mode: "lo" | "hi" | "move" | null = null, grab = 0;
+            const px = (e: PointerEvent) => e.clientX - (hit.node() as HTMLDivElement).getBoundingClientRect().left - 10;
+            hit.on("pointerdown", (e: PointerEvent) => {
+                if (e.button) return;
+                e.preventDefault(); e.stopPropagation();
+                this.rangeFocus = null;
+                const x = px(e), a = xOf(lo), b = xOf(hi), on = active || stale;
+                if (on && Math.abs(x - a) <= 8) mode = "lo";
+                else if (on && Math.abs(x - b) <= 8) mode = "hi";
+                else if (on && x > a && x < b) { mode = "move"; grab = rOf(x) - lo; }
+                else if (Math.abs(x - a) <= Math.abs(x - b)) { mode = "lo"; lo = Math.max(0, Math.min(rOf(x), hi - 1)); }
+                else { mode = "hi"; hi = Math.min(tn, Math.max(rOf(x), lo + 1)); }
+                touched = true;
+                (hit.node() as HTMLDivElement).setPointerCapture?.(e.pointerId);
+                paint();
+            }).on("pointermove", (e: PointerEvent) => {
+                if (!mode) return;
+                const r = rOf(px(e));
+                if (mode === "lo") lo = Math.max(0, Math.min(r, hi - 1));
+                else if (mode === "hi") hi = Math.min(tn, Math.max(r, lo + 1));
+                else {
+                    const w = hi - lo, n0 = Math.max(0, Math.min(tn - w, r - grab));
+                    lo = n0; hi = n0 + w;
+                }
+                paint();
+            }).on("pointerup pointercancel", () => {
+                if (!mode) return;
+                mode = null;
+                commit();
+            });
+
+            // Keyboard: the arrows move a handle by one entity, Shift and Page keys by a tenth of them.
+            const keys = (side: "lo" | "hi") => (e: KeyboardEvent) => {
+                const big = Math.max(1, Math.round(tn / 10));
+                let v = side === "lo" ? lo : hi, handled = true;
+                switch (e.key) {
+                    case "ArrowRight": case "ArrowUp":   v += e.shiftKey ? big : 1; break;
+                    case "ArrowLeft":  case "ArrowDown": v -= e.shiftKey ? big : 1; break;
+                    case "PageUp":   v += big; break;
+                    case "PageDown": v -= big; break;
+                    case "Home": v = 0; break;
+                    case "End":  v = tn; break;
+                    case "Escape":
+                        e.preventDefault(); e.stopPropagation();
+                        this.rangeFocus = side;
+                        if (this.rangeTimer !== null) { window.clearTimeout(this.rangeTimer); this.rangeTimer = null; }
+                        lo = 0; hi = tn; touched = false; active = false;
+                        if (read) this.clearRange();
+                        paint();
+                        return;
+                    default: handled = false;
+                }
+                if (!handled) return;
+                e.preventDefault(); e.stopPropagation();
+                if (side === "lo") lo = Math.max(0, Math.min(v, hi - 1)); else hi = Math.min(tn, Math.max(v, lo + 1));
+                touched = true; this.rangeFocus = side;
+                paint();
+                if (this.rangeTimer !== null) window.clearTimeout(this.rangeTimer);
+                this.rangeTimer = window.setTimeout(() => { this.rangeTimer = null; commit(); }, 350);
+            };
+            for (const [h, side] of [[hLo, "lo"], [hHi, "hi"]] as [typeof hLo, "lo" | "hi"][]) {
+                h.on("keydown", keys(side))
+                 .on("blur", () => { if (this.rangeFocus === side && !this.painting) this.rangeFocus = null; });
+            }
+        }
+        paint();
+
+        if (!shortcutsOn) return;
+
+        // Pro: the classic cuts in one click, and what the range holds. Without a licence they show only while editing,
+        // as part of the preview; using one puts the watermark up.
+        const row = band.append("div").classed("pc-range-chips", true)
+            .style("position", "absolute").style("left", "0").style("top", "34px")
+            .style("display", "inline-flex").style("gap", "5px").style("white-space", "nowrap");
+        const cuts: [string, number, number][] = [
+            [this.t("UI_ShortVital", "Vital few"), 0, p.need],
+            ["A", 0, p.cutA], ["B", p.cutA, p.cutAB], ["C", p.cutAB, tn],
+            [this.t("UI_ShortTail", "Tail"), p.need, tn],
+        ];
+        for (const [name, a, b] of cuts) {
+            if (b <= a || (a <= 0 && b >= tn)) continue;
+            const on = active && lo === a && hi === b;
+            const btn = pill(row, name, on).attr("aria-pressed", on ? "true" : "false")
+                .attr("title", `${name} · #${this.int(a + 1)}–#${this.int(b)} · ${share(b - a)}`);
+            btn.on("click", (e: MouseEvent) => {
+                e.stopPropagation();
+                if (on) { this.clearRange(); return; }
+                if (!this.isPro) this.shortcutTried = true;
+                if (!this.applyRange(p, a, b)) revert();
+                this.updateWatermark();
+                this.notifyProFeatureBlocked();
+            });
+        }
+        if (active && (this.isPro || (this.proPreview && this.shortcutTried))) {
+            let sum = 0;
+            for (let r = lo; r < hi; r++) sum += p.orderVals[r];
+            const who = this.lastCatCol?.source?.displayName || this.t("UI_TipEntities", "Entities");
+            const parts = [`${this.int(hi - lo)} ${who}`, this.pct(100 * sum / Math.max(1e-12, p.total), 1), this.fmtValue(sum, this.measureFormat)];
+            const line = band.append("div").classed("pc-range-sum", true)
+                .style("position", "absolute").style("right", "0").style("top", "37px")
+                .style("font-weight", "600").style("white-space", "nowrap").text(parts.join(" · "));
+            const room = () => W - ((row.node() as HTMLDivElement).offsetWidth || 0) - 10;
+            if (((line.node() as HTMLDivElement).offsetWidth || 0) > room()) line.text(parts.slice(0, 2).join(" · "));
+            if (((line.node() as HTMLDivElement).offsetWidth || 0) > room()) line.remove();
+        }
+    }
+
+    /** Text on an accent fill: dark when the accent is light. */
+    private static onColor(accent: string, hc: boolean, hcBg: string): string {
+        if (hc) return hcBg;
+        const m = /^#?([0-9a-f]{6})$/i.exec(accent.trim());
+        if (!m) return "#FFFFFF";
+        const n = parseInt(m[1], 16);
+        return 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255) > 150 ? "#111111" : "#FFFFFF";
     }
 
     // ── Draw dashed line ──────────────────────────────────────────────────────
@@ -2524,7 +2913,103 @@ export class Visual implements IVisual {
     private readonly FILTER_REMOVE = 1;
 
     private clearBinFilter(): void {
-        this.host.applyJsonFilter(null, "general", "filter", this.FILTER_REMOVE);
+        this.askedRange = null;
+        this.setOwnFilter(null);
+        if (this.shortcutTried) {
+            this.shortcutTried = false;
+            this.updateWatermark();
+            this.notifyProFeatureBlocked();
+        }
+    }
+
+    private static filterSig(filters: any[] | undefined): string {
+        return (filters ?? []).map(f => `${f?.target?.column}:${(f?.values ?? []).map(String).sort().join("")}`).sort().join("");
+    }
+
+    /** Applies the filter and remembers it, so an update that still carries the previous one does not undo it. */
+    private setOwnFilter(filter: powerbi.IFilter | powerbi.IFilter[] | null): void {
+        const filters: any[] = !filter ? [] : Array.isArray(filter) ? filter : [filter];
+        this.ownFilter = { sig: Visual.filterSig(filters), at: Date.now(), filters };
+        this.curFilters = filters;
+        this.host.applyJsonFilter(filter as any, "general", "filter", filter ? this.FILTER_MERGE : this.FILTER_REMOVE);
+    }
+
+    /**
+     * The range in force, read back from the filter: a click on a bar, a bookmark or a reopened report arrive the
+     * same way. The filter is a fixed list of entities; the range is a stretch of ranks. When the ranking has moved
+     * (another slicer, new data) and those ranks hold other entities now, the range is out of date — said, never
+     * fixed behind the user's back.
+     *
+     * The stretch asked for is exact when this session applied the filter (askedRange); otherwise it is inferred:
+     * as many ranks as the filter holds entities, from the best-ranked of them still present. Whole bars picked with
+     * Ctrl are a selection of bars, not a range.
+     */
+    private readRange(p: PanelDatum): RangeRead | null {
+        const filters = this.curFilters;
+        const cat = this.lastCatCol;
+        if (!filters?.length || !cat) return null;
+        const want = new Set<string>();
+        for (const f of filters) {
+            const vs = f?.values;
+            if (Array.isArray(vs)) for (const v of vs) want.add(String(v));
+        }
+        if (!want.size) return null;
+        const tn = p.order.length;
+        let a = -1, b = -1, cnt = 0;
+        for (let r = 0; r < tn; r++) {
+            if (want.has(String(cat.values[p.order[r]]))) { if (a < 0) a = r; b = r + 1; cnt++; }
+        }
+        const missing = want.size - cnt;
+        const contiguous = cnt > 0 && b - a === cnt;
+        const asked = this.askedRange && this.askedRange.sig === Visual.filterSig(filters) ? this.askedRange : null;
+        let lo: number, hi: number;
+        if (asked) {
+            hi = Math.min(asked.hi, tn);
+            lo = Math.min(asked.lo, hi - 1);
+        } else {
+            if (contiguous && missing === 0) return { lo: a, hi: b, stale: false };
+            if (missing === 0) {
+                let whole = 0;
+                for (const bin of p.bins) if (this.selectedBins.has(bin.key)) whole += bin.nEntities;
+                if (whole === cnt) return null;
+            }
+            lo = Math.max(0, Math.min(a, tn - 1));
+            hi = Math.min(tn, lo + want.size);
+        }
+        if (hi <= lo) return null;
+        const fresh = missing === 0 && contiguous && a === lo && b === hi;
+        return { lo, hi, stale: !fresh };
+    }
+
+    /**
+     * Filters the report to the entities ranked lo..hi-1: the same exact filter as a bar. Above the cap it declines
+     * and says so — a subset would be a silently wrong answer. False when nothing was applied.
+     */
+    private applyRange(p: PanelDatum, lo: number, hi: number): boolean {
+        if (!this.canInteract) return false;
+        const tn = p.order.length;
+        if (lo <= 0 && hi >= tn) { this.clearRange(); return true; }
+        const n = hi - lo;
+        if (n <= 0) return false;
+        if (n > MAX_FILTER_VALUES) {
+            this.oversizedSelection = n;
+            this.renderOversizedNotice(true);
+            return false;
+        }
+        const pseudo = { indices: p.order.slice(lo, hi), panel: Math.max(0, this.panels.indexOf(p)) } as BinDatum;
+        const filter = this.buildBinFilter([pseudo]);
+        if (!filter) return false;
+        this.oversizedSelection = 0;
+        this.setOwnFilter(filter);
+        this.askedRange = { lo, hi, sig: Visual.filterSig(Array.isArray(filter) ? filter : [filter]) };
+        return true;
+    }
+
+    private clearRange(): void {
+        if (!this.canInteract) return;
+        this.selectedBins.clear();
+        this.clearBinFilter();
+        this.selectionManager.clear().then(() => { this.applyOpacity([]); this.syncAria(); });
     }
 
     /**
@@ -2589,19 +3074,29 @@ export class Visual implements IVisual {
 
 
     /** Says why a click did nothing, and what lever fixes it. */
-    private renderOversizedNotice(): void {
+    private renderOversizedNotice(isRange = false): void {
         this.container.selectAll(".oversized-notice").remove();
         const n   = this.int(this.oversizedSelection);
         const cap = this.int(MAX_FILTER_VALUES);
+        const pal: any = this.host.colorPalette;
+        const hc = !!pal?.isHighContrast;
 
         const note = this.container.append("div")
             .classed("oversized-notice", true)
+            .attr("role", "status")
             .style("position", "absolute").style("left", "0").style("right", "0")
-            .style("bottom", "0").style("padding", "8px 12px")
-            .style("background", "#FDF3E7").style("border-top", "1px solid #E8A020")
-            .style("font-size", "11px").style("color", "#7A4E12")
+            .style("bottom", "0").style("padding", "8px 12px").style("z-index", "4")
+            .style("background", hc ? (pal.background?.value ?? "#000000") : "#FDF3E7")
+            .style("border-top", `1px solid ${hc ? (pal.foreground?.value ?? "#FFFFFF") : "#E8A020"}`)
+            .style("font-size", "11px").style("color", hc ? (pal.foreground?.value ?? "#FFFFFF") : "#7A4E12")
             .style("line-height", "1.4");
 
+        if (isRange) {
+            note.append("div").text(this.tf("UI_OversizedRange",
+                "This range holds {0} entities — more than the {1} Power BI can cross-filter at once. Narrow it.", n, cap));
+            setTimeout(() => this.container.selectAll(".oversized-notice").remove(), 6000);
+            return;
+        }
         note.append("div").text(this.tf("UI_Oversized",
             "This bin holds {0} entities — more than the {1} Power BI can cross-filter at once.", n, cap));
         note.append("div").text(
@@ -2644,6 +3139,7 @@ export class Visual implements IVisual {
      */
     private renderLandingPage(): void {
         this.svg.selectAll("*").remove();
+        this.container.selectAll(".pc-range").remove();
         this.container.selectAll(".landing-page").remove();
         if (this.guideEl) this.guideEl.style.display = "none";
         const nodo = this.container.node() as HTMLElement;
@@ -2803,6 +3299,9 @@ export class Visual implements IVisual {
             }
         }
 
+        // Range colour: with none saved the bar takes the cumulative line's; show that one.
+        if (objs?.rangeBar?.color === undefined) model.rangeBar.color.value = { value: this.settings.lineColor };
+
         // Threshold color slices are noise until the toggle is on.
         const th = model.thresholdColors;
         th.thresholdValue.visible    = th.show.value;
@@ -2865,7 +3364,7 @@ export class Visual implements IVisual {
             pareto: ["Obj_pareto", "Pareto"], cumulativeLine: ["Obj_cumulativeLine", "Cumulative Line"], summary: ["Obj_summary", "Summary"],
             axes: ["Obj_axes", "Axes"], valueLabels: ["Obj_valueLabels", "Value Labels (Pro)"], abcZones: ["Obj_abcZones", "ABC zones (Pro)"],
             referenceLines: ["Obj_referenceLines", "Reference Lines"], comparison: ["Obj_comparison", "Comparison (Pro)"],
-            legend: ["Obj_legend", "Legend"],
+            legend: ["Obj_legend", "Legend"], rangeBar: ["Obj_rangeBar", "Range bar"],
         };
         return this.t(m[obj]?.[0] ?? obj, m[obj]?.[1] ?? obj);
     }
@@ -2893,6 +3392,7 @@ export class Visual implements IVisual {
         marcar(".bar-label", "valueLabels", powerbi.visuals.SubSelectionStylesType.Text);
         marcar(".abc-label", "abcZones", powerbi.visuals.SubSelectionStylesType.Text);
         marcar(".pc-legend", "legend", powerbi.visuals.SubSelectionStylesType.Text);
+        marcar(".pc-range", "rangeBar", powerbi.visuals.SubSelectionStylesType.Shape);
     }
 
     private getSubSelectionStyles(subs: powerbi.visuals.CustomVisualSubSelection[]): powerbi.visuals.SubSelectionStyles | undefined {
@@ -2913,6 +3413,8 @@ export class Visual implements IVisual {
                 return { type: powerbi.visuals.SubSelectionStylesType.Text, fontColor: ref("abcZones", "aColor", "Class A color") } as any;
             case "legend":
                 return { type: powerbi.visuals.SubSelectionStylesType.Text, fontSize: ref("legend", "fontSize", "Font size"), fontColor: ref("legend", "color", "Text color") } as any;
+            case "rangeBar":
+                return { type: powerbi.visuals.SubSelectionStylesType.Shape, fill: ref("rangeBar", "color", "Range color") } as any;
         }
         return undefined;
     }
@@ -2943,6 +3445,9 @@ export class Visual implements IVisual {
             case "legend":
                 return [{ type: powerbi.visuals.VisualShortcutType.Picker, ...id("legend", "position"), label: this.propLabel("legend", "position", "Position") },
                     toggle("legend", "show", "Show legend"), div, reset("legend", ["fontSize", "color"]), nav("legend")] as any;
+            case "rangeBar":
+                return [toggle("rangeBar", "shortcuts", "Shortcuts and summary (Pro)"), toggle("rangeBar", "show", "Show range bar"), div,
+                    reset("rangeBar", ["color"]), nav("rangeBar")] as any;
         }
         return undefined;
     }
@@ -3142,6 +3647,7 @@ export class Visual implements IVisual {
         // Un timeout vivo sobre un visual retirado dispararía un aviso de compra
         // sin visual al que pertenecer.
         this.cancelLicenseIcon();
+        if (this.rangeTimer !== null) { window.clearTimeout(this.rangeTimer); this.rangeTimer = null; }
         this.container.remove();
     }
 }
