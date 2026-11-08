@@ -191,5 +191,11 @@
   "Feat_vital": "vitale weinigen met naam",
   "Guide_TryVital": "Vitale weinigen met naam",
   "Guide_TryVitalWhy": "elke klant tot 80%, met naam",
-  "UI_TipAvg": "Gemiddelde per entiteit (staafhoogte)"
+  "UI_TipAvg": "Gemiddelde per entiteit (staafhoogte)",
+  "UI_SummaryLeft": " · {0} niet meer daarbij",
+  "UI_RankNew": "nieuw",
+  "UI_TipRank": "Rang",
+  "UI_TipRankNew": "#{0} (nieuw: geen waarde in de vergelijkingsperiode)",
+  "UI_TipRankWas": "#{0} (was #{1})",
+  "UI_LeftTitle": "Niet meer bij de vitale weinigen: {0}"
 }

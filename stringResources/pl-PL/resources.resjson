@@ -191,5 +191,11 @@
   "Feat_vital": "nieliczne kluczowe z nazwą",
   "Guide_TryVital": "Nieliczne kluczowe z nazwą",
   "Guide_TryVitalWhy": "każdy klient do 80%, z nazwą",
-  "UI_TipAvg": "Średnia na jednostkę (wysokość słupka)"
+  "UI_TipAvg": "Średnia na jednostkę (wysokość słupka)",
+  "UI_SummaryLeft": " · {0} już nie wśród nich",
+  "UI_RankNew": "nowy",
+  "UI_TipRank": "Pozycja",
+  "UI_TipRankNew": "nr {0} (nowy: brak wartości w okresie porównawczym)",
+  "UI_TipRankWas": "nr {0} (był nr {1})",
+  "UI_LeftTitle": "Już nie wśród nielicznych kluczowych: {0}"
 }

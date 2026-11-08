@@ -191,5 +191,11 @@
   "Feat_vital": "poucos vitais com nome",
   "Guide_TryVital": "Poucos vitais com nome",
   "Guide_TryVitalWhy": "cada cliente até 80%, com nome",
-  "UI_TipAvg": "Média por entidade (altura da barra)"
+  "UI_TipAvg": "Média por entidade (altura da barra)",
+  "UI_SummaryLeft": " · {0} já não estão entre eles",
+  "UI_RankNew": "novo",
+  "UI_TipRank": "Posição",
+  "UI_TipRankNew": "#{0} (novo: sem valor no período de comparação)",
+  "UI_TipRankWas": "#{0} (era #{1})",
+  "UI_LeftTitle": "Já não estão entre os poucos vitais: {0}"
 }

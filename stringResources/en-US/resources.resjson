@@ -191,5 +191,11 @@
   "Feat_vital": "vital few by name",
   "Guide_TryVital": "Vital few by name",
   "Guide_TryVitalWhy": "every customer up to 80%, by name",
-  "UI_TipAvg": "Average per entity (bar height)"
+  "UI_TipAvg": "Average per entity (bar height)",
+  "UI_SummaryLeft": " · {0} no longer among them",
+  "UI_RankNew": "new",
+  "UI_TipRank": "Rank",
+  "UI_TipRankNew": "#{0} (new: no value in the comparison period)",
+  "UI_TipRankWas": "#{0} (was #{1})",
+  "UI_LeftTitle": "No longer among the vital few: {0}"
 }

@@ -191,5 +191,11 @@
   "Feat_vital": "die wenigen Wichtigen mit Namen",
   "Guide_TryVital": "Die wenigen Wichtigen mit Namen",
   "Guide_TryVitalWhy": "jeder Kunde bis 80 %, mit Namen",
-  "UI_TipAvg": "Durchschnitt pro Entität (Balkenhöhe)"
+  "UI_TipAvg": "Durchschnitt pro Entität (Balkenhöhe)",
+  "UI_SummaryLeft": " · {0} nicht mehr darunter",
+  "UI_RankNew": "neu",
+  "UI_TipRank": "Rang",
+  "UI_TipRankNew": "Nr. {0} (neu: kein Wert im Vergleichszeitraum)",
+  "UI_TipRankWas": "Nr. {0} (war Nr. {1})",
+  "UI_LeftTitle": "Nicht mehr unter den wenigen Wichtigen: {0}"
 }

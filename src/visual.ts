@@ -365,6 +365,13 @@ interface BinDatum {
      * a jump. 1 for every other bar. The cumulative line and the tooltip keep the true totals.
      */
     avgDiv:         number;
+    /**
+     * 1.7, named bars with a comparison: the rank in the comparison period ("was #7"), or 0 when the entity had no
+     * value then (new). Null when there is nothing to compare.
+     */
+    prevRank:       number | null;
+    /** Its rank now, 1-based. */
+    rank:           number;
     pctShare:       number;
     cumPct:         number;
     /** Sum of the measure over the bin's entities, for the tooltip. */
@@ -408,6 +415,11 @@ interface PanelDatum {
     target:     number;
     need:       number;
     cmpNeed:    number | null;
+    /**
+     * 1.7: the entities that were among the vital few in the comparison period and are not now. Null when it cannot
+     * be said honestly: no comparison, or a tie at either cut, where "in" or "out" depends on the order of equals.
+     */
+    leftVital:  string[] | null;
     /** ABC zones: entities in class A and in A+B, counted exactly. Null when off. */
     abcA:       number | null;
     abcAB:      number | null;
@@ -1426,6 +1438,20 @@ export class Visual implements IVisual {
             }
         }
 
+        // Ranks in the comparison period, entity by entity (same trim as the comparison above).
+        let prevRankOf: Map<number, number> | null = null;
+        let leftVital: string[] | null = null;
+        if (cmpBinValues && entityAligned) {
+            const cmpSorted = rows.filter(r => r.cmp > 0).sort((a, b) => b.cmp - a.cmp);
+            prevRankOf = new Map(cmpSorted.map((r, i) => [r.index, i + 1] as [number, number]));
+            const tieAt = (vals: number[], k: number) => k > 0 && k < vals.length && vals[k - 1] === vals[k];
+            const cmpVals = cmpSorted.map(r => r.cmp);
+            if (cmpNeed != null && !tieAt(sortedVals, need) && !tieAt(cmpVals, cmpNeed)) {
+                const now = new Set(trimmedRows.slice(0, need).map(r => r.index));
+                leftVital = cmpSorted.slice(0, cmpNeed).filter(r => !now.has(r.index)).map(r => this.entityName(r.index));
+            }
+        }
+
         const ruleColorAt = (rowIndex: number): string | null => {
             const c = (catObjects?.[rowIndex]?.["pareto"]?.["barColor"] as powerbi.Fill)?.solid?.color;
             return typeof c === "string" && c.length > 0 ? c : null;
@@ -1482,6 +1508,8 @@ export class Visual implements IVisual {
                 panel:   panelIdx,
                 named:   isNamed,
                 avgDiv:  hybrid && !isNamed ? b.length : 1,
+                prevRank: isNamed && prevRankOf ? (prevRankOf.get(b[0].index) ?? 0) : null,
+                rank:    starts[k] + 1,
                 pctShare,
                 cumPct,
                 value:   binValue,
@@ -1506,6 +1534,7 @@ export class Visual implements IVisual {
             target,
             need,
             cmpNeed,
+            leftVital,
             abcA,
             abcAB,
         };
@@ -1809,8 +1838,19 @@ export class Visual implements IVisual {
             // opposite sign of the bar pills, and two opposite signs on one chart mislead.
             text += this.tf("UI_SummaryCmp", " · comparison: {0} entities ({1})",
                 this.int(p.cmpNeed), this.pct(share(p.cmpNeed), 1));
+            if (p.leftVital && p.leftVital.length) {
+                text += this.tf("UI_SummaryLeft", " · {0} no longer among them", this.int(p.leftVital.length));
+            }
         }
         return text;
+    }
+
+    /** "▲3", "▼2", "new" or "" for a named bar with a comparison. */
+    private rankMark(b: BinDatum): string {
+        if (b.prevRank == null) return "";
+        if (b.prevRank === 0) return this.t("UI_RankNew", "new");
+        const d = b.prevRank - b.rank;
+        return d > 0 ? "▲" + d : d < 0 ? "▼" + (-d) : "";
     }
 
     /** Tooltip rows for a bin: the bin, its value, the comparison, extra measures. */
@@ -1834,6 +1874,11 @@ export class Visual implements IVisual {
             items.push({ displayName: this.t("UI_TipCmpShare", "Comparison share"), value: this.pct(b.cmpShare, 2) });
             items.push({ displayName: this.t("UI_TipChange", "Change in share"), value: this.pp(b.pctShare - b.cmpShare) });
             items.push({ displayName: this.t("UI_TipCmpCum", "Comparison cumulative"), value: this.pct(b.cmpCum, 2) });
+            if (b.prevRank != null) {
+                items.push({ displayName: this.t("UI_TipRank", "Rank"), value: b.prevRank === 0
+                    ? this.tf("UI_TipRankNew", "#{0} (new: no value in the comparison period)", this.int(b.rank))
+                    : this.tf("UI_TipRankWas", "#{0} (was #{1})", this.int(b.rank), this.int(b.prevRank)) });
+            }
         }
         return items.concat(b.customTooltips || []);
     }
@@ -1896,6 +1941,11 @@ export class Visual implements IVisual {
                 .style("fill", isHC ? hcFg : s.sumColor)
                 .text(this.summaryText(p));
             this.fitText(st.node(), VW);
+            // Who left the vital few, on hover (the sentence only counts them).
+            if (p.leftVital && p.leftVital.length) {
+                const lista = p.leftVital.slice(0, 20).join(", ") + (p.leftVital.length > 20 ? ", …" : "");
+                st.append("title").text(this.tf("UI_LeftTitle", "No longer among the vital few: {0}", lista));
+            }
         }
 
         const hasHL    = bins.some(b => b.hlShare !== null);
@@ -1963,8 +2013,11 @@ export class Visual implements IVisual {
         const xAxis = gp.append("g").classed("axis", true)
             .attr("transform", `translate(0,${H})`)
             .call(d3.axisBottom(xScale).tickFormat(k => {
-                const lab = bins.find(b => b.key === k)?.label ?? "";
-                return lab.length > 16 ? lab.slice(0, 15) + "…" : lab;
+                const b = bins.find(x => x.key === k);
+                const lab = b?.label ?? "";
+                const mark = b ? this.rankMark(b) : "";
+                const max = mark ? 13 : 16;
+                return (lab.length > max ? lab.slice(0, max - 1) + "…" : lab) + (mark ? " " + mark : "");
             }));
         // Thin the tick labels when the bands get too narrow to read them.
         const bandPx   = xScale.step();   // band + gap: the space one label owns

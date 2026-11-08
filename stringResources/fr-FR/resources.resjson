@@ -191,5 +191,11 @@
   "Feat_vital": "les quelques essentiels nommés",
   "Guide_TryVital": "Les quelques essentiels nommés",
   "Guide_TryVitalWhy": "chaque client jusqu’à 80 %, nommé",
-  "UI_TipAvg": "Moyenne par entité (hauteur de la barre)"
+  "UI_TipAvg": "Moyenne par entité (hauteur de la barre)",
+  "UI_SummaryLeft": " · {0} n’en font plus partie",
+  "UI_RankNew": "nouveau",
+  "UI_TipRank": "Rang",
+  "UI_TipRankNew": "n° {0} (nouveau : aucune valeur sur la période de comparaison)",
+  "UI_TipRankWas": "n° {0} (était n° {1})",
+  "UI_LeftTitle": "Ne font plus partie des quelques essentiels : {0}"
 }

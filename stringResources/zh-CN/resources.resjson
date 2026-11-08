@@ -191,5 +191,11 @@
   "Feat_vital": "关键少数带名称",
   "Guide_TryVital": "关键少数带名称",
   "Guide_TryVitalWhy": "到 80% 为止的每个客户，带名称",
-  "UI_TipAvg": "每个实体的平均值（条形高度）"
+  "UI_TipAvg": "每个实体的平均值（条形高度）",
+  "UI_SummaryLeft": " · {0} 个已不在其中",
+  "UI_RankNew": "新",
+  "UI_TipRank": "排名",
+  "UI_TipRankNew": "第 {0} 名（新：对比期间无值）",
+  "UI_TipRankWas": "第 {0} 名（原第 {1} 名）",
+  "UI_LeftTitle": "已不在关键少数中：{0}"
 }

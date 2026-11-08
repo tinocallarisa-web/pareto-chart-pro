@@ -191,5 +191,11 @@
   "Feat_vital": "重要な少数を名前で",
   "Guide_TryVital": "重要な少数を名前で",
   "Guide_TryVitalWhy": "80% までの各顧客を名前で",
-  "UI_TipAvg": "エンティティあたりの平均 (棒の高さ)"
+  "UI_TipAvg": "エンティティあたりの平均 (棒の高さ)",
+  "UI_SummaryLeft": " · {0} 件は外れました",
+  "UI_RankNew": "新規",
+  "UI_TipRank": "順位",
+  "UI_TipRankNew": "{0} 位 (新規: 比較期間に値なし)",
+  "UI_TipRankWas": "{0} 位 (以前は {1} 位)",
+  "UI_LeftTitle": "重要な少数から外れた項目: {0}"
 }
