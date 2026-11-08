@@ -117,6 +117,11 @@
   "Prop_style_template": "Vorlage",
   "Prop_style_guide": "Einrichtungsassistent",
   "Enum_tpl_report": "Berichtsdesign",
+  "Prop_pareto_namedBars": "Balken mit Namen",
+  "Prop_pareto_namedMax": "Max. Balken mit Namen (Pro)",
+  "Enum_named_bins": "Gruppen von Entitäten",
+  "Enum_named_top15": "Top 15 mit Namen + Rest",
+  "Enum_named_vitalFew": "Die wenigen Wichtigen mit Namen + Rest (Pro)",
   "Enum_tpl_clean": "Klar",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "Schriftgröße",
   "Prop_legend_color": "Textfarbe",
   "Legend_Cumulative": "Kumulierte %",
-  "Feat_styles": "Kollektionsstile"
+  "Feat_styles": "Kollektionsstile",
+  "Feat_vital": "die wenigen Wichtigen mit Namen",
+  "Guide_TryVital": "Die wenigen Wichtigen mit Namen",
+  "Guide_TryVitalWhy": "jeder Kunde bis 80 %, mit Namen",
+  "UI_TipAvg": "Durchschnitt pro Entität (Balkenhöhe)"
 }

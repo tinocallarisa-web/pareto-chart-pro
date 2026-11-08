@@ -117,6 +117,11 @@
   "Prop_style_template": "Szablon",
   "Prop_style_guide": "Kreator konfiguracji",
   "Enum_tpl_report": "Motyw raportu",
+  "Prop_pareto_namedBars": "Słupki z nazwami",
+  "Prop_pareto_namedMax": "Maks. słupków z nazwami (Pro)",
+  "Enum_named_bins": "Grupy jednostek",
+  "Enum_named_top15": "Top 15 z nazwą + reszta",
+  "Enum_named_vitalFew": "Nieliczne kluczowe z nazwą + reszta (Pro)",
   "Enum_tpl_clean": "Czysty",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "Rozmiar czcionki",
   "Prop_legend_color": "Kolor tekstu",
   "Legend_Cumulative": "% skumulowany",
-  "Feat_styles": "style kolekcji"
+  "Feat_styles": "style kolekcji",
+  "Feat_vital": "nieliczne kluczowe z nazwą",
+  "Guide_TryVital": "Nieliczne kluczowe z nazwą",
+  "Guide_TryVitalWhy": "każdy klient do 80%, z nazwą",
+  "UI_TipAvg": "Średnia na jednostkę (wysokość słupka)"
 }

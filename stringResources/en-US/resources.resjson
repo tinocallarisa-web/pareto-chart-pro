@@ -117,6 +117,11 @@
   "Prop_style_template": "Template",
   "Prop_style_guide": "Setup guide",
   "Enum_tpl_report": "Report theme",
+  "Prop_pareto_namedBars": "Bars with names",
+  "Prop_pareto_namedMax": "Max named bars (Pro)",
+  "Enum_named_bins": "Bins of entities",
+  "Enum_named_top15": "Top 15 by name + rest",
+  "Enum_named_vitalFew": "Vital few by name + rest (Pro)",
   "Enum_tpl_clean": "Clean",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "Font size",
   "Prop_legend_color": "Text color",
   "Legend_Cumulative": "Cumulative %",
-  "Feat_styles": "collection styles"
+  "Feat_styles": "collection styles",
+  "Feat_vital": "vital few by name",
+  "Guide_TryVital": "Vital few by name",
+  "Guide_TryVitalWhy": "every customer up to 80%, by name",
+  "UI_TipAvg": "Average per entity (bar height)"
 }

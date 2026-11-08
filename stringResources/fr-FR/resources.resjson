@@ -117,6 +117,11 @@
   "Prop_style_template": "Modèle",
   "Prop_style_guide": "Assistant de configuration",
   "Enum_tpl_report": "Thème du rapport",
+  "Prop_pareto_namedBars": "Barres nommées",
+  "Prop_pareto_namedMax": "Nombre max. de barres nommées (Pro)",
+  "Enum_named_bins": "Groupes d’entités",
+  "Enum_named_top15": "Top 15 nommés + reste",
+  "Enum_named_vitalFew": "Les quelques essentiels nommés + reste (Pro)",
   "Enum_tpl_clean": "Épuré",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "Taille de police",
   "Prop_legend_color": "Couleur du texte",
   "Legend_Cumulative": "% cumulé",
-  "Feat_styles": "styles de la collection"
+  "Feat_styles": "styles de la collection",
+  "Feat_vital": "les quelques essentiels nommés",
+  "Guide_TryVital": "Les quelques essentiels nommés",
+  "Guide_TryVitalWhy": "chaque client jusqu’à 80 %, nommé",
+  "UI_TipAvg": "Moyenne par entité (hauteur de la barre)"
 }

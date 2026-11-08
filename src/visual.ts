@@ -80,12 +80,18 @@ const URL_VIDEO = "https://www.youtube.com/watch?v=1LLgEmXuA_8";
  * reader wants at that level, which segment it is. Above it, bins as always.
  */
 const ENTITY_BARS_MAX = 30;
+/** 1.7: named bars at the head when there are more entities than that. Free: the top 15. Pro: up to the threshold. */
+const FREE_NAMED      = 15;
+/** The rest, after the named head: a few bars by rank, so one huge "Rest" bar does not crush the scale. */
+const TAIL_BINS       = 4;
 // Base chrome at full size. computeLayout() scales it down for small tiles.
 const MARGIN            = { top: 28, right: 64, bottom: 68, left: 64 };
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 interface Settings {
     // pareto group
+    namedBars:    string;
+    namedMax:     number;
     binSizePct:   number;
     trimLower:    number;
     trimUpper:    number;
@@ -263,6 +269,8 @@ function readSettings(dv: DataView, efectiva?: string): Settings {
         (o?.[g]?.[p] as string) ?? def;
 
     return {
+        namedBars:    txt("pareto", "namedBars",     "bins"),
+        namedMax:     num("pareto", "namedMax",      40),
         binSizePct:   num("pareto", "binSizePct",    5),
         trimLower:    num("pareto", "trimLower",      0),
         trimUpper:    num("pareto", "trimUpper",      0),
@@ -351,6 +359,12 @@ interface BinDatum {
     panel:          number;
     /** One entity per bar, labelled with its name, rather than a share of entities. */
     named:          boolean;
+    /**
+     * 1.7, the rank ranges after the named bars: drawn as the AVERAGE share per entity (share / entities), so the
+     * Pareto keeps falling. Summed, the first range would be one huge bar right after the small named ones and read as
+     * a jump. 1 for every other bar. The cumulative line and the tooltip keep the true totals.
+     */
+    avgDiv:         number;
     pctShare:       number;
     cumPct:         number;
     /** Sum of the measure over the bin's entities, for the tooltip. */
@@ -466,6 +480,7 @@ export class Visual implements IVisual {
     private proPreview = false;
     /** Template drawn in this update (see plantillaEfectiva). */
     private tplEfectiva = "report";
+    private namedDefaultDone = false;
     private watermarkEl: HTMLDivElement | null = null;
     /**
      * Un unico color distinto en categories[0].objects significa que el usuario eligio
@@ -690,6 +705,14 @@ export class Visual implements IVisual {
             this.tplVisto = tplAhora;
 
             if (!dv?.categorical?.categories?.[0]?.values?.length) {
+                // A visual just inserted (no field bound) gets the 1.7 default. A report saved before 1.7 always opens
+                // with its fields, so it never comes through here and keeps its bins.
+                const sinCampos = !(dv?.metadata?.columns?.length);
+                if (this.editing && sinCampos && !this.namedDefaultDone
+                    && ((dv?.metadata?.objects as any)?.pareto?.namedBars) === undefined) {
+                    this.namedDefaultDone = true;
+                    this.persistir("pareto", { namedBars: "top15" });
+                }
                 this.container.selectAll(".loading-indicator").remove();
                 this.proPreview = false;
                 this.updateWatermark();
@@ -914,6 +937,9 @@ export class Visual implements IVisual {
             ["ABC zones",
              objs.abcZones?.show === true,
              `abc=${objs.abcZones?.show === true}`],
+            ["vital few",
+             objs.pareto?.namedBars === "vitalFew",
+             `vital=${objs.pareto?.namedBars === "vitalFew"}:${objs.pareto?.namedMax ?? ""}`],
             ["style templates",
              PRO_STYLES.has(String(objs.style?.template ?? "")),
              `style=${objs.style?.template ?? ""}`],
@@ -957,6 +983,7 @@ export class Visual implements IVisual {
             case "small multiples":        return this.t("Feat_panels",    "small multiples");
             case "ABC zones":              return this.t("Feat_abc",       "ABC zones");
             case "style templates":        return this.t("Feat_styles",    "collection styles");
+            case "vital few":              return this.t("Feat_vital",     "vital few by name");
             default: return id;
         }
     }
@@ -1304,23 +1331,6 @@ export class Visual implements IVisual {
         const tn = trimmedRows.length;
         if (tn === 0) return null;
 
-        const binSizePct = this.previewOf("custom bin size")
-            ? Math.min(20, Math.max(1, s.binSizePct))
-            : FREE_BIN_SIZE_PCT;
-        const requestedNBins = Math.ceil(100 / binSizePct);
-        const named = tn <= ENTITY_BARS_MAX;
-        const nBins = named ? tn : Math.min(requestedNBins, tn);
-
-        const baseEntities = Math.floor(tn / nBins);
-        const remainder    = tn % nBins;
-        const starts = new Array<number>(nBins + 1);
-        let curr = 0;
-        for (let k = 0; k < nBins; k++) {
-            starts[k] = curr;
-            curr += baseEntities + (k < remainder ? 1 : 0);
-        }
-        starts[nBins] = tn;
-
         const total = trimmedRows.reduce((acc, r) => acc + r.value, 0);
         if (total === 0) return null;
 
@@ -1335,6 +1345,44 @@ export class Visual implements IVisual {
         };
         const sortedVals = trimmedRows.map(r => r.value);
         const need = needFor(sortedVals, total);
+
+        const binSizePct = this.previewOf("custom bin size")
+            ? Math.min(20, Math.max(1, s.binSizePct))
+            : FREE_BIN_SIZE_PCT;
+        const requestedNBins = Math.ceil(100 / binSizePct);
+        const named = tn <= ENTITY_BARS_MAX;
+
+        // 1.7: a head of entities by name, the rest by rank. Top 15 is free; "vital few" (Pro) names every entity up to
+        // the threshold, capped, and without the licence falls back to the top 15.
+        let head = 0;
+        if (!named && s.namedBars !== "bins") {
+            const vital = s.namedBars === "vitalFew" && this.previewOf("vital few");
+            const cap = Math.min(50, Math.max(10, Math.round(s.namedMax || 40)));
+            head = vital ? Math.min(need, cap) : FREE_NAMED;
+            head = Math.max(1, Math.min(head, tn - 1));
+        }
+        const hybrid = head > 0;
+
+        const starts: number[] = [];
+        if (named) {
+            for (let k = 0; k <= tn; k++) starts.push(k);
+        } else if (hybrid) {
+            for (let k = 0; k < head; k++) starts.push(k);
+            const tail = tn - head, nt = Math.min(TAIL_BINS, tail);
+            const base = Math.floor(tail / nt), rem = tail % nt;
+            let c = head;
+            for (let k = 0; k < nt; k++) { starts.push(c); c += base + (k < rem ? 1 : 0); }
+            starts.push(tn);
+        } else {
+            const nb = Math.min(requestedNBins, tn);
+            const baseEntities = Math.floor(tn / nb), remainder = tn % nb;
+            let curr = 0;
+            for (let k = 0; k < nb; k++) { starts.push(curr); curr += baseEntities + (k < remainder ? 1 : 0); }
+            starts.push(tn);
+        }
+        const nBins = starts.length - 1;
+        // Entity by entity in the comparison too: a named bar must hold the SAME entity in both periods.
+        const entityAligned = named || hybrid;
 
         // ABC zones, exact like the summary: A reaches the first cut of the total,
         // B the second. Cut points are clamped so B can never end before A.
@@ -1367,8 +1415,8 @@ export class Visual implements IVisual {
             if (cmpTotal > 0) {
                 cmpNeed = needFor(ranked, cmpTotal);
                 cmpBinValues = [];
-                const source = named ? trimmedRows.map(r => r.cmp) : ranked;
-                if (named) cmpTotal = source.reduce((a, v) => a + v, 0);
+                const source = entityAligned ? trimmedRows.map(r => r.cmp) : ranked;
+                if (entityAligned) cmpTotal = source.reduce((a, v) => a + v, 0);
                 for (let k = 0; k < nBins; k++) {
                     let sum = 0;
                     for (let j = starts[k]; j < starts[k + 1]; j++) sum += source[j];
@@ -1421,15 +1469,19 @@ export class Visual implements IVisual {
                 if (ruleColor) break;
             }
 
-            const label = named
+            const isNamed = named || (hybrid && k < head);
+            const label = isNamed
                 ? this.entityName(b[0].index)
-                : `${Math.round(binStart)}–${Math.round(binEnd)}%`;
+                : hybrid
+                    ? `#${this.int(starts[k] + 1)}–${this.int(starts[k + 1])}`
+                    : `${Math.round(binStart)}–${Math.round(binEnd)}%`;
             bins.push({
                 // Names can repeat (two customers called the same); the key cannot.
-                key:     named ? `${panelIdx}|#${String(this.lastCatCol?.values[b[0].index])}` : `${panelIdx}|${label}`,
+                key:     isNamed ? `${panelIdx}|#${String(this.lastCatCol?.values[b[0].index])}` : `${panelIdx}|${label}`,
                 label,
                 panel:   panelIdx,
-                named,
+                named:   isNamed,
+                avgDiv:  hybrid && !isNamed ? b.length : 1,
                 pctShare,
                 cumPct,
                 value:   binValue,
@@ -1683,7 +1735,7 @@ export class Visual implements IVisual {
         // Shared left axis. Headroom for value labels and change pills on top of
         // the tallest bar, so neither is clipped at the top.
         const showCmpBars = this.panels.some(p => p.hasCmp) && s.cmpShowBars;
-        const maxShare = d3.max(this.bins, b => Math.max(b.pctShare, showCmpBars && b.cmpShare != null ? b.cmpShare : 0)) ?? 100;
+        const maxShare = d3.max(this.bins, b => Math.max(b.pctShare / b.avgDiv, showCmpBars && b.cmpShare != null ? b.cmpShare / b.avgDiv : 0)) ?? 100;
         const pillsOn  = s.cmpShowPills && this.panels.some(p => p.hasCmp);
         const labelsOn = s.showLabels && this.previewOf("value labels");
         const headroom = 1.18 + (pillsOn ? 0.14 : 0) + (labelsOn && pillsOn ? 0.06 : 0);
@@ -1772,6 +1824,7 @@ export class Visual implements IVisual {
         if (withCount) items.push({ displayName: this.t("UI_TipCount", "Count"), value: this.int(b.nEntities) });
         items.push({ displayName: this.t("UI_TipValue", "Value"), value: this.fmtValue(b.value, this.measureFormat) });
         items.push({ displayName: this.t("UI_TipShare", "% of total value"), value: this.pct(b.pctShare, 2) });
+        if (b.avgDiv > 1) items.push({ displayName: this.t("UI_TipAvg", "Average per entity (bar height)"), value: this.pct(b.pctShare / b.avgDiv, 2) });
         items.push({ displayName: this.t("UI_TipCum", "Cumulative"), value: this.pct(b.cumPct, 2) });
         if (b.hlShare !== null) {
             items.push({ displayName: this.t("UI_TipHl", "Highlighted share"), value: this.pct(b.hlShare, 2) });
@@ -1989,7 +2042,10 @@ export class Visual implements IVisual {
         const band    = xScale.bandwidth();
         const curW    = cmpBars ? band * 0.78 : band;
         const curX    = (b: BinDatum) => xScale(b.key) + (cmpBars ? band - curW : 0);
-        const barTop  = (b: BinDatum) => yL(Math.max(b.pctShare, cmpBars && b.cmpShare != null ? b.cmpShare : 0));
+        // Drawn heights (see avgDiv): the true shares stay in the data, the line and the tooltip.
+        const hS = (b: BinDatum) => b.pctShare / b.avgDiv;
+        const hC = (b: BinDatum) => (b.cmpShare as number) / b.avgDiv;
+        const barTop  = (b: BinDatum) => yL(Math.max(hS(b), cmpBars && b.cmpShare != null ? hC(b) : 0));
 
         if (cmpBars) {
             gp.selectAll(".cmp-bar")
@@ -1997,9 +2053,9 @@ export class Visual implements IVisual {
                 .enter().append("rect")
                 .classed("cmp-bar", true)
                 .attr("x",      b => xScale(b.key))
-                .attr("y",      b => yL(b.cmpShare as number))
+                .attr("y",      b => yL(hC(b)))
                 .attr("width",  curW)
-                .attr("height", b => Math.max(0, H - yL(b.cmpShare as number)))
+                .attr("height", b => Math.max(0, H - yL(hC(b))))
                 .attr("fill",   s.ibcsMode && !isHC ? "#FFFFFF" : cmpBar)
                 .attr("fill-opacity", s.ibcsMode || isHC ? 1 : 0.35)
                 .attr("stroke", cmpBar)
@@ -2016,9 +2072,9 @@ export class Visual implements IVisual {
                 .enter().append("rect")
                 .classed("bar-knockout", true)
                 .attr("x",      b => curX(b))
-                .attr("y",      b => yL(b.pctShare))
+                .attr("y",      b => yL(hS(b)))
                 .attr("width",  curW)
-                .attr("height", b => Math.max(0, H - yL(b.pctShare)))
+                .attr("height", b => Math.max(0, H - yL(hS(b))))
                 .attr("fill",   isHC ? hcBg : "#FFFFFF")
                 .style("pointer-events", "none");
         }
@@ -2032,11 +2088,12 @@ export class Visual implements IVisual {
             .enter().append("rect")
             .classed("bar", true)
             .attr("x",      b => curX(b))
-            .attr("y",      b => yL(b.pctShare))
+            .attr("y",      b => yL(hS(b)))
             .attr("width",  curW)
-            .attr("height", b => Math.max(0, H - yL(b.pctShare)))
+            .attr("height", b => Math.max(0, H - yL(hS(b))))
             .attr("fill",   (b, i) => binFill(b, i))
-            .attr("opacity", hasHL ? s.barOpacity * 0.3 : s.barOpacity)
+            // The rank ranges after the names, lighter: an average, not one entity.
+            .attr("opacity", b => (hasHL ? s.barOpacity * 0.3 : s.barOpacity) * (b.avgDiv > 1 && !isHC ? 0.55 : 1))
             .attr("stroke",       (bw > 0 || isHC) ? borderStroke : "none")
             .attr("stroke-width", isHC ? 2 : bw)
             .style("cursor", "pointer");
@@ -2049,9 +2106,9 @@ export class Visual implements IVisual {
                 .enter().append("rect")
                 .classed("bar-hl", true)
                 .attr("x",      b => curX(b))
-                .attr("y",      b => yL(b.hlShare as number))
+                .attr("y",      b => yL((b.hlShare as number) / b.avgDiv))
                 .attr("width",  curW)
-                .attr("height", b => Math.max(0, H - yL(b.hlShare as number)))
+                .attr("height", b => Math.max(0, H - yL((b.hlShare as number) / b.avgDiv)))
                 .attr("fill",   (b, i) => binFill(b, bins.indexOf(b)))
                 .attr("opacity", s.barOpacity)
                 .style("pointer-events", "none");
@@ -2075,7 +2132,7 @@ export class Visual implements IVisual {
                 .attr("text-anchor", "middle")
                 .style("font-size", lfs + "px")
                 .style("fill", labelColor)
-                .text(b => s.showPercent ? this.pct(b.pctShare, 1) : this.formatter("0.0").format(b.pctShare));
+                .text(b => (b.avgDiv > 1 ? "ø " : "") + (s.showPercent ? this.pct(hS(b), 1) : this.formatter("0.0").format(hS(b))));
         }
 
         // Change pills (Pro): the change in each bar's share, in percentage points.
@@ -2940,6 +2997,9 @@ export class Visual implements IVisual {
             titulo.textContent = this.isPro ? this.t("Guide_TryPro2", "Pro features on your data") : this.t("Guide_TryPro", "Try Pro on your data");
             const s = this.settings;
             const pruebas: [string, string, boolean, () => void][] = [
+                [this.t("Guide_TryVital", "Vital few by name"), this.t("Guide_TryVitalWhy", "every customer up to 80%, by name"),
+                    objs?.pareto?.namedBars === "vitalFew",
+                    () => this.persistir("pareto", { namedBars: objs?.pareto?.namedBars === "vitalFew" ? "top15" : "vitalFew" })],
                 [this.t("Guide_TryBins", "Finer bars: 20 bins of 5%"), this.t("Guide_TryBinsWhy", "see exactly where the 80% is reached"),
                     objs?.pareto?.binSizePct !== undefined && Number(objs.pareto.binSizePct) !== 20,
                     () => objs?.pareto?.binSizePct !== undefined

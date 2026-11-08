@@ -208,6 +208,25 @@
       "displayName": "Pareto",
       "displayNameKey": "Obj_pareto",
       "properties": {
+        "namedBars": {
+          "displayName": "Bars with names",
+          "displayNameKey": "Prop_pareto_namedBars",
+          "description": "With more than 30 entities: bins of entities, the top 15 by name and the rest in rank ranges, or (Pro) every entity up to the threshold by name.",
+          "type": {
+            "enumeration": [
+              { "value": "bins", "displayName": "Bins of entities", "displayNameKey": "Enum_named_bins" },
+              { "value": "top15", "displayName": "Top 15 by name + rest", "displayNameKey": "Enum_named_top15" },
+              { "value": "vitalFew", "displayName": "Vital few by name + rest (Pro)", "displayNameKey": "Enum_named_vitalFew" }
+            ]
+          }
+        },
+        "namedMax": {
+          "displayName": "Max named bars (Pro)",
+          "displayNameKey": "Prop_pareto_namedMax",
+          "type": {
+            "numeric": true
+          }
+        },
         "binSizePct": {
           "displayName": "Bin size % of entities (Pro)",
           "displayNameKey": "Prop_pareto_binSizePct",

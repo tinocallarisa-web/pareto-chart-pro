@@ -117,6 +117,11 @@
   "Prop_style_template": "Sjabloon",
   "Prop_style_guide": "Installatiehulp",
   "Enum_tpl_report": "Rapportthema",
+  "Prop_pareto_namedBars": "Staven met naam",
+  "Prop_pareto_namedMax": "Max. staven met naam (Pro)",
+  "Enum_named_bins": "Groepen entiteiten",
+  "Enum_named_top15": "Top 15 met naam + rest",
+  "Enum_named_vitalFew": "Vitale weinigen met naam + rest (Pro)",
   "Enum_tpl_clean": "Strak",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "Tekengrootte",
   "Prop_legend_color": "Tekstkleur",
   "Legend_Cumulative": "Cumulatief %",
-  "Feat_styles": "collectiestijlen"
+  "Feat_styles": "collectiestijlen",
+  "Feat_vital": "vitale weinigen met naam",
+  "Guide_TryVital": "Vitale weinigen met naam",
+  "Guide_TryVitalWhy": "elke klant tot 80%, met naam",
+  "UI_TipAvg": "Gemiddelde per entiteit (staafhoogte)"
 }

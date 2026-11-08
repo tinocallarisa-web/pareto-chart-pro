@@ -117,6 +117,11 @@
   "Prop_style_template": "Plantilla",
   "Prop_style_guide": "Asistente de configuración",
   "Enum_tpl_report": "Tema del informe",
+  "Prop_pareto_namedBars": "Barras con nombre",
+  "Prop_pareto_namedMax": "Máx. de barras con nombre (Pro)",
+  "Enum_named_bins": "Grupos de entidades",
+  "Enum_named_top15": "Top 15 con nombre + resto",
+  "Enum_named_vitalFew": "Pocos vitales con nombre + resto (Pro)",
   "Enum_tpl_clean": "Limpia",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "Tamaño de fuente",
   "Prop_legend_color": "Color del texto",
   "Legend_Cumulative": "% acumulado",
-  "Feat_styles": "estilos de la colección"
+  "Feat_styles": "estilos de la colección",
+  "Feat_vital": "pocos vitales con nombre",
+  "Guide_TryVital": "Pocos vitales con nombre",
+  "Guide_TryVitalWhy": "cada cliente hasta el 80 %, con nombre",
+  "UI_TipAvg": "Media por entidad (altura de la barra)"
 }

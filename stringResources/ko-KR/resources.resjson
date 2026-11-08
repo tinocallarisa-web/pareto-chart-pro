@@ -117,6 +117,11 @@
   "Prop_style_template": "템플릿",
   "Prop_style_guide": "설정 가이드",
   "Enum_tpl_report": "보고서 테마",
+  "Prop_pareto_namedBars": "이름이 있는 막대",
+  "Prop_pareto_namedMax": "이름 있는 막대 최대 수(Pro)",
+  "Enum_named_bins": "엔터티 그룹",
+  "Enum_named_top15": "상위 15개 이름 + 나머지",
+  "Enum_named_vitalFew": "핵심 소수 이름 + 나머지(Pro)",
   "Enum_tpl_clean": "깔끔",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "글꼴 크기",
   "Prop_legend_color": "텍스트 색",
   "Legend_Cumulative": "누적 %",
-  "Feat_styles": "컬렉션 스타일"
+  "Feat_styles": "컬렉션 스타일",
+  "Feat_vital": "핵심 소수 이름 표시",
+  "Guide_TryVital": "핵심 소수 이름 표시",
+  "Guide_TryVitalWhy": "80%까지의 모든 고객을 이름으로",
+  "UI_TipAvg": "엔터티당 평균(막대 높이)"
 }

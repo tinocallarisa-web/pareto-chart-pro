@@ -117,6 +117,11 @@
   "Prop_style_template": "模板",
   "Prop_style_guide": "设置向导",
   "Enum_tpl_report": "报表主题",
+  "Prop_pareto_namedBars": "带名称的条形",
+  "Prop_pareto_namedMax": "带名称条形的最大数 (Pro)",
+  "Enum_named_bins": "实体分组",
+  "Enum_named_top15": "前 15 名带名称 + 其余",
+  "Enum_named_vitalFew": "关键少数带名称 + 其余 (Pro)",
   "Enum_tpl_clean": "简洁",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "字号",
   "Prop_legend_color": "文本颜色",
   "Legend_Cumulative": "累计 %",
-  "Feat_styles": "系列样式"
+  "Feat_styles": "系列样式",
+  "Feat_vital": "关键少数带名称",
+  "Guide_TryVital": "关键少数带名称",
+  "Guide_TryVitalWhy": "到 80% 为止的每个客户，带名称",
+  "UI_TipAvg": "每个实体的平均值（条形高度）"
 }

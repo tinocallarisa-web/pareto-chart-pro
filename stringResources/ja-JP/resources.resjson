@@ -117,6 +117,11 @@
   "Prop_style_template": "テンプレート",
   "Prop_style_guide": "セットアップ ガイド",
   "Enum_tpl_report": "レポートのテーマ",
+  "Prop_pareto_namedBars": "名前付きの棒",
+  "Prop_pareto_namedMax": "名前付きの棒の最大数 (Pro)",
+  "Enum_named_bins": "エンティティのグループ",
+  "Enum_named_top15": "上位 15 件を名前で + 残り",
+  "Enum_named_vitalFew": "重要な少数を名前で + 残り (Pro)",
   "Enum_tpl_clean": "クリーン",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "フォント サイズ",
   "Prop_legend_color": "テキストの色",
   "Legend_Cumulative": "累積 %",
-  "Feat_styles": "コレクション スタイル"
+  "Feat_styles": "コレクション スタイル",
+  "Feat_vital": "重要な少数を名前で",
+  "Guide_TryVital": "重要な少数を名前で",
+  "Guide_TryVitalWhy": "80% までの各顧客を名前で",
+  "UI_TipAvg": "エンティティあたりの平均 (棒の高さ)"
 }

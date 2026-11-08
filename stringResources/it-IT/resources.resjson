@@ -117,6 +117,11 @@
   "Prop_style_template": "Modello",
   "Prop_style_guide": "Procedura guidata",
   "Enum_tpl_report": "Tema del report",
+  "Prop_pareto_namedBars": "Barre con nome",
+  "Prop_pareto_namedMax": "Max barre con nome (Pro)",
+  "Enum_named_bins": "Gruppi di entità",
+  "Enum_named_top15": "Top 15 con nome + resto",
+  "Enum_named_vitalFew": "Pochi vitali con nome + resto (Pro)",
   "Enum_tpl_clean": "Pulito",
   "Enum_tpl_boardroom": "Boardroom (Pro)",
   "Enum_tpl_ledger": "Ledger (Pro)",
@@ -182,5 +187,9 @@
   "Prop_legend_fontSize": "Dimensione carattere",
   "Prop_legend_color": "Colore testo",
   "Legend_Cumulative": "% cumulata",
-  "Feat_styles": "stili della collezione"
+  "Feat_styles": "stili della collezione",
+  "Feat_vital": "pochi vitali con nome",
+  "Guide_TryVital": "Pochi vitali con nome",
+  "Guide_TryVitalWhy": "ogni cliente fino all’80%, con nome",
+  "UI_TipAvg": "Media per entità (altezza della barra)"
 }

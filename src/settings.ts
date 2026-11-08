@@ -22,6 +22,9 @@ export class ParetoCard extends SimpleCard {
     displayName = "Pareto";
     displayNameKey = "Obj_pareto";
 
+    // 1.7. No value saved = a report made before 1.7: bins, as it was. A visual inserted in 1.7 saves "top15".
+    namedBars   = new AutoDropdown({ name: "namedBars", displayName: "Bars with names", displayNameKey: "Prop_pareto_namedBars", value: "bins" });
+    namedMax    = new NumUpDown({ name: "namedMax", displayName: "Max named bars (Pro)", displayNameKey: "Prop_pareto_namedMax", value: 40 });
     binSizePct  = new NumUpDown({ name: "binSizePct",  displayName: "Bin size % of entities (Pro)", displayNameKey: "Prop_pareto_binSizePct", value: 5 });
     trimLower   = new NumUpDown({ name: "trimLower",   displayName: "Exclude bottom % entities (Pro)", displayNameKey: "Prop_pareto_trimLower", value: 0 });
     trimUpper   = new NumUpDown({ name: "trimUpper",   displayName: "Exclude top % entities (Pro)", displayNameKey: "Prop_pareto_trimUpper", value: 0 });
@@ -57,7 +60,7 @@ export class ParetoCard extends SimpleCard {
     ibcsMode    = new ToggleSwitch({ name: "ibcsMode",  displayName: "IBCS Mode (Standardized)", displayNameKey: "Prop_pareto_ibcsMode", value: false });
 
     slices = [
-        this.binSizePct, this.trimLower, this.trimUpper,
+        this.namedBars, this.namedMax, this.binSizePct, this.trimLower, this.trimUpper,
         this.barColor, this.barOpacity,
         this.borderColor, this.borderWidth, this.barGap,
         this.ibcsMode,
