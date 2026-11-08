@@ -803,6 +803,26 @@
           "type": {
             "bool": true
           }
+        },
+        "labelSize": {
+          "displayName": "Label font size",
+          "displayNameKey": "Prop_abcZones_labelSize",
+          "type": { "formatting": { "fontSize": true } }
+        },
+        "labelColor": {
+          "displayName": "Label colour",
+          "displayNameKey": "Prop_abcZones_labelColor",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "labelBg": {
+          "displayName": "Label background",
+          "displayNameKey": "Prop_abcZones_labelBg",
+          "type": { "fill": { "solid": { "color": true } } }
+        },
+        "labelBgOpacity": {
+          "displayName": "Label background opacity %",
+          "displayNameKey": "Prop_abcZones_labelBgOpacity",
+          "type": { "numeric": true }
         }
       }
     },

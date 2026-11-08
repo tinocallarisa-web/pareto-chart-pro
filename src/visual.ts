@@ -165,6 +165,11 @@ interface Settings {
     abcBColor:    string;
     abcCColor:    string;
     abcLabels:    boolean;
+    abcLabelSize: number;
+    /** "" = the zone's own colour. */
+    abcLabelColor: string;
+    abcLabelBg:   string;
+    abcLabelBgOpacity: number;
     // rangeBar group (1.7): the bar is free, shortcuts and summary Pro
     rangeShow:      boolean;
     rangeShortcuts: boolean;
@@ -236,7 +241,7 @@ function estilo(p: Paleta): Record<string, Record<string, any>> {
         comparison: { barColor: p.cmp, lineColor: p.cmp, upColor: p.up, downColor: p.down },
         smallMultiples: { titleColor: p.text },
         legend: { color: p.axis },
-        abcZones: { aColor: p.a, bColor: p.b, cColor: p.c },
+        abcZones: { aColor: p.a, bColor: p.b, cColor: p.c, labelBg: p.bg },
     };
 }
 
@@ -348,6 +353,10 @@ function readSettings(dv: DataView, efectiva?: string): Settings {
         abcBColor:     col("abcZones", "bColor",     "#3E9C5B"),
         abcCColor:     col("abcZones", "cColor",     "#A0A0A0"),
         abcLabels:     boo("abcZones", "showLabels", true),
+        abcLabelSize:  num("abcZones", "labelSize",  10),
+        abcLabelColor: col("abcZones", "labelColor", ""),
+        abcLabelBg:    col("abcZones", "labelBg",    "#FFFFFF"),
+        abcLabelBgOpacity: num("abcZones", "labelBgOpacity", 85),
 
         rangeShow:      boo("rangeBar", "show",      true),
         rangeShortcuts: boo("rangeBar", "shortcuts", true),
@@ -2100,17 +2109,34 @@ export class Visual implements IVisual {
                 .attr("stroke", isHC ? hcFg : "none")
                 .attr("stroke-dasharray", isHC ? "3,3" : null);
             if (s.abcLabels) {
-                zg.selectAll("text").data(zones.filter(z => z.x1 - z.x0 > 34)).enter().append("text")
-                    .classed("abc-label", true)
-                    .attr("x", z => z.x0 + 4).attr("y", 11)
-                    .style("font-size", "10px").style("font-weight", "700")
-                    .style("fill", z => isHC ? hcFg : z.color)
-                    // Halo del color de fondo: la curva acumulada pasa por arriba justo en la zona C.
-                    .style("paint-order", "stroke").style("stroke", isHC ? hcBg : "#FFFFFF")
+                const lfs = Math.max(7, Math.min(24, s.abcLabelSize || 10));
+                const bgOp = isHC ? 1 : Math.max(0, Math.min(100, s.abcLabelBgOpacity)) / 100;
+                const bg = isHC ? hcBg : (s.abcLabelBg || "#FFFFFF");
+                const etiquetas = zg.selectAll("g.abc-label").data(zones.filter(z => z.x1 - z.x0 > lfs * 3.4)).enter()
+                    .append("g").classed("abc-label", true);
+                const textos = etiquetas.append("text")
+                    .attr("x", z => z.x0 + 4 + 3).attr("y", lfs + 3)
+                    .style("font-size", lfs + "px").style("font-weight", "700")
+                    .style("fill", z => isHC ? hcFg : (s.abcLabelColor || z.color))
+                    // Without a background, a halo of the page colour: the cumulative line crosses zone C up there.
+                    .style("paint-order", "stroke").style("stroke", bgOp > 0 ? "none" : bg)
                     .style("stroke-width", "3px").style("stroke-linejoin", "round")
-                    .text(z => (z.x1 - z.x0 > 110)
+                    .text(z => (z.x1 - z.x0 > lfs * 11)
                         ? this.tf("UI_AbcLabel", "{0} · {1} of entities", z.cls, this.pct(100 * z.n / p.nEntities, 1))
                         : z.cls);
+                // Background behind each label (as in Bubble & Scatter), sized to its text.
+                if (bgOp > 0) {
+                    textos.each(function () {
+                        const t = this as SVGTextElement;
+                        let bb: DOMRect | null = null;
+                        try { bb = t.getBBox(); } catch { bb = null; }
+                        if (!bb || !bb.width) return;
+                        d3.select(t.parentNode as SVGGElement).insert("rect", "text")
+                            .attr("x", bb.x - 3).attr("y", bb.y - 1.5).attr("width", bb.width + 6).attr("height", bb.height + 3)
+                            .attr("rx", 3).attr("fill", bg).attr("fill-opacity", bgOp)
+                            .attr("stroke", isHC ? hcFg : "none");
+                    });
+                }
             }
         }
 
