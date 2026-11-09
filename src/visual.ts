@@ -2633,6 +2633,16 @@ export class Visual implements IVisual {
             .attr("class", "pc-range-over").attr("clip-path", `url(#${clipId})`)
             .attr("pointer-events", "none").attr("aria-hidden", "true");
         const overNode = over.node() as SVGGElement;
+        // The selected stretch has to read as a zone, ABC shading included: a veil of the page colour over what is
+        // outside, and a line at each edge. The cumulative line stays on top, unveiled.
+        const pageBg = isHC ? (pal?.background?.value ?? "#000000")
+            : (STYLE_LOOK[this.tplEfectiva]?.bg ?? (STYLE_LOOK[this.tplEfectiva]?.grad ? "#10395E" : (pal?.background?.value ?? "#FFFFFF")));
+        const veil = gp.insert("g", ".pc-range-over").attr("class", "pc-range-veil")
+            .attr("pointer-events", "none").attr("aria-hidden", "true");
+        const veilL = veil.append("rect").attr("y", -2).attr("height", H + 4).attr("fill", pageBg).attr("fill-opacity", isHC ? 0.75 : 0.6);
+        const veilR = veil.append("rect").attr("y", -2).attr("height", H + 4).attr("fill", pageBg).attr("fill-opacity", isHC ? 0.75 : 0.6);
+        const edgeL = veil.append("line").attr("y1", 0).attr("y2", H).attr("stroke", accent).attr("stroke-width", 1.5).attr("stroke-dasharray", "4,3");
+        const edgeR = veil.append("line").attr("y1", 0).attr("y2", H).attr("stroke", accent).attr("stroke-width", 1.5).attr("stroke-dasharray", "4,3");
         // Inside the range the bars are drawn at their full strength, whatever the base bar has now: the clone used to
         // keep the base's opacity, already dimmed by the selection, so the chosen range read as faint as the rest.
         barsSel.each(function (d: BinDatum) {
@@ -2717,6 +2727,11 @@ export class Visual implements IVisual {
                 .attr("aria-valuetext", this.tf("UI_RangeHandle", "#{0} · {1} of entities", this.int(hi), share(hi)));
             clipRect.attr("x", a).attr("width", Math.max(0, b - a));
             over.attr("display", active || touched ? null : "none");
+            veil.attr("display", active || touched ? null : "none");
+            veilL.attr("x", 0).attr("width", Math.max(0, a));
+            veilR.attr("x", b).attr("width", Math.max(0, W - b));
+            edgeL.attr("x1", a).attr("x2", a);
+            edgeR.attr("x1", b).attr("x2", b);
             // Everything outside the range, dimmed (also with a range already in force: the base bars of a bin that is
             // only partly inside must not stay at full strength outside the clip).
             if (touched || active) barsSel.attr("opacity", function () { return String(Number(this.getAttribute("data-op") ?? 1) * 0.25); });
