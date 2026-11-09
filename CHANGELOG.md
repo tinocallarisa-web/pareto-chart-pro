@@ -1,6 +1,6 @@
 # Changelog — Pareto Chart Pro
 
-## [1.7.0.0] — 2026-11
+## [1.7.0.0] — 2026-11-09
 
 ### Added
 - **Bars with names** (Format → Pareto → Bars with names, property `pareto.namedBars`), for charts with more than 30 entities; with 30 or fewer every entity keeps its own named bar, as before.
