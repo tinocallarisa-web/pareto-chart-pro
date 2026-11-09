@@ -60,7 +60,7 @@
   "Prop_comparison_downColor": "Colore diminuzione",
   "Obj_smallMultiples": "Multipli piccoli (Pro)",
   "Prop_smallMultiples_columns": "Colonne (0 = automatico)",
-  "Prop_smallMultiples_titleFontSize": "Dimensione carattere titolo",
+  "Prop_smallMultiples_titleFontSize": "Dimensione titolo",
   "Prop_smallMultiples_titleColor": "Colore titolo",
   "Obj_valueLabels": "Etichette dei valori (Pro)",
   "Prop_valueLabels_show": "Mostra",
@@ -217,5 +217,13 @@
   "UI_RangeLabel": "n. {0}–{1} · {2} delle entità",
   "UI_ShortVital": "Pochi vitali",
   "UI_ShortTail": "Coda",
-  "UI_OversizedRange": "Questo intervallo contiene {0} entità — più delle {1} che Power BI può filtrare in una volta. Restringilo."
+  "UI_OversizedRange": "Questo intervallo contiene {0} entità — più delle {1} che Power BI può filtrare in una volta. Restringilo.",
+  "Prop_smallMultiples_gap": "Spazio tra i pannelli",
+  "Prop_smallMultiples_titleBold": "Titolo in grassetto",
+  "Prop_smallMultiples_titleAlign": "Allineamento titolo",
+  "Prop_smallMultiples_background": "Sfondo del pannello",
+  "Prop_smallMultiples_border": "Bordo del pannello",
+  "Prop_smallMultiples_borderColor": "Colore bordo pannello",
+  "Enum_al_left": "Sinistra",
+  "Enum_al_center": "Centro"
 }

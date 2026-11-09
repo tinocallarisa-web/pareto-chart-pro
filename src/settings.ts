@@ -194,11 +194,20 @@ export class SmallMultiplesCard extends SimpleCard {
     displayName = "Small multiples (Pro)";
     displayNameKey = "Obj_smallMultiples";
 
+    // The 9 options common to the collection (05-11-2026), with Histogram's internal names. Gap keeps 14, Pareto's
+    // spacing before 1.7, and the title stays bold as it was.
     columns       = new NumUpDown({   name: "columns",       displayName: "Columns (0 = automatic)", displayNameKey: "Prop_smallMultiples_columns", value: 0 });
-    titleFontSize = new NumUpDown({   name: "titleFontSize", displayName: "Title font size", displayNameKey: "Prop_smallMultiples_titleFontSize", value: 12 });
+    gap           = new NumUpDown({   name: "gap",           displayName: "Space between panels", displayNameKey: "Prop_smallMultiples_gap", value: 14 });
+    titleFontSize = new NumUpDown({   name: "titleFontSize", displayName: "Title size", displayNameKey: "Prop_smallMultiples_titleFontSize", value: 12 });
     titleColor    = new ColorPicker({ name: "titleColor",    displayName: "Title color", displayNameKey: "Prop_smallMultiples_titleColor", value: { value: "#333333" } });
+    titleBold     = new ToggleSwitch({ name: "titleBold",    displayName: "Bold title", displayNameKey: "Prop_smallMultiples_titleBold", value: true });
+    titleAlign    = new AutoDropdown({ name: "titleAlign",   displayName: "Title alignment", displayNameKey: "Prop_smallMultiples_titleAlign", value: "left" });
+    background    = new ColorPicker({ name: "background",    displayName: "Panel background", displayNameKey: "Prop_smallMultiples_background", value: { value: "" } });
+    border        = new ToggleSwitch({ name: "border",       displayName: "Panel border", displayNameKey: "Prop_smallMultiples_border", value: false });
+    borderColor   = new ColorPicker({ name: "borderColor",   displayName: "Panel border color", displayNameKey: "Prop_smallMultiples_borderColor", value: { value: "#E1DFDD" } });
 
-    slices = [this.columns, this.titleFontSize, this.titleColor];
+    slices = [this.columns, this.gap, this.titleFontSize, this.titleColor, this.titleBold, this.titleAlign,
+        this.background, this.border, this.borderColor];
 }
 
 // ─── ABC Zones Card (Pro) ─────────────────────────────────────────────────────
@@ -277,19 +286,21 @@ export class ParetoFormattingSettings extends Model {
     valueLabels     = new ValueLabelsCard();
     legend          = new LegendCard();
 
+    // Common order of the collection (05-11-2026): Style template, the visual's own cards from most to least used,
+    // axes, legend, small multiples. Only the order shown changes: no object or property was renamed.
     cards = [
         this.style,
         this.pareto,
         this.summary,
-        this.thresholdColors,
-        this.axes,
-        this.rangeBar,
         this.cumulativeLine,
         this.referenceLines,
-        this.comparison,
-        this.smallMultiples,
+        this.thresholdColors,
         this.abcZones,
         this.valueLabels,
+        this.comparison,
+        this.rangeBar,
+        this.axes,
         this.legend,
+        this.smallMultiples,
     ];
 }

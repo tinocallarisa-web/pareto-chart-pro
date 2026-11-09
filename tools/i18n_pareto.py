@@ -280,4 +280,13 @@ P = {
 "Label colour": ["Cor do rótulo", "Couleur de l’étiquette", "Farbe der Beschriftung", "Colore etichetta", "Kleur label", "Kolor etykiety", "ラベルの色", "标签颜色", "레이블 색", "Color de la etiqueta"],
 "Label background": ["Fundo do rótulo", "Arrière-plan de l’étiquette", "Hintergrund der Beschriftung", "Sfondo etichetta", "Achtergrond label", "Tło etykiety", "ラベルの背景", "标签背景", "레이블 배경", "Fondo de la etiqueta"],
 "Label background opacity %": ["Opacidade do fundo do rótulo %", "Opacité de l’arrière-plan de l’étiquette %", "Deckkraft des Beschriftungshintergrunds %", "Opacità sfondo etichetta %", "Dekking achtergrond label %", "Krycie tła etykiety %", "ラベル背景の不透明度 %", "标签背景不透明度 %", "레이블 배경 불투명도 %", "Opacidad del fondo de la etiqueta %"],
+"Space between panels": ["Espaço entre painéis", "Espace entre les panneaux", "Abstand zwischen Feldern", "Spazio tra i pannelli", "Ruimte tussen panelen", "Odstęp między panelami", "パネル間の間隔", "面板间距", "패널 간 간격", "Espacio entre paneles"],
+"Bold title": ["Título em negrito", "Titre en gras", "Fetter Titel", "Titolo in grassetto", "Vette titel", "Pogrubiony tytuł", "タイトルを太字", "标题加粗", "굵은 제목", "Título en negrita"],
+"Title alignment": ["Alinhamento do título", "Alignement du titre", "Titelausrichtung", "Allineamento titolo", "Titeluitlijning", "Wyrównanie tytułu", "タイトルの配置", "标题对齐", "제목 맞춤", "Alineación del título"],
+"Panel background": ["Fundo do painel", "Arrière-plan du panneau", "Feldhintergrund", "Sfondo del pannello", "Achtergrond paneel", "Tło panelu", "パネルの背景", "面板背景", "패널 배경", "Fondo del panel"],
+"Panel border": ["Borda do painel", "Bordure du panneau", "Feldrahmen", "Bordo del pannello", "Paneelrand", "Obramowanie panelu", "パネルの枠線", "面板边框", "패널 테두리", "Borde del panel"],
+"Panel border color": ["Cor da borda do painel", "Couleur de bordure du panneau", "Farbe des Feldrahmens", "Colore bordo pannello", "Kleur paneelrand", "Kolor obramowania panelu", "パネルの枠線の色", "面板边框颜色", "패널 테두리 색", "Color del borde del panel"],
+"Left": ["Esquerda", "Gauche", "Links", "Sinistra", "Links", "Do lewej", "左", "左", "왼쪽", "Izquierda"],
+"Center": ["Centro", "Centre", "Mitte", "Centro", "Midden", "Do środka", "中央", "居中", "가운데", "Centro"],
+"Title size": ["Tamanho do título", "Taille du titre", "Titelgröße", "Dimensione titolo", "Titelgrootte", "Rozmiar tytułu", "タイトルのサイズ", "标题大小", "제목 크기", "Tamaño del título"],
 }

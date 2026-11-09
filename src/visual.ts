@@ -151,8 +151,14 @@ interface Settings {
     cmpDownColor: string;
     // smallMultiples group (Pro)
     smColumns:    number;
+    smGap:        number;
     smTitleSize:  number;
     smTitleColor: string;
+    smTitleBold:  boolean;
+    smTitleAlign: string;
+    smBackground: string;
+    smBorder:     boolean;
+    smBorderColor: string;
     // abcZones group (Pro)
     abcShow:      boolean;
     legShow:      boolean;
@@ -339,8 +345,14 @@ function readSettings(dv: DataView, efectiva?: string): Settings {
         cmpDownColor:  col("comparison", "downColor", "#C62828"),
 
         smColumns:     num("smallMultiples", "columns",       0),
+        smGap:         num("smallMultiples", "gap",           14),
         smTitleSize:   num("smallMultiples", "titleFontSize", 12),
         smTitleColor:  col("smallMultiples", "titleColor",    "#333333"),
+        smTitleBold:   boo("smallMultiples", "titleBold",     true),
+        smTitleAlign:  txt("smallMultiples", "titleAlign",    "left"),
+        smBackground:  col("smallMultiples", "background",    ""),
+        smBorder:      boo("smallMultiples", "border",        false),
+        smBorderColor: col("smallMultiples", "borderColor",   "#E1DFDD"),
 
         abcShow:       boo("abcZones", "show",       false),
         legShow:       boo("legend", "show",     false),
@@ -1842,8 +1854,11 @@ export class Visual implements IVisual {
                 : Math.max(1, Math.min(n, Math.round(Math.sqrt(n * (VW / Math.max(1, VH - noticeH)) / 1.6))));
         }
         const rows   = Math.ceil(n / cols);
-        const gap    = multi ? 14 : 0;
-        const titleH = multi ? Math.max(9, s.smTitleSize) + 8 : 0;
+        const gap    = multi ? Math.max(0, Math.min(60, s.smGap)) : 0;
+        // With a border or a background the panel is a box: 6 px of air around its title and chart.
+        const boxed  = multi && (s.smBorder || !!s.smBackground);
+        const pad    = boxed ? 6 : 0;
+        const titleH = multi ? Math.max(9, s.smTitleSize) + 8 + pad : 0;
         const cellW  = (VW - gap * (cols - 1)) / cols;
         const cellH  = (VH - noticeH - (legTop ? 0 : legendH) - gap * (rows - 1)) / rows;
 
@@ -1861,17 +1876,28 @@ export class Visual implements IVisual {
             const cy = noticeH + Math.floor(pi / cols) * (cellH + gap);
             const pg = this.svg.append("g").classed("panel", true)
                 .attr("transform", `translate(${cx},${cy})`);
+            if (boxed) {
+                // The whole cell, title and axis titles included.
+                pg.append("rect").classed("sm-box", true)
+                    .attr("x", 0.5).attr("y", 0.5).attr("width", Math.max(0, cellW - 1)).attr("height", Math.max(0, cellH - 1))
+                    .attr("rx", 2)
+                    .attr("fill", isHC ? "none" : (s.smBackground || "none"))
+                    .attr("stroke", s.smBorder ? (isHC ? hcFg : s.smBorderColor) : "none")
+                    .style("pointer-events", "none");
+            }
             if (multi) {
+                const centro = s.smTitleAlign === "center";
                 const title = pg.append("text")
-                    .attr("x", 0).attr("y", Math.max(9, s.smTitleSize))
+                    .attr("x", centro ? cellW / 2 : pad).attr("y", Math.max(9, s.smTitleSize) + pad)
+                    .attr("text-anchor", centro ? "middle" : "start")
                     .style("font-size", Math.max(9, s.smTitleSize) + "px")
-                    .style("font-weight", "600")
+                    .style("font-weight", s.smTitleBold ? "600" : "400")
                     .style("fill", isHC ? hcFg : s.smTitleColor)
                     .text(p.title);
-                this.fitText(title.node(), cellW);
+                this.fitText(title.node(), cellW - 2 * pad);
             }
-            const body = pg.append("g").attr("transform", `translate(0,${titleH})`);
-            this.drawPanel(body, p, cellW, cellH - titleH, yMax, ctx, cx, cy + titleH);
+            const body = pg.append("g").attr("transform", `translate(${pad},${titleH})`);
+            this.drawPanel(body, p, cellW - 2 * pad, cellH - titleH - pad, yMax, ctx, cx + pad, cy + titleH);
         });
 
         this.wireBars();

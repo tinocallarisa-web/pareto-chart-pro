@@ -60,7 +60,7 @@
   "Prop_comparison_downColor": "減少の色",
   "Obj_smallMultiples": "スモール マルチプル (Pro)",
   "Prop_smallMultiples_columns": "列 (0 = 自動)",
-  "Prop_smallMultiples_titleFontSize": "タイトルのフォント サイズ",
+  "Prop_smallMultiples_titleFontSize": "タイトルのサイズ",
   "Prop_smallMultiples_titleColor": "タイトルの色",
   "Obj_valueLabels": "値のラベル (Pro)",
   "Prop_valueLabels_show": "表示",
@@ -217,5 +217,13 @@
   "UI_RangeLabel": "{0}–{1} 位 · エンティティの {2}",
   "UI_ShortVital": "重要な少数",
   "UI_ShortTail": "テール",
-  "UI_OversizedRange": "この範囲には {0} 件のエンティティがあり、Power BI が一度にフィルターできる {1} 件を超えています。範囲を狭めてください。"
+  "UI_OversizedRange": "この範囲には {0} 件のエンティティがあり、Power BI が一度にフィルターできる {1} 件を超えています。範囲を狭めてください。",
+  "Prop_smallMultiples_gap": "パネル間の間隔",
+  "Prop_smallMultiples_titleBold": "タイトルを太字",
+  "Prop_smallMultiples_titleAlign": "タイトルの配置",
+  "Prop_smallMultiples_background": "パネルの背景",
+  "Prop_smallMultiples_border": "パネルの枠線",
+  "Prop_smallMultiples_borderColor": "パネルの枠線の色",
+  "Enum_al_left": "左",
+  "Enum_al_center": "中央"
 }

@@ -60,7 +60,7 @@
   "Prop_comparison_downColor": "减少颜色",
   "Obj_smallMultiples": "小型序列图 (Pro)",
   "Prop_smallMultiples_columns": "列（0 = 自动）",
-  "Prop_smallMultiples_titleFontSize": "标题字号",
+  "Prop_smallMultiples_titleFontSize": "标题大小",
   "Prop_smallMultiples_titleColor": "标题颜色",
   "Obj_valueLabels": "值标签 (Pro)",
   "Prop_valueLabels_show": "显示",
@@ -217,5 +217,13 @@
   "UI_RangeLabel": "第 {0}–{1} 名 · 实体的 {2}",
   "UI_ShortVital": "关键少数",
   "UI_ShortTail": "长尾",
-  "UI_OversizedRange": "此范围包含 {0} 个实体，超过 Power BI 一次可筛选的 {1} 个。请缩小范围。"
+  "UI_OversizedRange": "此范围包含 {0} 个实体，超过 Power BI 一次可筛选的 {1} 个。请缩小范围。",
+  "Prop_smallMultiples_gap": "面板间距",
+  "Prop_smallMultiples_titleBold": "标题加粗",
+  "Prop_smallMultiples_titleAlign": "标题对齐",
+  "Prop_smallMultiples_background": "面板背景",
+  "Prop_smallMultiples_border": "面板边框",
+  "Prop_smallMultiples_borderColor": "面板边框颜色",
+  "Enum_al_left": "左",
+  "Enum_al_center": "居中"
 }

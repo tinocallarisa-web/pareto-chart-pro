@@ -60,7 +60,7 @@
   "Prop_comparison_downColor": "Farbe für Rückgang",
   "Obj_smallMultiples": "Kleine Vielfache (Pro)",
   "Prop_smallMultiples_columns": "Spalten (0 = automatisch)",
-  "Prop_smallMultiples_titleFontSize": "Schriftgröße des Titels",
+  "Prop_smallMultiples_titleFontSize": "Titelgröße",
   "Prop_smallMultiples_titleColor": "Titelfarbe",
   "Obj_valueLabels": "Wertbeschriftungen (Pro)",
   "Prop_valueLabels_show": "Anzeigen",
@@ -217,5 +217,13 @@
   "UI_RangeLabel": "Nr. {0}–{1} · {2} der Entitäten",
   "UI_ShortVital": "Wenige Wichtige",
   "UI_ShortTail": "Rest",
-  "UI_OversizedRange": "Dieser Bereich enthält {0} Entitäten — mehr als die {1}, die Power BI auf einmal filtern kann. Verkleinern Sie ihn."
+  "UI_OversizedRange": "Dieser Bereich enthält {0} Entitäten — mehr als die {1}, die Power BI auf einmal filtern kann. Verkleinern Sie ihn.",
+  "Prop_smallMultiples_gap": "Abstand zwischen Feldern",
+  "Prop_smallMultiples_titleBold": "Fetter Titel",
+  "Prop_smallMultiples_titleAlign": "Titelausrichtung",
+  "Prop_smallMultiples_background": "Feldhintergrund",
+  "Prop_smallMultiples_border": "Feldrahmen",
+  "Prop_smallMultiples_borderColor": "Farbe des Feldrahmens",
+  "Enum_al_left": "Links",
+  "Enum_al_center": "Mitte"
 }

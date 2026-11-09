@@ -217,5 +217,13 @@
   "UI_RangeLabel": "n.º {0}–{1} · {2} de las entidades",
   "UI_ShortVital": "Pocos vitales",
   "UI_ShortTail": "Cola",
-  "UI_OversizedRange": "Este rango tiene {0} entidades: más de las {1} que Power BI puede filtrar a la vez. Estréchelo."
+  "UI_OversizedRange": "Este rango tiene {0} entidades: más de las {1} que Power BI puede filtrar a la vez. Estréchelo.",
+  "Prop_smallMultiples_gap": "Espacio entre paneles",
+  "Prop_smallMultiples_titleBold": "Título en negrita",
+  "Prop_smallMultiples_titleAlign": "Alineación del título",
+  "Prop_smallMultiples_background": "Fondo del panel",
+  "Prop_smallMultiples_border": "Borde del panel",
+  "Prop_smallMultiples_borderColor": "Color del borde del panel",
+  "Enum_al_left": "Izquierda",
+  "Enum_al_center": "Centro"
 }

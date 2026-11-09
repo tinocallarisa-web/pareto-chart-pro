@@ -60,7 +60,7 @@
   "Prop_comparison_downColor": "Kleur afname",
   "Obj_smallMultiples": "Kleine veelvouden (Pro)",
   "Prop_smallMultiples_columns": "Kolommen (0 = automatisch)",
-  "Prop_smallMultiples_titleFontSize": "Tekengrootte titel",
+  "Prop_smallMultiples_titleFontSize": "Titelgrootte",
   "Prop_smallMultiples_titleColor": "Titelkleur",
   "Obj_valueLabels": "Waardelabels (Pro)",
   "Prop_valueLabels_show": "Weergeven",
@@ -217,5 +217,13 @@
   "UI_RangeLabel": "#{0}–#{1} · {2} van de entiteiten",
   "UI_ShortVital": "Vitale weinigen",
   "UI_ShortTail": "Staart",
-  "UI_OversizedRange": "Dit bereik bevat {0} entiteiten — meer dan de {1} die Power BI in één keer kan filteren. Verklein het."
+  "UI_OversizedRange": "Dit bereik bevat {0} entiteiten — meer dan de {1} die Power BI in één keer kan filteren. Verklein het.",
+  "Prop_smallMultiples_gap": "Ruimte tussen panelen",
+  "Prop_smallMultiples_titleBold": "Vette titel",
+  "Prop_smallMultiples_titleAlign": "Titeluitlijning",
+  "Prop_smallMultiples_background": "Achtergrond paneel",
+  "Prop_smallMultiples_border": "Paneelrand",
+  "Prop_smallMultiples_borderColor": "Kleur paneelrand",
+  "Enum_al_left": "Links",
+  "Enum_al_center": "Midden"
 }
