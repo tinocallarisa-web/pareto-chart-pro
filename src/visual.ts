@@ -2645,11 +2645,13 @@ export class Visual implements IVisual {
         const edgeR = veil.append("line").attr("y1", 0).attr("y2", H).attr("stroke", accent).attr("stroke-width", 1.5).attr("stroke-dasharray", "4,3");
         // Inside the range the bars are drawn at their full strength, whatever the base bar has now: the clone used to
         // keep the base's opacity, already dimmed by the selection, so the chosen range read as faint as the rest.
+        const hcRange = !!this.host.colorPalette?.isHighContrast;
         barsSel.each(function (d: BinDatum) {
             const c = this.cloneNode(false) as SVGRectElement;
             for (const a of ["class", "tabindex", "role", "aria-label", "aria-selected"]) c.removeAttribute(a);
             c.style.cursor = "";
-            c.setAttribute("opacity", String(opPropia(d)));
+            // Full strength inside the range, whatever "Bar opacity" says: at 50 % the selection would not stand out.
+            c.setAttribute("opacity", String(d && d.avgDiv > 1 && !hcRange ? 0.7 : 1));
             overNode.appendChild(c);
         });
 
