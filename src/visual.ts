@@ -2624,17 +2624,22 @@ export class Visual implements IVisual {
 
         // The stretch of the bars inside the range, at full strength over the dimmed bars: a range can end inside a bar.
         const barsSel = gp.selectAll<SVGRectElement, BinDatum>(".bar");
-        barsSel.attr("data-op", function () { return this.getAttribute("opacity"); });
+        // The bar's own strength (not what it shows now, which a selection may have dimmed already).
+        const opPropia = (d: BinDatum) => this.settings.barOpacity * (d && d.avgDiv > 1 && !this.host.colorPalette?.isHighContrast ? 0.55 : 1);
+        barsSel.attr("data-op", d => String(opPropia(d)));
         const clipId = `pc-range-clip-${this.uid}`;
         const clipRect = gp.append("clipPath").attr("id", clipId).append("rect").attr("y", -2).attr("height", H + 4);
         const over = gp.insert("g", ".bar-hl, .bar-label, .cmp-pill, .cmp-line, .cum-line")
             .attr("class", "pc-range-over").attr("clip-path", `url(#${clipId})`)
             .attr("pointer-events", "none").attr("aria-hidden", "true");
         const overNode = over.node() as SVGGElement;
-        barsSel.each(function () {
+        // Inside the range the bars are drawn at their full strength, whatever the base bar has now: the clone used to
+        // keep the base's opacity, already dimmed by the selection, so the chosen range read as faint as the rest.
+        barsSel.each(function (d: BinDatum) {
             const c = this.cloneNode(false) as SVGRectElement;
             for (const a of ["class", "tabindex", "role", "aria-label", "aria-selected"]) c.removeAttribute(a);
             c.style.cursor = "";
+            c.setAttribute("opacity", String(opPropia(d)));
             overNode.appendChild(c);
         });
 
@@ -2712,7 +2717,9 @@ export class Visual implements IVisual {
                 .attr("aria-valuetext", this.tf("UI_RangeHandle", "#{0} · {1} of entities", this.int(hi), share(hi)));
             clipRect.attr("x", a).attr("width", Math.max(0, b - a));
             over.attr("display", active || touched ? null : "none");
-            if (touched) barsSel.attr("opacity", function () { return String(Number(this.getAttribute("data-op") ?? 1) * 0.25); });
+            // Everything outside the range, dimmed (also with a range already in force: the base bars of a bin that is
+            // only partly inside must not stay at full strength outside the clip).
+            if (touched || active) barsSel.attr("opacity", function () { return String(Number(this.getAttribute("data-op") ?? 1) * 0.25); });
             const showLabel = (active && !stale) || touched;
             label.style("display", showLabel ? null : "none")
                 .style("left", `${Math.max(70, Math.min(W - 70, (a + b) / 2))}px`)
