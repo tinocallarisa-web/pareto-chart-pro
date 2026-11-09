@@ -172,6 +172,7 @@ interface Settings {
     abcCColor:    string;
     abcLabels:    boolean;
     abcLabelSize: number;
+    abcZoneOpacity: number;
     /** "" = the zone's own colour. */
     abcLabelColor: string;
     abcLabelBg:   string;
@@ -366,6 +367,7 @@ function readSettings(dv: DataView, efectiva?: string): Settings {
         abcCColor:     col("abcZones", "cColor",     "#A0A0A0"),
         abcLabels:     boo("abcZones", "showLabels", true),
         abcLabelSize:  num("abcZones", "labelSize",  10),
+        abcZoneOpacity: num("abcZones", "zoneOpacity", 12),
         abcLabelColor: col("abcZones", "labelColor", ""),
         abcLabelBg:    col("abcZones", "labelBg",    "#FFFFFF"),
         abcLabelBgOpacity: num("abcZones", "labelBgOpacity", 85),
@@ -2131,7 +2133,7 @@ export class Visual implements IVisual {
                 .attr("x", z => z.x0).attr("y", 0)
                 .attr("width", z => z.x1 - z.x0).attr("height", H)
                 .attr("fill", z => isHC ? "none" : z.color)
-                .attr("fill-opacity", 0.12)
+                .attr("fill-opacity", Math.max(0, Math.min(100, s.abcZoneOpacity)) / 100)
                 .attr("stroke", isHC ? hcFg : "none")
                 .attr("stroke-dasharray", isHC ? "3,3" : null);
             if (s.abcLabels) {

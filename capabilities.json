@@ -870,6 +870,13 @@
             }
           }
         },
+        "zoneOpacity": {
+          "displayName": "Zone opacity %",
+          "displayNameKey": "Prop_abcZones_zoneOpacity",
+          "type": {
+            "numeric": true
+          }
+        },
         "showLabels": {
           "displayName": "Show zone labels",
           "displayNameKey": "Prop_abcZones_showLabels",

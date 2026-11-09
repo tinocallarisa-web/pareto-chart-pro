@@ -121,6 +121,7 @@
   "Prop_style_template": "Plantilla",
   "Prop_style_guide": "Asistente de configuración",
   "Enum_tpl_report": "Tema del informe",
+  "Prop_abcZones_zoneOpacity": "Opacidad de la zona %",
   "Prop_abcZones_labelSize": "Tamaño de fuente de la etiqueta",
   "Prop_abcZones_labelColor": "Color de la etiqueta",
   "Prop_abcZones_labelBg": "Fondo de la etiqueta",

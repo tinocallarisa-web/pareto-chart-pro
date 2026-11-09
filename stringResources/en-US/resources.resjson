@@ -121,6 +121,7 @@
   "Prop_style_template": "Template",
   "Prop_style_guide": "Setup guide",
   "Enum_tpl_report": "Report theme",
+  "Prop_abcZones_zoneOpacity": "Zone opacity %",
   "Prop_abcZones_labelSize": "Label font size",
   "Prop_abcZones_labelColor": "Label colour",
   "Prop_abcZones_labelBg": "Label background",

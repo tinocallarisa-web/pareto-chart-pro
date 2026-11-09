@@ -121,6 +121,7 @@
   "Prop_style_template": "テンプレート",
   "Prop_style_guide": "セットアップ ガイド",
   "Enum_tpl_report": "レポートのテーマ",
+  "Prop_abcZones_zoneOpacity": "ゾーンの不透明度 %",
   "Prop_abcZones_labelSize": "ラベルのフォント サイズ",
   "Prop_abcZones_labelColor": "ラベルの色",
   "Prop_abcZones_labelBg": "ラベルの背景",

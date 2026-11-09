@@ -289,4 +289,5 @@ P = {
 "Left": ["Esquerda", "Gauche", "Links", "Sinistra", "Links", "Do lewej", "左", "左", "왼쪽", "Izquierda"],
 "Center": ["Centro", "Centre", "Mitte", "Centro", "Midden", "Do środka", "中央", "居中", "가운데", "Centro"],
 "Title size": ["Tamanho do título", "Taille du titre", "Titelgröße", "Dimensione titolo", "Titelgrootte", "Rozmiar tytułu", "タイトルのサイズ", "标题大小", "제목 크기", "Tamaño del título"],
+"Zone opacity %": ["Opacidade da zona %", "Opacité de la zone %", "Deckkraft der Zone %", "Opacità zona %", "Dekking zone %", "Krycie strefy %", "ゾーンの不透明度 %", "区域不透明度 %", "영역 불투명도 %", "Opacidad de la zona %"],
 }

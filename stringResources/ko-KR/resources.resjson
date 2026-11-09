@@ -121,6 +121,7 @@
   "Prop_style_template": "템플릿",
   "Prop_style_guide": "설정 가이드",
   "Enum_tpl_report": "보고서 테마",
+  "Prop_abcZones_zoneOpacity": "영역 불투명도 %",
   "Prop_abcZones_labelSize": "레이블 글꼴 크기",
   "Prop_abcZones_labelColor": "레이블 색",
   "Prop_abcZones_labelBg": "레이블 배경",

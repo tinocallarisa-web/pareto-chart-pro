@@ -121,6 +121,7 @@
   "Prop_style_template": "模板",
   "Prop_style_guide": "设置向导",
   "Enum_tpl_report": "报表主题",
+  "Prop_abcZones_zoneOpacity": "区域不透明度 %",
   "Prop_abcZones_labelSize": "标签字号",
   "Prop_abcZones_labelColor": "标签颜色",
   "Prop_abcZones_labelBg": "标签背景",

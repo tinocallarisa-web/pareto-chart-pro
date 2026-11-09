@@ -121,6 +121,7 @@
   "Prop_style_template": "Sjabloon",
   "Prop_style_guide": "Installatiehulp",
   "Enum_tpl_report": "Rapportthema",
+  "Prop_abcZones_zoneOpacity": "Dekking zone %",
   "Prop_abcZones_labelSize": "Tekengrootte label",
   "Prop_abcZones_labelColor": "Kleur label",
   "Prop_abcZones_labelBg": "Achtergrond label",

@@ -121,6 +121,7 @@
   "Prop_style_template": "Modèle",
   "Prop_style_guide": "Assistant de configuration",
   "Enum_tpl_report": "Thème du rapport",
+  "Prop_abcZones_zoneOpacity": "Opacité de la zone %",
   "Prop_abcZones_labelSize": "Taille de police de l’étiquette",
   "Prop_abcZones_labelColor": "Couleur de l’étiquette",
   "Prop_abcZones_labelBg": "Arrière-plan de l’étiquette",

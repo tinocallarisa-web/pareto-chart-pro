@@ -121,6 +121,7 @@
   "Prop_style_template": "Modelo",
   "Prop_style_guide": "Assistente de configuração",
   "Enum_tpl_report": "Tema do relatório",
+  "Prop_abcZones_zoneOpacity": "Opacidade da zona %",
   "Prop_abcZones_labelSize": "Tamanho da fonte do rótulo",
   "Prop_abcZones_labelColor": "Cor do rótulo",
   "Prop_abcZones_labelBg": "Fundo do rótulo",

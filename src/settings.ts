@@ -222,6 +222,8 @@ export class AbcZonesCard extends SimpleCard {
     aColor     = new ColorPicker({  name: "aColor",     displayName: "Class A color", displayNameKey: "Prop_abcZones_aColor", value: { value: "#2B6CB0" } });
     bColor     = new ColorPicker({  name: "bColor",     displayName: "Class B color", displayNameKey: "Prop_abcZones_bColor", value: { value: "#3E9C5B" } });
     cColor     = new ColorPicker({  name: "cColor",     displayName: "Class C color", displayNameKey: "Prop_abcZones_cColor", value: { value: "#A0A0A0" } });
+    // 1.7, as in Bubble & Scatter: on a strong panel background the tint muddies the chart; 0 leaves only the labels.
+    zoneOpacity = new NumUpDown({ name: "zoneOpacity", displayName: "Zone opacity %", displayNameKey: "Prop_abcZones_zoneOpacity", value: 12 });
     showLabels = new ToggleSwitch({ name: "showLabels", displayName: "Show zone labels", displayNameKey: "Prop_abcZones_showLabels", value: true });
     // 1.7, as in Bubble & Scatter: the labels sit over the bars and the line, so their size and background matter.
     labelSize      = new NumUpDown({   name: "labelSize",      displayName: "Label font size", displayNameKey: "Prop_abcZones_labelSize", value: 10 });
@@ -229,7 +231,7 @@ export class AbcZonesCard extends SimpleCard {
     labelBg        = new ColorPicker({ name: "labelBg",        displayName: "Label background", displayNameKey: "Prop_abcZones_labelBg", value: { value: "#FFFFFF" } });
     labelBgOpacity = new NumUpDown({   name: "labelBgOpacity", displayName: "Label background opacity %", displayNameKey: "Prop_abcZones_labelBgOpacity", value: 85 });
 
-    slices = [this.show, this.aCut, this.bCut, this.aColor, this.bColor, this.cColor, this.showLabels,
+    slices = [this.show, this.aCut, this.bCut, this.aColor, this.bColor, this.cColor, this.zoneOpacity, this.showLabels,
         this.labelSize, this.labelColor, this.labelBg, this.labelBgOpacity];
 }
 

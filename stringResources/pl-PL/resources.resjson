@@ -121,6 +121,7 @@
   "Prop_style_template": "Szablon",
   "Prop_style_guide": "Kreator konfiguracji",
   "Enum_tpl_report": "Motyw raportu",
+  "Prop_abcZones_zoneOpacity": "Krycie strefy %",
   "Prop_abcZones_labelSize": "Rozmiar czcionki etykiety",
   "Prop_abcZones_labelColor": "Kolor etykiety",
   "Prop_abcZones_labelBg": "Tło etykiety",
