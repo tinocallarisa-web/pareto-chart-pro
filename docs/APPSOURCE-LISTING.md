@@ -18,17 +18,17 @@ What's new block goes inside it), certification notes 2,500 counting CRLF, 3 key
 ---
 
 ## Description
-*(4,318 characters measured on the HTML that is pasted, What's new included; limit 5,000)*
+*(4,336 characters measured on the HTML that is pasted, What's new included; limit 5,000)*
 
 ```
-Everyone has heard that 20% of customers make 80% of sales. Almost nobody in the meeting knows whether that is true for their own business this year, who exactly those customers are, or what changed since last year. The native way to find out is a sorted column chart, a cumulative DAX measure and a dual axis — and it still cannot tell you the answer in words.
+Everyone has heard that 20% of customers make 80% of sales. The useful questions are whether that holds for your business this year, who exactly those customers are, and what changed since last year. Building it natively takes a sorted column chart, a cumulative DAX measure and a dual axis; Pareto Chart Pro does it for you and states the answer in words.
 
-Pareto Chart Pro ranks any entity — customers, SKUs, defect codes, suppliers — and states the answer: "1,120 of 5,000 customers (22.4%) make 80% of sales". Exact, counted customer by customer, recalculated against whatever your slicers select.
+It ranks any entity — customers, SKUs, defect codes, suppliers — and states the answer: "1,120 of 5,000 customers (22.4%) make 80% of sales". Exact, counted customer by customer, recalculated against whatever your slicers select.
 
 FREE: THE EXACT ANSWER, A CORRECT CHART
 • Ranked bars and a cumulative line to 100%, up to two threshold lines and the summary sentence with the exact number of entities
 • Your top 15 by name: with more than 30 entities, the 15 largest get a named bar and the rest is grouped by rank ("#16–62"), drawn as the average per entity so the curve keeps falling, while the cumulative line and the tooltip keep the real totals. With 30 entities or fewer, every entity has its own bar
-• A range bar under the chart: drag two handles, or use the keyboard, to pick a stretch of ranks — the top 50, #51 to #200 — and filter the page to exactly those entities
+• A range bar under the chart: drag two handles, or use the keyboard, to pick a stretch of ranks — the top 50, #51 to #200 — and filter the page to exactly those entities (up to 10,000 entities per filter; not with small multiples)
 • Report theme by default, so the chart takes your report's colours like a native visual, plus six style templates including an IBCS style
 • Threshold colours, conditional formatting (fx) on bar colour, and highlighting from other visuals drawn on each bar
 
@@ -47,7 +47,7 @@ NATIVE INTEGRATION
 Cross-filtering and multi-select, drilldown on a hierarchy, standard and report page tooltips, bookmarks, context menu. Keyboard navigation (one Tab stop, arrow keys between bars, and the range bar's handles by keyboard) with screen-reader labels, high contrast, the measure's format string from your model (dynamic format strings included), format on the canvas, a legend, and twelve languages.
 
 PRIVACY
-Certified by Microsoft. No network requests, no telemetry: everything is calculated inside Power BI. Licences are checked through Microsoft's own licensing API.
+No network requests, no telemetry: everything is calculated inside Power BI. Licences are checked through Microsoft's own licensing API.
 
 GETTING STARTED
 1. Entity = Customer, Value = Sales.

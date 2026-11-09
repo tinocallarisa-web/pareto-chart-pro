@@ -4,7 +4,7 @@
 by name, and read the cumulative line against the thresholds your decision actually depends
 on — without the sorted-column-plus-DAX workaround.
 
-[![AppSource](https://img.shields.io/badge/Microsoft-AppSource-0078D4)](https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro)
+[![AppSource](https://img.shields.io/badge/Microsoft-AppSource-0078D4)](https://appsource.microsoft.com/product/power-bi-visuals/tino_callarisa.pareto-chart-pro-tcviz)
 [![Certified](https://img.shields.io/badge/Power%20BI-Certified-107C10)](https://learn.microsoft.com/power-bi/developer/visuals/power-bi-custom-visuals-certified)
 [![Docs](https://img.shields.io/badge/docs-tcviz-2B6CB0)](https://tinocallarisa-web.github.io/pareto-chart-pro/)
 
@@ -48,7 +48,7 @@ format strings · format on the canvas · 12 languages.
 
 ## Quick start
 
-1. Get the visual from [AppSource](https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro),
+1. Get the visual from [AppSource](https://appsource.microsoft.com/product/power-bi-visuals/tino_callarisa.pareto-chart-pro-tcviz),
    or **Visualizations → ⋯ → Get more visuals → "Pareto Chart Pro"**.
 2. Drag a category field (Customer, Product, SKU…) into **Entity**.
 3. Drag a numeric measure (Revenue, Units, Defect count…) into **Value**.
@@ -68,7 +68,7 @@ Drag the range bar under the chart to filter the page to a stretch of ranks.
 | Tooltips field well (up to 10 measures) | ✅ | ✅ |
 | Conditional formatting (`fx`) and Threshold Colors | ✅ | ✅ |
 | IBCS Mode, high contrast, keyboard navigation | ✅ | ✅ |
-| Max entities (Power BI Service) | 500,000+ | 500,000+ |
+| Entities | Verified at 500,000 entities (Power BI Service); Power BI Desktop: up to 30,000 rows | same |
 | Top 15 by name + rank ranges (more than 30 entities) | ✅ | ✅ |
 | Vital few by name (up to 50 named bars) | — | ✅ |
 | Range bar: drag, keyboard, filter the page by rank | ✅ | ✅ |

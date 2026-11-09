@@ -218,7 +218,7 @@ Entity: Supplier Name · Value: Purchase Amount · Line 1 at 80% · Value labels
 
 ## Get It Free on AppSource
 
-👉 **[Get Pareto Chart Pro on AppSource](https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro)**
+👉 **[Get Pareto Chart Pro on AppSource](https://appsource.microsoft.com/product/power-bi-visuals/tino_callarisa.pareto-chart-pro-tcviz)**
 
 For support, feature requests, and bug reports: [support@tcviz.com](mailto:support@tcviz.com) · [GitHub Issues](https://github.com/tinocallarisa-web/pareto-chart-pro/issues)
 

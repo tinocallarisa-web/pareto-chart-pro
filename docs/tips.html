@@ -207,13 +207,13 @@
     <p><strong>Question:</strong> how exposed are we if our largest customers leave?</p>
     <p><strong>Setup:</strong> <code>Entity</code> = Customer, <code>Value</code> = Revenue (12-month rolling),
     <code>Tooltips</code> = Gross Margin, Order Count. Reference line 1 at 80%.</p>
-    <p><strong>Read it like this:</strong> the earlier the cumulative line crosses 80%, the more concentrated —
-    and the more fragile — the revenue base. If the first bin alone (top 20% of customers at the Free bin size)
-    already carries ~80%, that is a classic Pareto distribution. If it crosses only at the fourth bin, revenue is
-    unusually spread out, which is a resilience story rather than a risk story.</p>
-    <p><strong>Pair it with:</strong> a table of the actual customer names on the same page. Click the first bin to
-    cross-filter — the table then shows exactly who sits inside that share. Binning gives you the shape;
-    the table gives you the names.</p>
+    <p><strong>Read it like this:</strong> the summary sentence gives the exact count — <em>"1,120 of 5,000 customers
+    (22.4%) make 80% of the total"</em>. The 15 largest customers are drawn by name (<em>Top 15 by name + rest</em>,
+    free), so you see who they are without a table; the rank bars after them (<em>#16–62</em>…) show how fast the
+    rest falls away. The earlier the cumulative line crosses 80%, the more concentrated — and the more fragile —
+    the revenue base.</p>
+    <p><strong>Go further:</strong> with Pro, <em>Vital few by name + rest</em> names every customer up to 80% (up to
+    50). On the free tier, drag the range bar over the first ranks to filter the page to exactly those customers.</p>
   </div>
 
   <div class="card">
@@ -234,12 +234,13 @@
     <p><strong>Question:</strong> which few causes explain most of the failures?</p>
     <p><strong>Setup:</strong> <code>Entity</code> = Defect code (or incident category),
     <code>Value</code> = Incident count, <code>Tooltips</code> = Downtime hours, Cost of rework.
-    Reference line 1 at 80%. Use a Pro bin size of 5% if you have enough distinct defect codes to justify it.</p>
-    <p><strong>Read it like this:</strong> this is the original Juran use case. The bins left of the 80% line are
-    where corrective action buys the most. Adding <em>cost</em> as a tooltip measure often reverses the priority
+    Reference line 1 at 80%. With 30 codes or fewer every code has its own named bar; with more, the top 15 are
+    named, or every code up to 80% with <em>Vital few by name</em> (Pro).</p>
+    <p><strong>Read it like this:</strong> this is the original Juran use case. The named bars left of the 80% line
+    are the causes where corrective action buys the most. Adding <em>cost</em> as a tooltip measure often reverses the priority
     order — the most frequent defect is frequently not the most expensive one.</p>
-    <p><strong>Pair it with:</strong> a drilldown hierarchy of Defect family &rarr; Defect code, so you can see
-    whether concentration lives at the family level or only inside one family.</p>
+    <p><strong>Optionally:</strong> a drilldown hierarchy of Defect family &rarr; Defect code shows whether
+    concentration lives at the family level or only inside one family.</p>
   </div>
 
   <div class="card">
@@ -261,13 +262,14 @@
     <p><strong>Setup:</strong> <code>Entity</code> = Customer, <code>Value</code> = Sales this year,
     <code>Comparison value</code> = Sales last year (a column, or
     <code>CALCULATE([Sales], SAMEPERIODLASTYEAR('Date'[Date]))</code>). Reference line 1 at 80%.</p>
-    <p><strong>Read it like this:</strong> look at the pill on the first bar. <strong>+1.9 pp</strong> means the top 20%
-    of customers now make 1.9 percentage points more of sales than the top 20% did last year — more concentration,
-    more exposure. Then read the summary sentence: <em>"1,120 of 5,000 entities (22.4%) make 80% of the total ·
-    comparison: 1,206 entities (24.1%)"</em> — 86 fewer customers now carry 80% of the business.</p>
-    <p><strong>Watch out:</strong> the comparison bars rank last year on its own, so they are last year's top 20%,
-    not this year's leaders a year ago. That is what makes it a concentration test. To follow named customers,
-    drill to a level with 30 members or fewer, where the comparison is always the same entity.</p>
+    <p><strong>Read it like this:</strong> start with the summary sentence: <em>"1,120 of 5,000 entities (22.4%) make
+    80% of the total · comparison: 1,206 entities (24.1%)"</em> — 86 fewer customers now carry 80% of the business:
+    more concentration, more exposure. On the named bars, each customer shows its move since last year
+    (<strong>▲3</strong>, <strong>▼2</strong>, <strong>new</strong>) and its share change in percentage points, and the
+    sentence adds <em>"· 4 no longer among them"</em> — hover it for the customers that left the vital few.</p>
+    <p><strong>Watch out:</strong> a named bar compares the same customer in both periods. In <em>Bins of
+    entities</em> each period is ranked on its own: the first comparison bar is last year's top 20%, whoever they
+    were — a pure concentration test, with no names and no rank marks.</p>
   </div>
 
   <div class="card">
@@ -297,8 +299,8 @@
 
   <div class="note">
     <strong>Row limits are the same in Free and Pro.</strong> In <strong>Power BI Service</strong> the visual
-    streams data in segments and handles 500,000+ entities. In <strong>Power BI Desktop</strong> segment fetching
-    is unavailable, so the visual caps at 30,000 rows and shows a notice. This is a Power BI Desktop platform
+    streams data in segments and has been verified at 500,000 entities. In <strong>Power BI Desktop</strong> segment
+    fetching is unavailable, so the visual caps at 30,000 rows and shows a notice. This is a Power BI Desktop platform
     behaviour, not a licensing limit.
   </div>
 
@@ -312,8 +314,9 @@
 
   <h3>Bin size is what governs cross-filtering at scale</h3>
   <p>Clicking a bar asks Power BI to filter the report by every entity behind it, carried as a list of values.
-  Past roughly 10,000 values that query becomes too heavy, so bin size decides whether a model of a given size
-  stays clickable:</p>
+  The visual rejects more than 10,000 entities per filter, because above that Power BI degrades over a live
+  connection (measured), so in <em>Bins of entities</em> the bin size decides whether a model of a given size stays
+  clickable:</p>
   <p style="font-size:15px;text-align:center;margin:14px 0;">
     <code style="font-size:14px;">maximum bin size % = 1,000,000 ÷ number of entities</code>
   </p>
@@ -384,9 +387,9 @@
 
   <div class="card">
     <h3>Too few entities for the bin size</h3>
-    <p>With 12 suppliers and a 1% bin size there is nothing to bin. The visual adapts the bin count automatically,
-    but the honest answer below roughly 30–40 entities is usually a plain sorted bar chart with a cumulative line —
-    at that size the audience can read the names directly.</p>
+    <p>With 12 suppliers and a 1% bin size there is nothing to bin — and the visual does not try: with 30 entities
+    or fewer it always draws one named bar per entity with the cumulative line, the classic Pareto, whatever the bin
+    size. Bins only matter above that, and only if you choose <em>Bins of entities</em>.</p>
   </div>
 
   <div class="card">
@@ -410,7 +413,7 @@
     <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html">Privacy Policy</a>
     <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html">Terms of Service</a>
     <a href="https://github.com/tinocallarisa-web/pareto-chart-pro" target="_blank">GitHub</a>
-    <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">AppSource</a>
+    <a href="https://appsource.microsoft.com/product/power-bi-visuals/tino_callarisa.pareto-chart-pro-tcviz" target="_blank">AppSource</a>
   </div>
   <p>© 2026 TCViz · Pareto Chart Pro · <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
 </footer>

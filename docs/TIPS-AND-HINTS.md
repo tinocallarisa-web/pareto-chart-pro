@@ -83,8 +83,7 @@ Measured response, on a 500,000-entity model in Power BI Service:
 |---|---|---|
 | up to 5,000 | instant | comfortable |
 | 5,000 – 10,000 | fluid | slow but works |
-| 10,000 – 20,000 | usable | not recommended |
-| above 20,000 | the visual declines to filter and says so | |
+| above 10,000 | the visual declines to filter and says so | |
 
 A live connection sends the query to the remote model, so it is the slower case — and the one most
 enterprise reports use. **Bind a numeric key where you have one**: an integer costs far less per value
@@ -189,7 +188,7 @@ The range bar's two handles are sliders of their own: arrows move one entity, `S
 | Tooltips field well (10 measures) | ✓ | ✓ |
 | IBCS Mode | ✓ | ✓ |
 | Keyboard navigation, high contrast | ✓ | ✓ |
-| Max entities (Power BI Service) | 500,000+ | 500,000+ |
+| Entities | Verified at 500,000 entities (Power BI Service); Power BI Desktop: up to 30,000 rows | same |
 | Top 15 by name + rank ranges | ✓ | ✓ |
 | Vital few by name (up to 50) | — | ✓ |
 | Range bar (drag, keyboard, filter by rank) | ✓ | ✓ |
@@ -218,5 +217,7 @@ uses a feature you have not paid for. The preview applies only to the setting yo
 not to every Pro option at once. Pro comes with a 30-day free trial on AppSource.
 
 Because bin size governs how many entities sit behind a bar, cross-filtering a model above roughly
-50,000 entities requires reducing the bin size — which is a Pro control. This is a consequence of
-Power BI's filter size limit, not a restriction imposed by the visual.
+50,000 entities in Bins of entities requires reducing the bin size — which is a Pro control. The
+visual rejects more than 10,000 entities per filter, because above that Power BI degrades over a
+live connection (measured). On the free tier, named bars and the range bar (up to 10,000 entities)
+stay filterable at any model size.

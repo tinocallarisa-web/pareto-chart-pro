@@ -16,6 +16,7 @@
 ### Changed
 - **The default style template is "Report theme"**: the colours of the report's theme, like a native visual (before: Clean). Clean, Minimal, Contrast, Soft, Compact and IBCS style stay free. A report that never chose a template now opens in Report theme; choose Clean for the previous look. Settings set by hand are kept, and nothing was renamed.
 - **Format pane in the collection's common order:** Style template, the visual's own cards, axes, legend, small multiples. Only the order shown changed. "Title font size" in Small multiples is now labelled "Title size".
+- **Setup guide:** "Try finer bars" now also switches Bars with names to Bins of entities, so the 5% bins it turns on are actually drawn.
 - New texts in the 12 languages.
 
 ## [1.6.0.0] — 2026-10-21

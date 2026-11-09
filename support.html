@@ -242,7 +242,7 @@
     <iframe src="https://www.youtube.com/embed/1LLgEmXuA_8" allowfullscreen loading="lazy" title="Pareto Chart Pro walkthrough"></iframe>
   </div>
   <div class="cta">
-    <a class="btn btn-primary" href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">Get it on AppSource</a>
+    <a class="btn btn-primary" href="https://appsource.microsoft.com/product/power-bi-visuals/tino_callarisa.pareto-chart-pro-tcviz" target="_blank">Get it on AppSource</a>
     <a class="btn btn-outline" href="https://github.com/tinocallarisa-web/pareto-chart-pro/issues" target="_blank">Report an Issue</a>
     <a class="btn btn-outline" href="changelog.html">Changelog</a>
   </div>
@@ -479,7 +479,7 @@
   <table>
     <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
     <tr><td>Show line 1</td><td>On</td><td>Display the first horizontal + vertical reference crosshair.</td></tr>
-    <tr><td>Line 1 threshold</td><td>80</td><td>Cumulative % value where the line is drawn (0–100).</td></tr>
+    <tr><td>Line 1 — cumulative % threshold</td><td>80</td><td>Cumulative % value where the line is drawn (0–100).</td></tr>
     <tr><td>Line 1 color</td><td>#E84444</td><td>Color of the reference line and labels.</td></tr>
     <tr><td>Line 1 label</td><td>"80%"</td><td>Text shown at the right end of the line, inside the plot.</td></tr>
     <tr><td>Show line 2 / 3</td><td>Off</td><td>Same settings as line 1, for additional thresholds.</td></tr>
@@ -625,12 +625,12 @@
       <tr><th>Entities behind one bar</th><th>Imported model</th><th>Live connection</th></tr>
       <tr><td>up to 5,000</td><td>Immediate</td><td>Comfortable</td></tr>
       <tr><td>5,000 – 10,000</td><td>Fluid</td><td>Slow but works</td></tr>
-      <tr><td>10,000 – 20,000</td><td>Perceptible, still usable</td><td>Not recommended</td></tr>
-      <tr><td>above 20,000</td><td colspan="2">Not usable — the visual declines to filter and tells you so</td></tr>
+      <tr><td>above 10,000</td><td colspan="2">The visual does not filter: it declines and tells you so</td></tr>
     </table>
     <p style="font-size:12px;color:var(--t3);">Every figure above was measured on a
     500,000-entity model in Power BI Service with an integer key, varying bin size to vary
-    entities per bar — on both an imported model and a live connection to a semantic model.</p>
+    entities per bar — on both an imported model and a live connection to a semantic model. Above
+    10,000 entities per bar the live connection degraded, so that is where the visual stops filtering.</p>
     <div class="note">
       <strong>Live connections are the slower case, and the one that matters.</strong> With an
       imported model the filter resolves in local memory; over a live connection to a semantic
@@ -644,8 +644,8 @@
   <div class="card">
     <h3>Choosing a bin size for your model</h3>
     <p>Clicking a bar asks Power BI to filter the rest of the report by every entity behind
-    it. Power BI carries that as a list of values, and beyond roughly 20,000 the query it
-    has to build becomes too large to run comfortably. So the rule is simply:</p>
+    it. Power BI carries that as a list of values, and the visual declines any filter of more than
+    10,000 entities, because above that a live connection degrades (measured). So the rule is simply:</p>
     <p style="font-size:15px;text-align:center;margin:14px 0;">
       <code style="font-size:14px;">maximum bin size % = 1,000,000 ÷ number of entities</code>
     </p>
@@ -665,9 +665,9 @@
     <div class="note">
       <strong>Free tier note.</strong> In <em>Bins of entities</em> the Free bin size is fixed at 20%,
       which means five bars. Above roughly 50,000 entities each bar exceeds what Power BI can
-      cross-filter, and clicking a bar will decline instead of filtering. This is a platform limit on
-      filter size, not a restriction we impose. On the free tier, the range bar lets you filter any
-      stretch of up to 10,000 entities at any model size.
+      cross-filter, and clicking a bar will decline instead of filtering: the visual rejects more than
+      10,000 entities per filter, because above that Power BI degrades over a live connection (measured).
+      On the free tier, the range bar lets you filter any stretch of up to 10,000 entities at any model size.
     </div>
   </div>
 
@@ -711,7 +711,7 @@
     <tr><td>Highlighting from other visuals (partial bars)</td><td>✅</td><td>✅</td></tr>
     <tr><td>Conditional formatting (fx) on bar color</td><td>✅</td><td>✅</td></tr>
     <tr><td>Number formats from the model, 12 languages, legend, setup guide</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Max entities (Power BI Service)</td><td>500,000+</td><td>500,000+</td></tr>
+    <tr><td>Entities</td><td colspan="2">Verified at 500,000 entities (Power BI Service); Power BI Desktop: up to 30,000 rows</td></tr>
     <tr><td>Vital few by name (up to 50 named bars)</td><td>❌ (Top 15)</td><td>✅</td></tr>
     <tr><td>Bin size % (1–20%), in Bins of entities</td><td>Fixed at 20% (5 bars)</td><td>✅ Configurable 1–20% (up to 100 bars)</td></tr>
     <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
@@ -726,7 +726,7 @@
   </table>
   <p>Without a licence, the Free result never hides data: with a <code>Small multiples</code> field bound, the
   panels are summed into one Pareto, and the comparison measure is ignored.</p>
-  <p>To activate Pro features, purchase a license from <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" style="color:var(--acc);font-weight:600;">AppSource</a>. License validation happens automatically inside Power BI — no configuration needed.</p>
+  <p>To activate Pro features, purchase a license from <a href="https://appsource.microsoft.com/product/power-bi-visuals/tino_callarisa.pareto-chart-pro-tcviz" style="color:var(--acc);font-weight:600;">AppSource</a>. License validation happens automatically inside Power BI — no configuration needed.</p>
 
   <!-- FAQ -->
   <!-- Use cases -->
@@ -761,7 +761,7 @@
   <details>
     <summary>How do I set the 80/20 threshold?</summary>
     <div class="faq-body">
-      <p>Line 1 is pre-configured to 80% by default. You can change it in <strong>Format Pane → Reference Lines → Line 1 threshold</strong>. Set the value to any cumulative percentage between 1 and 99. You can add a second line (e.g. 60%) and a third line at any value (Pro only).</p>
+      <p>Line 1 is pre-configured to 80% by default. You can change it in <strong>Format Pane → Reference Lines → Line 1 — cumulative % threshold</strong>. Set the value to any cumulative percentage between 1 and 99. You can add a second line (e.g. 60%) and a third line at any value (Pro only).</p>
     </div>
   </details>
 
@@ -900,7 +900,7 @@
     <div class="faq-body">
       <p>It depends on where the report runs:</p>
       <ul>
-        <li><strong>Power BI Service:</strong> the visual streams data in segments and supports <strong>500,000+ entities</strong>. The first segment is 30,000 rows; further segments are fetched automatically.</li>
+        <li><strong>Power BI Service:</strong> the visual streams data in segments and has been <strong>verified at 500,000 entities</strong>. The first segment is 30,000 rows; further segments are fetched automatically.</li>
         <li><strong>Power BI Desktop:</strong> segment fetching is not available, so the visual is capped at <strong>30,000 rows</strong> and shows an amber <em>"Partial data"</em> notice with the number of rows received. This is a Power BI Desktop platform limitation, not a tier limit — the row cap is identical in Free and Pro.</li>
       </ul>
       <p>Size rarely hurts readability: 10,000 SKUs render as 15 named bars and four rank bars, or as 5 bars at the Free 20% bin size, or 10 bars at a Pro 10% bin size. What size does affect is cross-filtering — see <a href="#performance" style="color:var(--acc);">Performance &amp; scale</a> for how to choose a bin size for your model.</p>
@@ -910,7 +910,7 @@
   <details>
     <summary>Does the visual support high contrast mode?</summary>
     <div class="faq-body">
-      <p>Yes. When Windows or Power BI high contrast mode is active, the visual automatically uses system foreground and background colors for all chart elements — bars, lines, axes, dots, and reference lines — to meet accessibility requirements.</p>
+      <p>Yes. When Windows or Power BI high contrast mode is active, the visual automatically uses system foreground and background colors for all chart elements — bars, lines, axes, dots, and reference lines — so the chart stays readable in high contrast.</p>
     </div>
   </details>
 
@@ -945,7 +945,7 @@
   <details>
     <summary>What do the “Try” buttons in the setup guide do?</summary>
     <div class="faq-body">
-      <p>Each one turns a Pro feature on (or off) on your own data: the vital few by name, finer bins of 5%, ABC classes, value labels or a third reference line. With a licence it is simply a shortcut to the setting. Without one, the feature is drawn working under a “Pro preview” watermark while you edit, and Power BI shows its licence notice; reading view shows the free chart.</p>
+      <p>Each one turns a Pro feature on (or off) on your own data: the vital few by name, finer bars (it switches Bars with names to bins of 5%), ABC classes, value labels or a third reference line. With a licence it is simply a shortcut to the setting. Without one, the feature is drawn working under a “Pro preview” watermark while you edit, and Power BI shows its licence notice; reading view shows the free chart.</p>
     </div>
   </details>
 
@@ -1060,7 +1060,7 @@
     <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/privacy.html">Privacy Policy</a>
     <a href="https://tinocallarisa-web.github.io/pareto-chart-pro/terms.html">Terms of Service</a>
     <a href="https://github.com/tinocallarisa-web/pareto-chart-pro" target="_blank">GitHub</a>
-    <a href="https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro" target="_blank">AppSource</a>
+    <a href="https://appsource.microsoft.com/product/power-bi-visuals/tino_callarisa.pareto-chart-pro-tcviz" target="_blank">AppSource</a>
   </div>
   <p>© 2026 TCViz · Pareto Chart Pro · <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
 </footer>

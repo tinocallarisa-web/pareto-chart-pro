@@ -16,9 +16,9 @@ MAIN DESCRIPTION — paste from here
 ════════════════════════════════════════════════════════════════
 
 Everyone says 20% of customers make 80% of sales. Is it true for your business? Was it more
-or less true last year? And does every region behave the same way? The native way to find out
-is a sorted column chart, a cumulative DAX measure and a dual axis — and it still cannot give
-you the answer in words.
+or less true last year? And does every region behave the same way? Building it natively takes
+a sorted column chart, a cumulative DAX measure and a dual axis; Pareto Chart Pro does it for
+you and states the answer in words.
 
 This walkthrough answers all three questions on 5,000 customers with Pareto Chart Pro: two
 fields, no DAX. A setup guide inside the visual walks you through it, and lets you try every
@@ -66,7 +66,7 @@ No network requests, no telemetry: everything is calculated inside Power BI. The
 the start screen open only when you click them.
 
 LINKS
-Get it on AppSource: https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro
+Get it on AppSource: https://appsource.microsoft.com/product/power-bi-visuals/tino_callarisa.pareto-chart-pro-tcviz
 Documentation & FAQ:  https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 Tips & scenarios:     https://tinocallarisa-web.github.io/pareto-chart-pro/tips.html
 Changelog:            https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html

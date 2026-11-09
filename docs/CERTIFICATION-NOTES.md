@@ -34,8 +34,6 @@
 - **ABC zones** opacity and label options; **small multiples** with the nine options common to the collection.
 
 ## New in 1.5.0.0
-
-## New in 1.5.0.0 (paste-ready summary: `CERTIFICATION-NOTES-SHORT.txt`)
 - **Data roles added:** `comparison` (Measure, Pro) and `panel` (Grouping, Pro). `panel` is mapped as a
   second category column (`categories.select`), so each row is one entity × panel combination.
 - **Comparison (Pro):** comparison bars, dashed cumulative line, change pills in percentage points.
