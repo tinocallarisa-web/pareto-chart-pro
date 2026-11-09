@@ -31,7 +31,10 @@ import {
 import "./../style/pareto.less";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const PLAN_ID               = "pareto-chart-pro-tcviz";
+// 1.7: two plans. The original one (4,99) and the new one (1,99/mes · 19/año, Tino 05-11-2026). A buyer of either
+// gets Pro; the old plan goes to stop-sell when 1.7 is published. The new Plan ID is fixed here and MUST be the one
+// typed when the plan is created in Partner Center.
+const PLAN_IDS              = ["pareto-chart-pro-tcviz", "pareto-pro-2026"];
 
 /**
  * spIdentifier es el Service ID completo que genera Partner Center para el plan
@@ -784,14 +787,19 @@ export class Visual implements IVisual {
             this.subSelectionHelper.setFormatMode(this.formatMode);
             // Elegir una plantilla (panel o asistente) la aplica de verdad: se borran los ajustes que define, porque
             // un ajuste guardado manda sobre ella. Solo al CAMBIARLA y editando; nunca al abrir el informe.
-            const tplAhora = String(((dv?.metadata?.objects as any)?.style?.template) ?? "report");
-            if (this.editing && this.tplVisto !== null && this.tplVisto !== tplAhora) { this.aplicarPlantilla(tplAhora); }
-            this.tplVisto = tplAhora;
+            // Only with a dataView: a transient update without one would read "report" and, on the next, wipe the
+            // settings of the real template.
+            if (dv) {
+                const tplAhora = String(((dv.metadata?.objects as any)?.style?.template) ?? "report");
+                if (this.editing && this.tplVisto !== null && this.tplVisto !== tplAhora) { this.aplicarPlantilla(tplAhora); }
+                this.tplVisto = tplAhora;
+            }
 
             if (!dv?.categorical?.categories?.[0]?.values?.length) {
                 // A visual just inserted (no field bound) gets the 1.7 default. A report saved before 1.7 always opens
                 // with its fields, so it never comes through here and keeps its bins.
-                const sinCampos = !(dv?.metadata?.columns?.length);
+                // A real dataView with no columns: an update without a dataView must not touch a report made before 1.7.
+                const sinCampos = !!dv && !(dv.metadata?.columns?.length);
                 if (this.editing && sinCampos && !this.namedDefaultDone
                     && ((dv?.metadata?.objects as any)?.pareto?.namedBars) === undefined) {
                     this.namedDefaultDone = true;
@@ -959,7 +967,7 @@ export class Visual implements IVisual {
             // license." Warning means grace period — the customer has paid and
             // must keep their features while the payment issue is resolved.
             this.isPro = r?.plans?.some(
-                p => matchesPlan(p.spIdentifier, PLAN_ID) &&
+                p => PLAN_IDS.some(id => matchesPlan(p.spIdentifier, id)) &&
                      (p.state === ServicePlanState.Active ||
                       p.state === ServicePlanState.Warning)
             ) ?? false;
@@ -3637,10 +3645,19 @@ export class Visual implements IVisual {
                     objs?.pareto?.namedBars === "vitalFew",
                     () => this.persistir("pareto", { namedBars: objs?.pareto?.namedBars === "vitalFew" ? "top15" : "vitalFew" })],
                 [this.t("Guide_TryBins", "Finer bars: 20 bins of 5%"), this.t("Guide_TryBinsWhy", "see exactly where the 80% is reached"),
-                    objs?.pareto?.binSizePct !== undefined && Number(objs.pareto.binSizePct) !== 20,
-                    () => objs?.pareto?.binSizePct !== undefined
-                        ? this.host.persistProperties({ remove: [{ objectName: "pareto", selector: null as any, properties: { binSizePct: null } }] })
-                        : this.persistir("pareto", { binSizePct: 5 })],
+                    objs?.pareto?.binSizePct !== undefined && Number(objs.pareto.binSizePct) !== 20 && (objs?.pareto?.namedBars ?? "bins") === "bins",
+                    // 1.7: finer bins only show in "Bins of entities". A visual inserted in 1.7 starts in Top 15, so the
+                    // Try switches it to bins and back; a report made before 1.7 (no namedBars saved) only changes the size.
+                    () => {
+                        const nuevo = objs?.pareto?.namedBars !== undefined;
+                        const activo = objs?.pareto?.binSizePct !== undefined && (objs?.pareto?.namedBars ?? "bins") === "bins";
+                        if (activo) {
+                            this.host.persistProperties({ remove: [{ objectName: "pareto", selector: null as any, properties: { binSizePct: null } }] });
+                            if (nuevo) this.persistir("pareto", { namedBars: "top15" });
+                        } else {
+                            this.persistir("pareto", nuevo ? { binSizePct: 5, namedBars: "bins" } : { binSizePct: 5 });
+                        }
+                    }],
                 [this.t("Guide_TryAbc", "ABC classes"), this.t("Guide_TryAbcWhy", "classes A, B and C shaded on the chart"),
                     objs?.abcZones?.show === true, () => this.persistir("abcZones", { show: objs?.abcZones?.show !== true })],
                 [this.t("Guide_TryLabels", "Value labels"), this.t("Guide_TryLabelsWhy", "the share of every bar, written on it"),
