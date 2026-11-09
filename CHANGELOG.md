@@ -1,5 +1,23 @@
 # Changelog — Pareto Chart Pro
 
+## [1.7.0.0] — 2026-11
+
+### Added
+- **Bars with names** (Format → Pareto → Bars with names, property `pareto.namedBars`), for charts with more than 30 entities; with 30 or fewer every entity keeps its own named bar, as before.
+  - **Bins of entities:** the groups of a fixed share of entities, as in 1.6. A report made before 1.7 keeps this mode.
+  - **Top 15 by name + rest** (Free): the 15 largest entities by name, then the rest in up to 4 rank ranges ("#16–62"), drawn lighter and at the **average share per entity**, so the Pareto keeps falling; the cumulative line and the tooltip keep the real totals (tooltip row "Average per entity (bar height)"). A visual inserted in 1.7 starts in this mode.
+  - **Vital few by name + rest** (Pro): every entity up to the summary threshold gets its own named bar, capped by **Max named bars (Pro)**, 10–50 (40 by default). Without a licence, previewed under the watermark while editing; reading view falls back to Top 15. It is the first "Try" in the setup guide.
+- **Range bar** (new card "Range bar": show, shortcuts, colour). Two handles under the chart, by rank. Free: drag to the exact entity, keyboard (arrows, Shift / Page Up / Page Down, Home / End, Escape) and screen-reader slider labels; on release the page is filtered to those entities. Inside the range the bars are drawn at full strength; outside, dimmed under a veil of the page colour, with a dashed line at each edge. Pro: **Vital few, A, B, C and Tail** in one click, and a summary of what the range holds (entities, share, value). When other filters change the data, the bar says **"Range out of date"** with Reapply / Clear — also in reading view; it never reapplies by itself. A range of more than 10,000 entities is refused with a notice, not filtered in part. Not shown with small multiples, on a hierarchy level that can still drill down, when the author has turned interactions off, or in tiles below about 220 × 160 px.
+- **Comparison (Pro) on named bars:** a rank-change mark next to each name (▲3, ▼2, new), a "Rank #x (was #y)" row in the tooltip, and "· N no longer among them" in the summary sentence — the entities that were among the vital few in the comparison period and are not now — with their names on hover. No marks in Bins mode; the "no longer" count is left out when there is a tie at either cut.
+- **ABC zones (Pro):** Zone opacity % (12 by default; 0 leaves only the labels), Label font size, Label colour (the zone's colour by default), Label background and Label background opacity % (85 by default).
+- **Small multiples (Pro):** the nine options common to the TCViz collection — Columns (0 = automatic), Space between panels (14), Title size, Title color, Bold title, Title alignment (Left / Center), Panel background, Panel border, Panel border color. With a background or a border, each panel becomes a card with 6 px of padding.
+- **Six collection styles (Pro):** Boardroom, Ledger, Editorial, Signal, Aurora and Terrace, the same looks as the other TCViz visuals. Without a licence they are previewed while editing, marked "Pro preview · collection styles"; reading view shows Report theme.
+
+### Changed
+- **The default style template is "Report theme"**: the colours of the report's theme, like a native visual (before: Clean). Clean, Minimal, Contrast, Soft, Compact and IBCS style stay free. A report that never chose a template now opens in Report theme; choose Clean for the previous look. Settings set by hand are kept, and nothing was renamed.
+- **Format pane in the collection's common order:** Style template, the visual's own cards, axes, legend, small multiples. Only the order shown changed. "Title font size" in Small multiples is now labelled "Title size".
+- New texts in the 12 languages.
+
 ## [1.6.0.0] — 2026-10-21
 
 ### Added

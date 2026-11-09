@@ -1,6 +1,39 @@
-# Certification Notes — Pareto Chart Pro v1.6.0.0
+# Certification Notes — Pareto Chart Pro v1.7.0.0
 
-> 1.6.0.0: what is new is in `CERTIFICATION-NOTES-SHORT.txt` (the text pasted into Partner Center) and CHANGELOG.md. The sections below describe 1.5 and still hold.
+> 1.7.0.0: the text pasted into Partner Center is `CERTIFICATION-NOTES-SHORT.txt`; the full list of changes is in
+> CHANGELOG.md. The 1.7 section below is the long form; the 1.5 section and the reference sections still hold.
+
+## New in 1.7.0.0 (paste-ready summary: `CERTIFICATION-NOTES-SHORT.txt`)
+- **Capabilities, additions only (nothing renamed or removed):** `pareto.namedBars` (enum `bins` / `top15` /
+  `vitalFew`), `pareto.namedMax` (numeric); new object `rangeBar` (`show`, `shortcuts`, `color`);
+  `abcZones.zoneOpacity`, `labelSize`, `labelColor`, `labelBg`, `labelBgOpacity`; `smallMultiples.gap`,
+  `titleBold`, `titleAlign`, `background`, `border`, `borderColor`; `style.template` gains `report` and
+  `boardroom`, `ledger`, `editorial`, `signal`, `aurora`, `terrace`. Only the display name of
+  `smallMultiples.titleFontSize` changed ("Title size").
+- **Bars with names.** With more than 30 entities: `bins` (the 1.6 behaviour, and what a report saved before 1.7
+  keeps, because `namedBars` has no saved value there), `top15` (Free: 15 named bars plus up to 4 rank ranges drawn
+  at the average share per entity; cumulative line and tooltip keep the real totals) or `vitalFew` (Pro: every
+  entity up to the summary threshold by name, capped by `namedMax`, 10–50, default 40; without a licence, preview in
+  edit mode and Top 15 in reading view). With 30 entities or fewer, every entity is named, as before.
+- **Persistence.** Besides the setup guide clicks and a template change, `persistProperties` runs **once** when a new
+  visual is inserted with no fields bound and no `namedBars` saved: it saves `namedBars = top15`. A pre-1.7 report
+  always opens with its fields, so it never reaches that path and keeps bins. Never in the selection callback, never
+  while dragging the range bar.
+- **Range bar (Free; shortcuts and summary Pro).** HTML band under the axis with two slider handles by rank
+  (`role="slider"`, `aria-valuetext`), mouse and keyboard (arrows, Shift/PageUp/PageDown, Home/End, Escape).
+  Dragging repaints only the band and an overlay, without `update()`, so it adds no rendering events. On release:
+  `applyJsonFilter` with the exact entity filter, the same path as a bar click. If other filters change the data, the
+  bar shows "Range out of date" with Reapply / Clear; it never reapplies by itself. Over 10,000 entities it shows a
+  notice and does not filter. Not drawn with small multiples, on a hierarchy level that can still drill down, when interactions are not
+  allowed (`hostCapabilities.allowInteractions`) or in tiles below about 220 × 160 px.
+- **Comparison (Pro), named bars:** rank-change mark next to the name (▲3, ▼2, new), a "Rank #x (was #y)" tooltip row,
+  and "· N no longer among them" in the summary, omitted when there is a tie at either cut.
+- **Styles.** Default template `report` (the report theme's colours via `host.colorPalette`); the six 1.6 templates
+  stay free; the six collection styles are Pro with preview. A report that never chose a template now reads as Report
+  theme; settings set by hand still win.
+- **ABC zones** opacity and label options; **small multiples** with the nine options common to the collection.
+
+## New in 1.5.0.0
 
 ## New in 1.5.0.0 (paste-ready summary: `CERTIFICATION-NOTES-SHORT.txt`)
 - **Data roles added:** `comparison` (Measure, Pro) and `panel` (Grouping, Pro). `panel` is mapped as a
@@ -20,7 +53,7 @@
 ## General Information
 - **Visual Name:** Pareto Chart Pro
 - **GUID:** ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-- **Version:** 1.6.0.0
+- **Version:** 1.7.0.0
 - **Plan ID / spIdentifier:** pareto-chart-pro-tcviz
 - **Certification Branch:** https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
 - **Support URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
@@ -29,10 +62,11 @@
 - **Video Walkthrough:** https://www.youtube.com/watch?v=1LLgEmXuA_8
 
 ## What the visual does
-Ranks the entities bound to `Entity` by the measure bound to `Value`, groups them into bins of a
-fixed percentage of the entity population, and draws descending bars with a cumulative percentage
-line and up to three reference thresholds. The X axis is a share of entities rather than a list of
-names, which is what keeps the chart readable from tens to hundreds of thousands of entities.
+Ranks the entities bound to `Entity` by the measure bound to `Value` and draws descending bars with a
+cumulative percentage line and up to three reference thresholds. With 30 entities or fewer, one named
+bar per entity. Above that, depending on `pareto.namedBars`: bins of a fixed percentage of the entity
+population, or a head of named bars (top 15, or the vital few in Pro) followed by up to four bars by
+rank range — which is what keeps the chart readable from tens to hundreds of thousands of entities.
 
 ## Privacy and network access
 - **No external network calls of any kind.** The visual contains no telemetry, no analytics, no CDN
@@ -40,9 +74,10 @@ names, which is what keeps the chart readable from tens to hundreds of thousands
 - **The only host API that leaves the visual** is `IVisualLicenseManager` via
   `host.licenseManager.getAvailableServicePlans()`, which is Microsoft's own licensing
   infrastructure and carries no report data.
-- **Nothing is persisted** outside the report. The visual writes one property, `general.filter`,
-  through `host.applyJsonFilter` — the standard Power BI filter mechanism — which Power BI stores in
-  the report as it does for any visual that filters.
+- **Nothing is persisted** outside the report. Filters (bar clicks and the range bar) go through
+  `host.applyJsonFilter` into `general.filter`, the standard Power BI filter mechanism. Format
+  properties are persisted only from setup guide clicks, a template change, and once on inserting a
+  new visual (`pareto.namedBars = top15`), as described in the 1.7 section.
 - No local file access, no `localStorage`, no cookies.
 
 ## Licensing
@@ -80,7 +115,9 @@ names, which is what keeps the chart readable from tens to hundreds of thousands
 ## Free vs Pro
 Free tier:
 - Full Pareto chart: ranked bars, cumulative percentage line
-- Fixed 20% bin size (5 bars)
+- Top 15 by name + rank ranges (default for new visuals), or fixed 20% bins (5 bars)
+- Range bar: drag and keyboard, filters the page to the selected ranks
+- Report theme (default) and the six 1.6 templates (Clean, Minimal, Contrast, Soft, Compact, IBCS style)
 - Up to 2 reference lines, default at 80%
 - Conditional formatting on bar color (`fx`) and the Threshold Colors card
 - Bar border color and width, and bar gap
@@ -95,7 +132,10 @@ Pro tier (plan `pareto-chart-pro-tcviz`):
 - Outlier exclusion (top/bottom % trimming)
 - Value labels on bars
 - Third reference line
-- Period comparison (`Comparison value`), small multiples (`Small multiples`), ABC zones
+- Period comparison (`Comparison value`), with rank marks and "no longer among them" on named bars
+- Small multiples (`Small multiples`) and its panel options, ABC zones and their opacity / label options
+- Vital few by name (`namedBars = vitalFew`, `namedMax`), range bar shortcuts and summary
+- Six collection styles: Boardroom, Ledger, Editorial, Signal, Aurora, Terrace
 
 > **Known limit, conditional formatting on very large models.** The `pareto.barColor` rule is
 > resolved by Power BI per entity and returned on `categories[0].objects`. Above roughly a hundred
@@ -149,7 +189,9 @@ for segment continuation.
 ### Free tier
 1. Import the `.pbiviz` into Power BI Desktop.
 2. Bind a dimension (e.g. `Customer`) to `Entity` and a numeric measure (e.g. `Sales`) to `Value`.
-3. The chart renders 5 bars with a cumulative percentage line and a reference line at 80%.
+3. With more than 30 entities, a new visual renders 15 named bars and up to 4 rank-range bars, with a
+   cumulative percentage line and a reference line at 80% (Pareto → Bars with names → Bins of entities
+   gives 5 bars of 20%).
 4. Click a bar: other visuals filter to that bin's entities. Click it again to clear.
 5. Tab into the chart, move with the arrow keys, press `Enter` to select. Cross-filtering behaves as
    it does with the mouse, and a tooltip appears on focus.
@@ -159,7 +201,8 @@ for segment continuation.
 
 ### Pro tier
 1. Assign a test account an active `pareto-chart-pro-tcviz` plan.
-2. `Format Pane → Pareto → Bin size %` — set 5% and confirm 20 bars.
+2. `Format Pane → Pareto → Bars with names → Bins of entities`, then `Bin size %` — set 5% and confirm 20 bars.
+   `Vital few by name + rest` names every entity up to 80% (`Max named bars`, 10–50).
 3. `Exclude top %` / `Exclude bottom %` — confirm entities are trimmed before binning.
 4. `Format Pane → Value Labels` — confirm labels appear above bars.
 5. `Format Pane → Reference Lines → Show line 3` — confirm the third threshold.

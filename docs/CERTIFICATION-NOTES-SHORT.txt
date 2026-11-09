@@ -1,45 +1,45 @@
-Pareto Chart Pro 1.6.0.0 GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
+Pareto Chart Pro 1.7.0.0 GUID ParetoChartPro1A2B3C4D5E6F7A8B9C0D
 Repo (branch certification): github.com/tinocallarisa-web/pareto-chart-pro
-Docs/privacy/terms: tinocallarisa-web.github.io/pareto-chart-pro/
+Docs: tinocallarisa-web.github.io/pareto-chart-pro/
 Video: youtube.com/watch?v=1LLgEmXuA_8
 
 PLEASE READ FIRST - PRO PREVIEW
 Without a licence, IN EDIT MODE ONLY, a Pro feature the user turns on is drawn
-WORKING under a "Pro preview" watermark naming it, plus Power BI's banner and,
-~10 s later, the Upgrade bar. Intentional, not missing gating. Reading view,
-before the licence resolves and where licences cannot be read: FREE result, no
-watermark. Gate = options.viewMode; preview is per feature.
+WORKING under a "Pro preview" watermark, with Power BI's banner and Upgrade
+bar. Intentional. Reading view / no licence info: FREE result, no watermark.
 
-NEW IN 1.6.0.0
-- Setup guide (edit mode only): fields, "Try" buttons that turn a Pro feature
-  on/off (persistProperties on click), templates. A template change in the
-  pane removes the props it defines, once.
-- Templates, legend (off by default), on-object, 12 languages (texts in
-  the bundle), dynamic formats, start screen (launchUrl only on click).
-- Bar color fx: altConstantValueSelector null. allowInteractions from
-  hostCapabilities; in format mode a click selects, it does not filter.
+TESTING (Entity + Value, >30 entities)
+1. New visual: 15 named bars + up to 4 lighter rank ranges ("#16-62", height =
+   average per entity; tooltip keeps real totals). A 1.6 report keeps bins.
+2. Pareto > Bars with names > Vital few (Pro): named up to 80%, max 10-50.
+   Edit, no licence: watermark; reading view: Top 15.
+3. Range bar: drag handles or arrows/PgUp/PgDn/Home/End/Esc; release filters
+   the page. Change a slicer: "Range out of date" + Reapply/Clear, never
+   reapplied alone. Over 10,000 entities: notice, no filter.
+4. Comparison value (Pro): on named bars rank marks (up 3, down 2, new) and
+   "N no longer among them" in the summary.
+5. Style template > Boardroom..Terrace (Pro): watermark in edit; reading view
+   shows Report theme (default). The six 1.6 templates stay free.
 
-TESTING - FREE (no licence)
-1. Entity + Value: 5 bars, cumulative line, 80% line, summary sentence.
-2. Click a bar to cross-filter; Ctrl+click adds. Tab, arrows, Enter, Escape,
-   Shift+F10 menu. Bar color > fx = conditional formatting.
-3. EDIT mode: setup guide step 2, "Try" ABC classes: drawn under the watermark
-   with the banner. Reading view: plain Free chart, no watermark.
-4. Format > Legend > Show legend. Format mode: click a bar or an axis.
-With an active plan the same features render with no watermark and no notice.
+CAPABILITIES CHANGES IN 1.7 (nothing renamed or removed)
+pareto.namedBars (enum bins/top15/vitalFew), pareto.namedMax; object rangeBar
+(show, shortcuts, color); abcZones.zoneOpacity/labelSize/labelColor/labelBg/
+labelBgOpacity; smallMultiples.gap/titleBold/titleAlign/background/border/
+borderColor; style.template gains report + six values.
 
-PRIVACY / NETWORK
-No external calls, telemetry, CDN or endpoints; privileges: []. Licensing only
-through IVisualLicenseManager. No file access, localStorage or cookies.
-Persisted: general.filter, and from the setup guide style.template/guide and
-the settings its buttons toggle (on click). Never in the selection callback.
+PERSISTENCE / FILTERS
+persistProperties: setup guide clicks, a template change, and ONCE when a new
+visual is inserted with no fields (namedBars=top15, so pre-1.7 reports, which
+open with fields, keep bins). Never in the selection callback or while
+dragging. Range bar: applyJsonFilter with the exact entity filter, as a bar
+click; never reapplied automatically. Hidden with small multiples, drill or
+interactions off.
 
-LICENSING
-Plan pareto-chart-pro-tcviz, matched on a Service ID ending in it. Requested
-once, cached; on failure Free. Active and Warning accepted.
-isLicenseUnsupportedEnv / isLicenseInfoAvailable respected. No purchase UI:
-only "Pro" tags and Power BI's notifications.
+PRIVACY: no external calls or telemetry; privileges: []. No localStorage or
+cookies. Licensing only via IVisualLicenseManager (pareto-chart-pro-tcviz);
+Active and Warning accepted. No purchase UI.
 
-RENDERING EVENTS: one Started and one Finished/Failed per update().
+RENDERING EVENTS: 1 Started + 1 Finished/Failed per update(). Dragging calls
+no update().
 
-Tools 7.2.1, API 5.11.1, ESLint 0 errors. npm audit --omit=dev: 0.
+API 5.11.1, ESLint 0 errors, npm audit --omit=dev: 0.

@@ -206,7 +206,7 @@
 
 <div class="wrap">
 
-  <div class="verpill">Current version 1.6.0.0 &nbsp;·&nbsp; <a href="changelog.html">see what changed</a></div>
+  <div class="verpill">Current version 1.7.0.0 &nbsp;·&nbsp; <a href="changelog.html">see what changed</a></div>
 
   <h2>Start here</h2>
   <div class="grid">
@@ -244,19 +244,21 @@
 
   <h2>What it does</h2>
   <div class="card">
-    <p>Entities are ranked from highest to lowest contribution, grouped into bins of a fixed percentage of the
-    entity population, and drawn as descending bars. A cumulative percentage line climbs across them to 100%,
-    and up to three reference lines mark the thresholds you care about — 80% by default.</p>
-    <p>Because the X axis is a share of entities rather than a list of names, the chart stays readable whether the
-    model has 40 SKUs or 40,000 — and with 30 entities or fewer it switches to one named bar per entity, the
-    classic Pareto. A summary sentence states the answer exactly: <em>"1,120 of 5,000 entities (22.4%) make 80% of
-    the total"</em>.</p>
-    <p>Pro adds <strong>period comparison</strong> (is the business more concentrated than last year?),
-    <strong>small multiples</strong> (one Pareto per region or plant), <strong>ABC zones</strong>, custom bin sizes,
-    outlier exclusion and value labels.</p>
+    <p>Entities are ranked from highest to lowest contribution and drawn as descending bars. A cumulative
+    percentage line climbs across them to 100%, and up to three reference lines mark the thresholds you care
+    about — 80% by default. A summary sentence states the answer exactly: <em>"1,120 of 5,000 entities (22.4%)
+    make 80% of the total"</em>.</p>
+    <p>With 30 entities or fewer every entity has its own named bar, the classic Pareto. Above that, the 15 largest
+    are drawn by name and the rest in a few bars by rank — or in bins of a fixed share of entities, which keep the
+    chart readable whether the model has 40 SKUs or 400,000. A <strong>range bar</strong> under the chart filters the
+    page to any stretch of ranks.</p>
+    <p>Pro shows exactly who the vital few are, what changed and where: <strong>the vital few by name</strong>,
+    <strong>period comparison</strong> with each entity's change of rank, <strong>small multiples</strong> (one Pareto per
+    region or plant), <strong>ABC zones</strong>, range shortcuts, six collection styles, custom bin sizes, outlier
+    exclusion and value labels.</p>
     <p>It supports conditional formatting (fx), cross-filtering, multi-select, partial highlighting from other
     visuals, drilldown across a hierarchy, standard and report page tooltips, bookmarks, keyboard navigation,
-    high contrast, the measure's number format from the model, twelve languages, style templates, a legend, format on
+    high contrast, the measure's number format from the model, twelve languages, style templates (the report theme by default), a legend, format on
     the canvas and a setup guide inside the visual.</p>
     <p>It is <strong>certified by Microsoft</strong>, which means it runs with no external service calls and is
     available in organisations that restrict uncertified custom visuals.</p>
@@ -270,14 +272,20 @@
     <tr><td>Tooltips field well (up to 10 measures)</td><td>&#9989;</td><td>&#9989;</td></tr>
     <tr><td>IBCS Mode, high contrast mode</td><td>&#9989;</td><td>&#9989;</td></tr>
     <tr><td>Max entities (Power BI Service)</td><td>500,000+</td><td>500,000+</td></tr>
-    <tr><td>Bin size</td><td>Fixed at 20% (5 bars)</td><td>Configurable 1&ndash;20% (up to 100 bars)</td></tr>
+    <tr><td>Top 15 by name + rank ranges (more than 30 entities)</td><td>&#9989;</td><td>&#9989;</td></tr>
+    <tr><td>Vital few by name (up to 50 named bars)</td><td>&mdash;</td><td>&#9989;</td></tr>
+    <tr><td>Range bar: drag, keyboard, filter the page by rank</td><td>&#9989;</td><td>&#9989;</td></tr>
+    <tr><td>Range bar shortcuts (Vital few, A, B, C, Tail) and summary</td><td>&mdash;</td><td>&#9989;</td></tr>
+    <tr><td>Report theme and six style templates</td><td>&#9989;</td><td>&#9989;</td></tr>
+    <tr><td>Collection styles (Boardroom, Ledger, Editorial, Signal, Aurora, Terrace)</td><td>&mdash;</td><td>&#9989;</td></tr>
+    <tr><td>Bin size (Bins of entities)</td><td>Fixed at 20% (5 bars)</td><td>Configurable 1&ndash;20% (up to 100 bars)</td></tr>
     <tr><td>Outlier exclusion (top / bottom %)</td><td>&mdash;</td><td>&#9989;</td></tr>
     <tr><td>Value labels on bars</td><td>&mdash;</td><td>&#9989;</td></tr>
     <tr><td>Bar border &amp; gap styling</td><td>&#9989;</td><td>&#9989;</td></tr>
     <tr><td>3rd reference line</td><td>&mdash;</td><td>&#9989;</td></tr>
     <tr><td>Summary sentence, named bars, partial highlighting</td><td>&#9989;</td><td>&#9989;</td></tr>
-    <tr><td>Conditional formatting, number formats, 12 languages, templates, legend, setup guide</td><td>&#9989;</td><td>&#9989;</td></tr>
-    <tr><td>Period comparison</td><td>&mdash;</td><td>&#9989;</td></tr>
+    <tr><td>Conditional formatting, number formats, 12 languages, legend, setup guide</td><td>&#9989;</td><td>&#9989;</td></tr>
+    <tr><td>Period comparison, with rank moves on named bars</td><td>&mdash;</td><td>&#9989;</td></tr>
     <tr><td>Small multiples</td><td>&mdash;</td><td>&#9989;</td></tr>
     <tr><td>ABC zones</td><td>&mdash;</td><td>&#9989;</td></tr>
   </table>

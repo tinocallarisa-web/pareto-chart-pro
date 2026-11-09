@@ -1,4 +1,4 @@
-# Tips & Hints — Pareto Chart Pro (v1.6.0.0)
+# Tips & Hints — Pareto Chart Pro (v1.7.0.0)
 
 ## Getting started
 1. **Entity** — a categorical dimension (Customer, Product, SKU, Supplier). A hierarchy here enables drilldown.
@@ -7,7 +7,26 @@
 4. **Comparison value** *(Pro)* — last year's measure, to compare concentration between periods.
 5. **Small multiples** *(Pro)* — a field such as Region or Plant, for one Pareto per value.
 
-No DAX, no pre-sorting, no cumulative measure. Ranking, binning and the cumulative line are automatic.
+No DAX, no pre-sorting, no cumulative measure. Ranking, named bars and the cumulative line are automatic.
+
+## New in 1.7.0.0
+
+- **Bars with names** (*Format → Pareto → Bars with names*), with more than 30 entities. **Top 15 by name +
+  rest** (free, the default for new visuals): the 15 largest by name, then up to four bars by rank
+  (*#16–62*), drawn lighter at the **average share per entity** so the curve keeps falling; the cumulative
+  line and the tooltip keep the real totals. **Vital few by name + rest** *(Pro)*: every entity up to the
+  threshold by name, capped by *Max named bars* (10–50, 40 by default). **Bins of entities** is the chart of
+  earlier versions, and reports made before 1.7 keep it.
+- **Range bar.** Two handles under the chart, by rank: drag them (or use the arrow keys) and, when you let go,
+  the page is filtered to exactly those entities. *(Pro)* Vital few, A, B, C and Tail in one click, and a
+  summary of the range. If another filter changes the data, it says **Range out of date** with Reapply /
+  Clear — it never reapplies by itself. Not shown with small multiples.
+- **Comparison** *(Pro)* on named bars: ▲3 / ▼2 / new next to each name, "Rank #4 (was #7)" in the tooltip,
+  and "· N no longer among them" in the summary — hover it for the names.
+- **Report theme** is the default style: your report's theme colours. Choose **Clean** for the look of 1.6.
+  Six collection styles in Pro: Boardroom, Ledger, Editorial, Signal, Aurora, Terrace.
+- **ABC zones** *(Pro)*: zone opacity (0 = labels only) and label size, colour and background.
+  **Small multiples** *(Pro)*: spacing, bold and aligned titles, panel background and border.
 
 ## New in 1.6.0.0
 
@@ -157,6 +176,9 @@ The chart is a single Tab stop. `←` `→` `↑` `↓` move between bins, `Home
 `Enter`/`Space` select, `Ctrl`/`Cmd`+`Enter` adds to the selection, `Escape` clears, `Shift`+`F10`
 opens the context menu. Tooltips open on focus, not only on hover.
 
+The range bar's two handles are sliders of their own: arrows move one entity, `Shift`+arrow or
+`Page Up`/`Page Down` a tenth of them, `Home`/`End` the ends, `Escape` clears the range.
+
 ## Free vs Pro
 
 | Feature | Free | Pro |
@@ -168,12 +190,18 @@ opens the context menu. Tooltips open on focus, not only on hover.
 | IBCS Mode | ✓ | ✓ |
 | Keyboard navigation, high contrast | ✓ | ✓ |
 | Max entities (Power BI Service) | 500,000+ | 500,000+ |
-| Bin size | fixed 20% (5 bars) | 1–20% (up to 100 bars) |
+| Top 15 by name + rank ranges | ✓ | ✓ |
+| Vital few by name (up to 50) | — | ✓ |
+| Range bar (drag, keyboard, filter by rank) | ✓ | ✓ |
+| Range bar shortcuts and summary | — | ✓ |
+| Report theme + six style templates | ✓ | ✓ |
+| Six collection styles | — | ✓ |
+| Bin size (Bins of entities) | fixed 20% (5 bars) | 1–20% (up to 100 bars) |
 | Outlier trimming (top/bottom %) | — | ✓ |
 | Value labels on bars | — | ✓ |
 | Bar border & gap styling | ✓ | ✓ |
 | Summary sentence, named bars, partial highlighting | ✓ | ✓ |
-| Number formats from the model, 12 languages, templates, legend, setup guide | ✓ | ✓ |
+| Number formats from the model, 12 languages, legend, setup guide | ✓ | ✓ |
 | Period comparison | — | ✓ |
 | Small multiples | — | ✓ |
 | ABC zones | — | ✓ |

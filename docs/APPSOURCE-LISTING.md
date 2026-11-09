@@ -1,4 +1,4 @@
-# AppSource listing copy — Pareto Chart Pro v1.6.0.0
+# AppSource listing copy — Pareto Chart Pro v1.7.0.0 (DRAFT, not submitted yet)
 
 Paste-ready text for Partner Center. **Editing this file does not change the offer**: the fields
 Microsoft reviews live only in Partner Center, and have to be pasted by hand.
@@ -18,31 +18,33 @@ What's new block goes inside it), certification notes 2,500 counting CRLF, 3 key
 ---
 
 ## Description
-*(3076 characters, What's new included)*
+*(4,318 characters measured on the HTML that is pasted, What's new included; limit 5,000)*
 
 ```
-Everyone has heard that 20% of customers make 80% of sales. Almost nobody in the meeting knows whether that is true for their own business this year, whether it was more or less true last year, or whether one region behaves differently. The native way to find out is a sorted column chart, a cumulative DAX measure and a dual axis — and it still cannot tell you the answer in words.
+Everyone has heard that 20% of customers make 80% of sales. Almost nobody in the meeting knows whether that is true for their own business this year, who exactly those customers are, or what changed since last year. The native way to find out is a sorted column chart, a cumulative DAX measure and a dual axis — and it still cannot tell you the answer in words.
 
 Pareto Chart Pro ranks any entity — customers, SKUs, defect codes, suppliers — and states the answer: "1,120 of 5,000 customers (22.4%) make 80% of sales". Exact, counted customer by customer, recalculated against whatever your slicers select.
 
-WHAT YOU SEE
-• Ranked bars and a cumulative line to 100%, with up to three threshold lines
-• A summary sentence with the exact number of entities behind the threshold
-• Bins of a fixed share of entities, so 500,000 customers read as five bars; with 30 entities or fewer, one named bar each — the classic Pareto
-• Threshold colours and conditional formatting (fx) on bar colour
-• Highlighting from other visuals draws the highlighted part of each bar, like a native chart
+FREE: THE EXACT ANSWER, A CORRECT CHART
+• Ranked bars and a cumulative line to 100%, up to two threshold lines and the summary sentence with the exact number of entities
+• Your top 15 by name: with more than 30 entities, the 15 largest get a named bar and the rest is grouped by rank ("#16–62"), drawn as the average per entity so the curve keeps falling, while the cumulative line and the tooltip keep the real totals. With 30 entities or fewer, every entity has its own bar
+• A range bar under the chart: drag two handles, or use the keyboard, to pick a stretch of ranks — the top 50, #51 to #200 — and filter the page to exactly those entities
+• Report theme by default, so the chart takes your report's colours like a native visual, plus six style templates including an IBCS style
+• Threshold colours, conditional formatting (fx) on bar colour, and highlighting from other visuals drawn on each bar
 
-PRO: COMPARE, SPLIT, CLASSIFY
-• Period comparison — bind last year's measure and get comparison bars, a dashed cumulative line and the change on every bar in percentage points. Each period is ranked on its own, so it answers the real question: are we more dependent on our top customers than a year ago?
-• Small multiples — one Pareto per region, plant or product line on a shared scale. Click a bar to filter the report to those customers in that region.
-• ABC zones — classes A, B and C shaded at the exact customer where the cumulative crosses 80% and 95%
-• Bin sizes from 1% to 20%, outlier exclusion, value labels
+PRO: WHO, WHAT CHANGED, WHERE
+• Vital few by name — every entity up to your threshold (80% by default) gets its own named bar, up to 50
+• Period comparison — bind last year's measure for comparison bars, a dashed cumulative line and the change on every bar in percentage points. On named bars each entity shows its move (▲3, ▼2, new), and the summary says how many are no longer among the vital few, and who
+• ABC zones — classes A, B and C shaded at the exact entity where the cumulative crosses 80% and 95%, with adjustable opacity and labels
+• Small multiples — one Pareto per region, plant or product line on a shared scale, with columns, spacing, titles and panel styling
+• Range shortcuts — Vital few, A, B, C and Tail in one click, and a summary of what the range holds
+• Six collection styles (Boardroom, Ledger, Editorial, Signal, Aurora, Terrace), bin sizes from 1% to 20%, outlier exclusion, value labels and a third threshold line
 
 FREE AND PRO
-The free tier is a complete, correct Pareto: nothing is hidden or capped, and with a small-multiples field bound it sums the panels into one chart rather than dropping data. The setup guide inside the visual lets you try each Pro feature with one click: without a licence it is drawn working under a "Pro preview" watermark, on your own data, while you edit. Reading view shows the free result.
+The free tier gives you the exact answer and a correct chart. Pro tells you exactly who the vital few are, what changed and where. The setup guide inside the visual lets you try each Pro feature with one click: without a licence it is drawn working under a "Pro preview" watermark, on your own data, while you edit. Reading view shows the free result.
 
 NATIVE INTEGRATION
-Cross-filtering and multi-select, drilldown on a hierarchy, standard and report page tooltips, bookmarks, context menu. Keyboard navigation (one Tab stop, arrow keys between bars) with screen-reader labels, high contrast, the measure's format string from your model (dynamic format strings included), format on the canvas, six style templates including an IBCS style, a legend, and twelve languages.
+Cross-filtering and multi-select, drilldown on a hierarchy, standard and report page tooltips, bookmarks, context menu. Keyboard navigation (one Tab stop, arrow keys between bars, and the range bar's handles by keyboard) with screen-reader labels, high contrast, the measure's format string from your model (dynamic format strings included), format on the canvas, a legend, and twelve languages.
 
 PRIVACY
 Certified by Microsoft. No network requests, no telemetry: everything is calculated inside Power BI. Licences are checked through Microsoft's own licensing API.
@@ -50,14 +52,17 @@ Certified by Microsoft. No network requests, no telemetry: everything is calcula
 GETTING STARTED
 1. Entity = Customer, Value = Sales.
 2. Pro: Comparison value = Sales last year; Small multiples = Region.
-3. Read the sentence above the chart.
+3. Read the sentence above the chart, then drag the range bar to filter the page.
 
 Documentation, scenarios and sample data: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 Support: support@tcviz.com
 
-WHAT'S NEW IN 1.6.0.0
-A setup guide that lets you try every Pro feature on your own data with one click; six style templates including an IBCS style; a legend; format on the canvas; twelve languages; dynamic format strings; a chart that stays readable in small tiles.
+WHAT'S NEW IN 1.7.0.0
+Your top 15 by name (free) and the vital few by name (Pro); a range bar that filters the page by rank; rank moves and who left the vital few in the comparison; Report theme by default and six collection styles (Pro); ABC zone opacity and labels; small-multiples panel styling.
 ```
+
+Paste the **HTML**, not this text: `python C:\tcviz\utillaje\ficha_html.py "C:\tcviz\dev\Pareto\pareto-chart-pro"`
+writes `docs/APPSOURCE-DESCRIPTION.html`. The 5,000-character limit counts the tags.
 
 ---
 
@@ -74,11 +79,14 @@ Left out: `customer concentration` (long, low volume), `small multiples` (a func
 
 ## Plan description (Pro)
 
+Text for the new Pro plan (1.99 per user per month · 19 per year). Prices go in the plan's pricing
+fields, never in the offer description.
+
 ```
-Pareto Chart Pro adds period comparison (comparison bars, dashed cumulative line and the change on every bar in percentage points), small multiples (one Pareto per region or plant), ABC zones, bin sizes from 1% to 20%, outlier exclusion, value labels and a third reference line. The free tier remains a complete Pareto chart.
+Pro shows exactly who the vital few are, what changed and where: every entity up to the threshold by name (up to 50 named bars); period comparison with comparison bars, a dashed cumulative line, the change on every bar in percentage points, rank moves (▲/▼/new) and who is no longer among the vital few; ABC zones with adjustable opacity and labels; small multiples (one Pareto per region or plant) with panel styling; range-bar shortcuts (Vital few, A, B, C, Tail) with a range summary; six collection styles; bin sizes from 1% to 20%; outlier exclusion; value labels and a third reference line. The free tier remains a complete, correct Pareto chart with the top 15 by name and the range bar.
 ```
 
-The price of an existing plan cannot be changed (USD 4.99 per user per month).
+The price of an existing plan cannot be changed: that is why 1.7 goes with a new plan.
 
 ---
 
@@ -104,3 +112,22 @@ The price of an existing plan cannot be changed (USD 4.99 per user per month).
   settings, not from the package, and each offer freezes it at its last publication.
 - Re-check every URL in this table with a real request after publishing. A support URL that
   does not load is an immediate rejection.
+
+---
+
+## What to paste by hand in Partner Center (1.7.0.0)
+
+Editing this file changes nothing in the offer. In Partner Center:
+
+1. **Offer listing → Description:** the contents of `docs/APPSOURCE-DESCRIPTION.html` (run
+   `ficha_html.py` again after any edit), not the text above.
+2. **Offer listing → Search results summary:** unchanged; re-paste only if it is edited.
+3. **Offer listing → Search keywords:** unchanged.
+4. **Offer listing → Videos:** unchanged, `https://www.youtube.com/watch?v=1LLgEmXuA_8` (canonical
+   `watch?v=` form; never `youtu.be`).
+5. **Plans → new plan → Plan description:** the "Plan description (Pro)" text above; price 1.99 per
+   user per month · 19 per year in the plan's pricing fields.
+6. **Technical configuration:** the 1.7.0.0 `.pbiviz` and the `.pbix` sample (without `_test`).
+7. **Review and publish → Notes for certification:** `docs/CERTIFICATION-NOTES-SHORT.txt`.
+8. **Screenshots**, only if replaced: the current ones show the 1.6 look (Clean); a 1.7 visual opens in
+   Report theme with the top 15 by name.

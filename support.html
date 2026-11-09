@@ -178,7 +178,7 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.6.0.0 &nbsp;·&nbsp; docs updated 5 Nov 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.7.0.0 &nbsp;·&nbsp; docs updated 9 Nov 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <p class="lead"><strong>Help for this visual:</strong>
   <a href="https://tcviz.com/guides/pareto-pro.html">step-by-step guide</a> ·
@@ -195,9 +195,11 @@
   hierarchy · cross-filtering, <strong>highlighting</strong> and multi-select · standard and
   <strong>report page tooltips</strong> · bookmarks · context menu · keyboard navigation with ARIA labels ·
   high contrast · <strong>number formats from the model</strong> and <strong>dynamic format strings</strong> ·
-  <strong>12 languages</strong> · <strong>format on the canvas</strong> (on-object) · <strong>style templates</strong> and a
-  <strong>setup guide</strong> inside the visual · a <strong>legend</strong> · IBCS mode. Analysis: an exact <strong>80/20 summary sentence</strong>, <strong>ABC
-  classification</strong> zones, threshold colours, outlier exclusion. Worked examples — customer
+  <strong>12 languages</strong> · <strong>format on the canvas</strong> (on-object) · <strong>style templates</strong>
+  (the report theme by default) and a <strong>setup guide</strong> inside the visual · a <strong>legend</strong> · IBCS mode.
+  Analysis: an exact <strong>80/20 summary sentence</strong>, <strong>named bars</strong> for the top entities, a
+  <strong>range bar</strong> that filters the page by rank, <strong>ABC classification</strong> zones, threshold colours,
+  outlier exclusion. Worked examples — customer
   concentration, SKU rationalisation, defect prioritisation — are in
   <a href="tips.html#scenarios">Tips &amp; scenarios</a>.</p>
 
@@ -214,16 +216,22 @@
     <p>The <strong>summary sentence</strong> above the chart gives the answer in words — for example
     <em>"1,120 of 5,000 entities (22.4%) make 80% of the total"</em>. The <strong>left Y-axis</strong> shows each
     bar's share of the total; the <strong>right Y-axis</strong> shows the cumulative percentage. The default
-    reference line marks the 80% threshold.</p>
+    reference line marks the 80% threshold. With more than 30 entities, the 15 largest are drawn by name and the
+    rest in a few bars by rank (<em>#16–62</em>); with 30 or fewer, every entity has its own bar.</p>
 
-    <h3>4. Use drilldown</h3>
+    <h3>4. Filter by rank with the range bar</h3>
+    <p>Drag the two handles under the chart — or Tab to them and use the arrow keys — to pick a stretch of ranks, such
+    as the top 50. When you let go, the rest of the page is filtered to exactly those entities.</p>
+
+    <h3>5. Use drilldown</h3>
     <p>Add a hierarchy field (e.g. Category &gt; Subcategory &gt; SKU) to the <code>Entity</code> well. Use the drill buttons in the visual header to navigate levels. Levels with 30 members or fewer show one named bar per member.</p>
 
-    <h3>5. Compare with another period <span class="badge badge-pro">Pro</span></h3>
+    <h3>6. Compare with another period <span class="badge badge-pro">Pro</span></h3>
     <p>Drag last year's measure into <code>Comparison value</code>. Grey bars, a dashed cumulative line and
-    change pills in percentage points show whether the business became more or less concentrated.</p>
+    change pills in percentage points show whether the business became more or less concentrated; named bars show
+    each entity's change of rank.</p>
 
-    <h3>6. Split into small multiples <span class="badge badge-pro">Pro</span></h3>
+    <h3>7. Split into small multiples <span class="badge badge-pro">Pro</span></h3>
     <p>Drag Region, Plant or Product line into <code>Small multiples</code> to get one Pareto per value, on a
     shared scale.</p>
   </div>
@@ -253,12 +261,25 @@
   </div>
 
   <div class="card">
-    <h3>Bins, or one named bar per entity <span class="badge badge-free">Free</span></h3>
-    <p>With <strong>more than 30 entities</strong>, entities are ranked and grouped into bins of a fixed share of
-    the population — <code>0–20%</code>, <code>20–40%</code>… — so 10,000 SKUs still read as a handful of bars.</p>
+    <h3>Bars with names, rank ranges or bins</h3>
     <p>With <strong>30 entities or fewer</strong> — segments, defect types, regions, a drilled-down level — the
-    chart switches to the classic Pareto: <strong>one bar per entity, labelled with its name</strong>, sorted from
+    chart is the classic Pareto: <strong>one bar per entity, labelled with its name</strong>, sorted from
     largest to smallest, and the X-axis title becomes the field name. Nothing to configure.</p>
+    <p>With <strong>more than 30 entities</strong>, <strong>Format → Pareto → Bars with names</strong> decides what you see:</p>
+    <ul>
+      <li><strong>Top 15 by name + rest</strong> <span class="badge badge-free">Free</span> — the default for a visual
+      inserted in 1.7. The 15 largest entities by name, then the rest in up to four bars by rank, such as
+      <code>#16–62</code>. Those rank bars are drawn lighter and at the <strong>average share per entity</strong>, so the
+      Pareto keeps falling instead of ending in one giant "rest" bar; the cumulative line and the tooltip keep the real
+      totals, and the tooltip adds <em>Average per entity (bar height)</em>.</li>
+      <li><strong>Vital few by name + rest</strong> <span class="badge badge-pro">Pro</span> — every entity up to the
+      summary threshold (80% by default) by name, then the rest by rank. <strong>Max named bars (Pro)</strong> caps
+      the names at 10–50 (40 by default). Without a licence it is previewed under the watermark while you edit, and
+      reading view shows the Top 15.</li>
+      <li><strong>Bins of entities</strong> <span class="badge badge-free">Free</span> — bins of a fixed share of the
+      population — <code>0–20%</code>, <code>20–40%</code>… — so 10,000 SKUs read as a handful of bars. This is the
+      chart of earlier versions, and a report made before 1.7 keeps it.</li>
+    </ul>
   </div>
 
   <div class="card">
@@ -281,6 +302,11 @@
       <li><strong>New and lost entities count.</strong> The population is every entity with a value in either
       period. A customer lost since last year is a zero this year, at the bottom of the current ranking; a new
       one is a zero in the comparison. Leaving them out would compare two different populations.</li>
+      <li><strong>Rank moves on named bars.</strong> Next to each name, how the entity moved since the comparison
+      period: <strong>▲3</strong>, <strong>▼2</strong> or <strong>new</strong>; the tooltip reads <em>Rank #4 (was #7)</em>.
+      The summary sentence adds <em>"· 3 no longer among them"</em>: the entities that were among the vital few then
+      and are not now; hover the sentence for their names. No marks in Bins mode, and the "no longer" count is left
+      out when entities tie exactly at the cut, where in or out would depend on the order of equal values.</li>
     </ul>
   </div>
 
@@ -305,7 +331,29 @@
     make the first cut of the total (80% by default); <strong>B</strong>, up to the second cut (95%);
     <strong>C</strong>, the rest. The boundaries are placed at the exact entity where the cumulative crosses each
     cut, and each band is labelled with its share of entities — <em>"A · 22.4% of entities"</em>. It is the
-    classic ABC inventory and customer classification, drawn on the Pareto it comes from.</p>
+    classic ABC inventory and customer classification, drawn on the Pareto it comes from. <strong>Zone opacity</strong>
+    sets how strong the shading is (0 leaves only the labels), and the labels have their own size, colour and
+    background.</p>
+  </div>
+
+  <div class="card">
+    <h3>Range bar <span class="badge badge-free">Free</span></h3>
+    <p>Under the chart, a bar with two handles over the ranking, in entities by rank. Drag them — to the exact entity —
+    or Tab to a handle and use the keyboard. When you let go, the page is filtered to those entities, exactly as if you
+    had clicked their bars. Inside the range the bars keep their full colour; outside, they are dimmed under a veil of
+    the page colour, with a dashed line at each edge. A label reads the range, such as <em>#1–#50 · 2.5% of entities</em>.</p>
+    <ul>
+      <li><strong>Shortcuts and summary</strong> <span class="badge badge-pro">Pro</span>: <strong>Vital few</strong>,
+      <strong>A</strong>, <strong>B</strong>, <strong>C</strong> and <strong>Tail</strong> select those ranks in one click,
+      and a line says what the range holds: entities, share of the total and value.</li>
+      <li><strong>"Range out of date".</strong> The filter is a fixed list of entities. If another filter changes the data
+      and those ranks now hold other entities, the bar says so — in reading view too — and offers <strong>Reapply</strong>
+      or <strong>Clear</strong>. It never reapplies by itself.</li>
+      <li>A range of more than <strong>10,000 entities</strong> is not filtered: the visual says so rather than filtering
+      part of it (see <a href="#performance">Performance &amp; scale</a>).</li>
+      <li>The range bar is not shown with small multiples, on a hierarchy level that can still drill down, when the
+      report author has turned interactions off, or in very small tiles (about 220 × 160 px).</li>
+    </ul>
   </div>
 
   <div class="card">
@@ -340,7 +388,7 @@
     <tr>
       <td><strong>Entity</strong></td>
       <td>Categorical / Hierarchy</td>
-      <td>The dimension to rank — e.g. Customer, Product, SKU, Supplier. Accepts a single field or a hierarchy for drilldown. Up to 30 members are drawn as named bars; more are grouped into bins.</td>
+      <td>The dimension to rank — e.g. Customer, Product, SKU, Supplier. Accepts a single field or a hierarchy for drilldown. Up to 30 members are drawn as named bars; above that, the top entities by name and the rest by rank, or bins (Format → Pareto → Bars with names).</td>
     </tr>
     <tr>
       <td><strong>Value</strong></td>
@@ -366,18 +414,24 @@
 
   <!-- Format Pane -->
   <h2 id="format">Format Pane Reference</h2>
+  <p>The cards appear in the order common to the TCViz visuals: Style template, Pareto, Summary, Cumulative Line,
+  Reference Lines, Threshold Colors, ABC zones, Value Labels, Comparison, Range bar, Axes, Legend and Small multiples.
+  The colour defaults below are the visual's own; with the <strong>Report theme</strong> template (the default) the
+  colours come from the report's theme.</p>
 
   <h3>Style template</h3>
   <table>
     <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
-    <tr><td>Template</td><td>Clean</td><td>Clean (the default look), Minimal, Contrast, Soft, Compact or IBCS style. Choosing one replaces the colours, line widths, font sizes and gaps it defines; your other settings stay.</td></tr>
+    <tr><td>Template</td><td>Report theme</td><td>Free: <strong>Report theme</strong> (the colours of your report's theme, like a native visual), Clean (the look before 1.7), Minimal, Contrast, Soft, Compact or IBCS style. <span class="badge badge-pro">Pro</span>: the six collection styles Boardroom, Ledger, Editorial, Signal, Aurora and Terrace — without a licence previewed while you edit, and drawn as Report theme in reading view. Choosing one replaces the colours, line widths, font sizes and gaps it defines; your other settings stay.</td></tr>
     <tr><td>Setup guide</td><td>On</td><td>The guide in the corner while you edit: your fields, the Pro features to try on your data, and the templates. Never shown in reading view.</td></tr>
   </table>
 
   <h3>Pareto</h3>
   <table>
     <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
-    <tr><td>Bin size % <span class="badge badge-pro">Pro</span></td><td>5%</td><td>Each bar represents this percentage of ranked entities. Range: 1–20%. Free tier is fixed at 20%.</td></tr>
+    <tr><td>Bars with names</td><td>Top 15 by name + rest</td><td>With more than 30 entities: <em>Bins of entities</em>, <em>Top 15 by name + rest</em> (free) or <em>Vital few by name + rest</em> (Pro). A report made before 1.7 keeps <em>Bins of entities</em>.</td></tr>
+    <tr><td>Max named bars <span class="badge badge-pro">Pro</span></td><td>40</td><td>With <em>Vital few by name</em>, the most entities drawn by name (10–50).</td></tr>
+    <tr><td>Bin size % <span class="badge badge-pro">Pro</span></td><td>5%</td><td>With <em>Bins of entities</em>, each bar represents this percentage of ranked entities. Range: 1–20%. Free tier is fixed at 20%.</td></tr>
     <tr><td>Exclude bottom % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the lowest-value N% of entities before binning (outlier filter).</td></tr>
     <tr><td>Exclude top % <span class="badge badge-pro">Pro</span></td><td>0</td><td>Remove the highest-value N% of entities before binning.</td></tr>
     <tr><td>Bar color</td><td>#4472C4</td><td>Fill color for all bars. Supports rule-based conditional formatting via the <em>fx</em> button; each bar takes the color of its top-ranked entity.</td></tr>
@@ -465,9 +519,15 @@
   <p>Applies when a field is bound to <code>Small multiples</code>.</p>
   <table>
     <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
-    <tr><td>Columns</td><td>0</td><td>Panels per row. 0 lays them out automatically for the visual's shape.</td></tr>
-    <tr><td>Title font size</td><td>12</td><td>Size of each panel's title.</td></tr>
+    <tr><td>Columns (0 = automatic)</td><td>0</td><td>Panels per row. 0 lays them out automatically for the visual's shape.</td></tr>
+    <tr><td>Space between panels</td><td>14</td><td>Gap between panels, in pixels.</td></tr>
+    <tr><td>Title size</td><td>12</td><td>Size of each panel's title.</td></tr>
     <tr><td>Title color</td><td>#333333</td><td>Color of each panel's title.</td></tr>
+    <tr><td>Bold title</td><td>On</td><td>Draw the panel titles in bold.</td></tr>
+    <tr><td>Title alignment</td><td>Left</td><td>Left or Center.</td></tr>
+    <tr><td>Panel background</td><td>None</td><td>A fill behind each panel.</td></tr>
+    <tr><td>Panel border</td><td>Off</td><td>A border around each panel.</td></tr>
+    <tr><td>Panel border color</td><td>#E1DFDD</td><td>Color of that border. With a background or a border, each panel becomes a card with 6 px of padding.</td></tr>
   </table>
 
   <h3>ABC zones <span class="badge badge-pro">Pro</span></h3>
@@ -476,8 +536,21 @@
     <tr><td>Show ABC zones</td><td>Off</td><td>Shade classes A, B and C behind the bars.</td></tr>
     <tr><td>Class A up to (cumulative %)</td><td>80</td><td>Class A: the top entities that make this share of the total.</td></tr>
     <tr><td>Class B up to (cumulative %)</td><td>95</td><td>Class B: the next entities, up to this share. Class C is the rest.</td></tr>
-    <tr><td>Class A / B / C color</td><td>blue / green / grey</td><td>Color of each band (drawn at low opacity).</td></tr>
+    <tr><td>Class A / B / C color</td><td>blue / green / grey</td><td>Color of each band.</td></tr>
+    <tr><td>Zone opacity %</td><td>12</td><td>Strength of the shading. 0 leaves only the labels.</td></tr>
     <tr><td>Show zone labels</td><td>On</td><td>Label each band with its class and share of entities.</td></tr>
+    <tr><td>Label font size</td><td>10</td><td>Size of the zone labels.</td></tr>
+    <tr><td>Label colour</td><td>The zone's colour</td><td>Text colour of the labels.</td></tr>
+    <tr><td>Label background</td><td>#FFFFFF</td><td>Fill behind each label.</td></tr>
+    <tr><td>Label background opacity %</td><td>85</td><td>Opacity of that fill.</td></tr>
+  </table>
+
+  <h3>Range bar</h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>Show range bar</td><td>On</td><td>The bar with two handles under the chart, to filter the page by a stretch of ranks.</td></tr>
+    <tr><td>Shortcuts and summary <span class="badge badge-pro">Pro</span></td><td>On</td><td>Vital few, A, B, C and Tail in one click, and what the range holds.</td></tr>
+    <tr><td>Range color</td><td>The cumulative line's colour</td><td>Colour of the range and its handles.</td></tr>
   </table>
 
   <h3>Legend</h3>
@@ -507,6 +580,15 @@
       <tr><td><code>Ctrl</code> / <code>Cmd</code> + <code>Enter</code></td><td>Add the bin to the current selection</td></tr>
       <tr><td><code>Escape</code></td><td>Clear the selection</td></tr>
       <tr><td><code>Shift</code>+<code>F10</code> or <code>ContextMenu</code></td><td>Open the context menu</td></tr>
+    </table>
+    <p>The two handles of the <strong>range bar</strong> are sliders of their own, reached with Tab, and announce their
+    rank and share of entities:</p>
+    <table>
+      <tr><th>Key</th><th>Action</th></tr>
+      <tr><td><code>←</code> <code>→</code> <code>↑</code> <code>↓</code></td><td>Move the handle by one entity</td></tr>
+      <tr><td><code>Shift</code> + arrow, <code>Page Up</code> / <code>Page Down</code></td><td>Move it by a tenth of the entities</td></tr>
+      <tr><td><code>Home</code> / <code>End</code></td><td>First / last rank</td></tr>
+      <tr><td><code>Escape</code></td><td>Clear the range</td></tr>
     </table>
   </div>
 
@@ -577,12 +659,15 @@
     </table>
     <p>A practical pattern for very large models: read the chart at a comfortable bin size,
     and drop to a smaller one when you actually want to click through to the detail.</p>
+    <p>The same 10,000-entity ceiling applies to the rank bars after the named ones and to the
+    <strong>range bar</strong>: a range that holds more entities is refused with a notice. A named bar is a
+    single entity and always filters.</p>
     <div class="note">
-      <strong>Free tier note.</strong> The Free bin size is fixed at 20%, which means five
-      bars. Above roughly 50,000 entities each bar exceeds what Power BI can cross-filter,
-      and clicking a bar will decline instead of filtering. This is a platform limit on
-      filter size, not a restriction we impose — but reducing the bin size is a Pro control,
-      so cross-filtering very large models does require Pro.
+      <strong>Free tier note.</strong> In <em>Bins of entities</em> the Free bin size is fixed at 20%,
+      which means five bars. Above roughly 50,000 entities each bar exceeds what Power BI can
+      cross-filter, and clicking a bar will decline instead of filtering. This is a platform limit on
+      filter size, not a restriction we impose. On the free tier, the range bar lets you filter any
+      stretch of up to 10,000 entities at any model size.
     </div>
   </div>
 
@@ -620,18 +705,24 @@
     <tr><td>IBCS Mode (standardized styling)</td><td>✅</td><td>✅</td></tr>
     <tr><td>Exact 80/20 summary sentence</td><td>✅</td><td>✅</td></tr>
     <tr><td>One named bar per entity (30 or fewer)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Top 15 by name + rank ranges (more than 30)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Range bar: drag, keyboard, filter the page by rank</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Report theme and six style templates (Clean, Minimal, Contrast, Soft, Compact, IBCS style)</td><td>✅</td><td>✅</td></tr>
     <tr><td>Highlighting from other visuals (partial bars)</td><td>✅</td><td>✅</td></tr>
     <tr><td>Conditional formatting (fx) on bar color</td><td>✅</td><td>✅</td></tr>
-    <tr><td>Number formats from the model, 12 languages, templates, legend, setup guide</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Number formats from the model, 12 languages, legend, setup guide</td><td>✅</td><td>✅</td></tr>
     <tr><td>Max entities (Power BI Service)</td><td>500,000+</td><td>500,000+</td></tr>
-    <tr><td>Bin size % (1–20%)</td><td>Fixed at 20% (5 bars)</td><td>✅ Configurable 1–20% (up to 100 bars)</td></tr>
+    <tr><td>Vital few by name (up to 50 named bars)</td><td>❌ (Top 15)</td><td>✅</td></tr>
+    <tr><td>Bin size % (1–20%), in Bins of entities</td><td>Fixed at 20% (5 bars)</td><td>✅ Configurable 1–20% (up to 100 bars)</td></tr>
     <tr><td>Outlier exclusion (top/bottom %)</td><td>❌</td><td>✅</td></tr>
     <tr><td>Bar border &amp; gap styling</td><td>✅</td><td>✅</td></tr>
     <tr><td>3rd reference line</td><td>❌</td><td>✅</td></tr>
     <tr><td>Value labels on bars</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Period comparison (bars, dashed line, change pills)</td><td>❌</td><td>✅</td></tr>
-    <tr><td>Small multiples</td><td>❌</td><td>✅</td></tr>
-    <tr><td>ABC zones</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Period comparison (bars, dashed line, change pills, rank moves, who left the vital few)</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Small multiples, with panel styling</td><td>❌</td><td>✅</td></tr>
+    <tr><td>ABC zones, with opacity and label options</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Range bar shortcuts (Vital few, A, B, C, Tail) and range summary</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Collection styles: Boardroom, Ledger, Editorial, Signal, Aurora, Terrace</td><td>❌</td><td>✅</td></tr>
   </table>
   <p>Without a licence, the Free result never hides data: with a <code>Small multiples</code> field bound, the
   panels are summed into one Pareto, and the comparison measure is ignored.</p>
@@ -689,7 +780,7 @@
   <details>
     <summary>Why do I see "(Pro)" settings I cannot use?</summary>
     <div class="faq-body">
-      <p>Every setting in the format pane is listed for all users, and the ones included in the Pro plan carry <strong>(Pro)</strong> in their name — bin size, outlier exclusion, value labels, the third reference line, comparison, small multiples and ABC zones. They are shown rather than hidden so you can see what the plan includes before deciding.</p>
+      <p>Every setting in the format pane is listed for all users, and the ones included in the Pro plan carry <strong>(Pro)</strong> in their name — vital few by name, bin size, outlier exclusion, value labels, the third reference line, comparison, small multiples, ABC zones, the range bar's shortcuts and the six collection styles. They are shown rather than hidden so you can see what the plan includes before deciding.</p>
       <p>If you turn one on without a licence while <strong>editing</strong> a report, the chart draws it working, under a <strong>Pro preview</strong> watermark that names the feature, and Power BI shows its own notification with a link to get a licence — so you see your own data with the feature before deciding. In reading view, and wherever licences cannot be read, the chart shows the Free result with no watermark: a published report never uses a feature nobody paid for. Your setting is stored and applies cleanly as soon as the licence is active.</p>
     </div>
   </details>
@@ -744,8 +835,9 @@
     <div class="faq-body">
       <p>With bins, it is not meant to be. Each period is ranked on its own: the grey first bar is
       <em>last year's top 20%</em>, whoever they were. That shows whether concentration changed, even when the
-      leading customers changed. To follow specific customers, drill down to a level with 30 members or fewer,
-      or filter to them: with named bars the comparison is always the same entity.</p>
+      leading customers changed. To follow specific customers, use named bars (<em>Top 15 by name</em>, or
+      <em>Vital few by name</em>), drill down to a level with 30 members or fewer, or filter to them: on a named bar the
+      comparison is always the same entity, with its change of rank.</p>
     </div>
   </details>
 
@@ -763,8 +855,9 @@
     <summary>Why do I see names instead of percentage bins?</summary>
     <div class="faq-body">
       <p>With 30 entities or fewer the visual draws one named bar per entity — the classic Pareto of defect types
-      or segments. Grouping three segments into "0–33%" bins would hide which segment is which. Above 30 entities
-      it returns to bins.</p>
+      or segments. Grouping three segments into "0–33%" bins would hide which segment is which. Above 30 entities,
+      a visual inserted in 1.7 shows the top 15 by name and the rest by rank; choose <strong>Format → Pareto → Bars
+      with names → Bins of entities</strong> for percentage bins. Reports made before 1.7 keep their bins.</p>
     </div>
   </details>
 
@@ -810,7 +903,7 @@
         <li><strong>Power BI Service:</strong> the visual streams data in segments and supports <strong>500,000+ entities</strong>. The first segment is 30,000 rows; further segments are fetched automatically.</li>
         <li><strong>Power BI Desktop:</strong> segment fetching is not available, so the visual is capped at <strong>30,000 rows</strong> and shows an amber <em>"Partial data"</em> notice with the number of rows received. This is a Power BI Desktop platform limitation, not a tier limit — the row cap is identical in Free and Pro.</li>
       </ul>
-      <p>Because entities are grouped into bins, size rarely hurts readability: 10,000 SKUs render as 5 bars at the Free 20% bin size, or 10 bars at a Pro 10% bin size. What size does affect is cross-filtering — see <a href="#performance" style="color:var(--acc);">Performance &amp; scale</a> for how to choose a bin size for your model.</p>
+      <p>Size rarely hurts readability: 10,000 SKUs render as 15 named bars and four rank bars, or as 5 bars at the Free 20% bin size, or 10 bars at a Pro 10% bin size. What size does affect is cross-filtering — see <a href="#performance" style="color:var(--acc);">Performance &amp; scale</a> for how to choose a bin size for your model.</p>
     </div>
   </details>
 
@@ -838,7 +931,7 @@
   <details>
     <summary>Why does the free version show five bars?</summary>
     <div class="faq-body">
-      <p>Without Pro the bin size is fixed at 20%, so the chart shows five bars: the top fifth of your entities, the next fifth, and so on. It is a complete, correct Pareto — the summary sentence and the cumulative line are exact. Pro lets you set the bin size from 1% to 20% (Pareto → Bin size %) for finer bars; with 30 entities or fewer the chart shows one named bar per entity in both versions.</p>
+      <p>That is <em>Bins of entities</em>, the chart of reports made before 1.7: without Pro the bin size is fixed at 20%, so the chart shows five bars — the top fifth of your entities, the next fifth, and so on. It is a complete, correct Pareto — the summary sentence and the cumulative line are exact. Pro lets you set the bin size from 1% to 20% (Pareto → Bin size %) for finer bars. On the free tier you can also switch <strong>Pareto → Bars with names</strong> to <em>Top 15 by name + rest</em>, the default for new visuals; with 30 entities or fewer the chart shows one named bar per entity in both versions.</p>
     </div>
   </details>
 
@@ -852,14 +945,42 @@
   <details>
     <summary>What do the “Try” buttons in the setup guide do?</summary>
     <div class="faq-body">
-      <p>Each one turns a Pro feature on (or off) on your own data: finer bins of 5%, ABC classes, value labels or a third reference line. With a licence it is simply a shortcut to the setting. Without one, the feature is drawn working under a “Pro preview” watermark while you edit, and Power BI shows its licence notice; reading view shows the free chart.</p>
+      <p>Each one turns a Pro feature on (or off) on your own data: the vital few by name, finer bins of 5%, ABC classes, value labels or a third reference line. With a licence it is simply a shortcut to the setting. Without one, the feature is drawn working under a “Pro preview” watermark while you edit, and Power BI shows its licence notice; reading view shows the free chart.</p>
     </div>
   </details>
 
   <details>
     <summary>How do style templates work?</summary>
     <div class="faq-body">
-      <p><strong>Format → Style template</strong> offers Clean (the default look), Minimal, Contrast, Soft, Compact and IBCS style. Choosing a template applies it: the settings it defines — colours, line width, font sizes, gaps — replace the ones in the report, and everything else stays. A report that never changes template does not change.</p>
+      <p><strong>Format → Style template</strong> offers <strong>Report theme</strong> (the default: your report's theme colours, like a native visual), Clean, Minimal, Contrast, Soft, Compact and IBCS style — all free — and six collection styles in Pro: Boardroom, Ledger, Editorial, Signal, Aurora and Terrace. Without a licence the collection styles are previewed under a <em>Pro preview · collection styles</em> watermark while you edit, and reading view shows Report theme. Choosing a template applies it: the settings it defines — colours, line width, font sizes, gaps — replace the ones in the report, and everything else stays.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>After updating to 1.7 my chart has different colours</summary>
+    <div class="faq-body">
+      <p>A report that never chose a template used Clean, the default until 1.6; from 1.7 the default is <strong>Report theme</strong>, so the chart takes the colours of your report's theme. Choose <strong>Format → Style template → Clean</strong> for the previous look. Colours and settings you set by hand are kept, and nothing was renamed.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Why are the rank bars after the names lighter and lower?</summary>
+    <div class="faq-body">
+      <p>A bar like <em>#16–62</em> holds 47 entities. Drawn at its total, it would tower over the named bars and the Pareto would stop falling. So its height is the <strong>average share per entity</strong>, and it is drawn lighter to say it is a group. The tooltip gives both the group's real total and the average, and the cumulative line always uses the real totals.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>The range bar says "Range out of date"</summary>
+    <div class="faq-body">
+      <p>The range filters a fixed list of entities, the ones at those ranks when you let go. Another filter has since changed the data, and those ranks now hold other entities. <strong>Reapply</strong> filters the entities now at those ranks; <strong>Clear</strong> removes the filter. The visual never reapplies it by itself, so the page never changes without you.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>I cannot see the range bar</summary>
+    <div class="faq-body">
+      <p>Check <strong>Format → Range bar → Show range bar</strong>. It is also left out with a <code>Small multiples</code> field (one bar over several rankings would mislead), on a hierarchy level that can still drill down, when the report author has turned interactions off, and in tiles smaller than about 220 × 160 px.</p>
     </div>
   </details>
 

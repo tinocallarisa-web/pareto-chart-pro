@@ -206,8 +206,46 @@
 
   <div class="rel">
     <div class="rel-head">
-      <span class="rel-ver">1.6.0.0</span>
+      <span class="rel-ver">1.7.0.0</span>
       <span class="tag tag-cur">Current</span>
+      <span class="rel-date">November 2026</span>
+    </div>
+
+    <h4><span class="tag tag-add">Added</span></h4>
+    <ul>
+      <li><strong>Bars with names</strong> (Format → Pareto → Bars with names), for more than 30 entities.
+          <strong>Top 15 by name + rest</strong> (free, the default for new visuals): the 15 largest entities by name and
+          the rest in up to 4 rank ranges ("#16–62"), drawn lighter at the average share per entity so the Pareto keeps
+          falling, while the cumulative line and the tooltip keep the real totals. <strong>Vital few by name + rest</strong>
+          (Pro): every entity up to the threshold by name, up to 50. <strong>Bins of entities</strong> is the 1.6 chart,
+          and reports made before 1.7 keep it.</li>
+      <li><strong>Range bar</strong> under the chart: drag two handles, or use the keyboard, to pick a stretch of ranks and
+          filter the page to exactly those entities (free). Pro adds Vital few, A, B, C and Tail in one click and a summary
+          of the range. When other filters change the data it says "Range out of date" and offers Reapply or Clear; it never
+          reapplies by itself.</li>
+      <li><strong>Comparison (Pro) on named bars:</strong> rank moves next to each name (▲3, ▼2, new), "Rank #x (was #y)"
+          in the tooltip, and how many entities are no longer among the vital few, with their names on hover.</li>
+      <li><strong>ABC zones (Pro):</strong> zone opacity (0 leaves only the labels) and label size, colour and background.</li>
+      <li><strong>Small multiples (Pro):</strong> columns, space between panels, title size, colour, bold and alignment,
+          panel background and border.</li>
+      <li><strong>Six collection styles (Pro):</strong> Boardroom, Ledger, Editorial, Signal, Aurora and Terrace, previewed
+          while you edit.</li>
+    </ul>
+
+    <h4><span class="tag tag-chg">Changed</span></h4>
+    <ul>
+      <li><strong>The default style is Report theme</strong>, the colours of your report's theme (before: Clean). Clean,
+          Minimal, Contrast, Soft, Compact and IBCS style stay free. A report that never chose a template opens in Report
+          theme; choose Clean for the previous look. Settings you set by hand are kept.</li>
+      <li>The format pane follows the order common to the TCViz visuals: style template, the chart's own cards, axes,
+          legend, small multiples.</li>
+    </ul>
+  </div>
+
+  <div class="rel">
+    <div class="rel-head">
+      <span class="rel-ver">1.6.0.0</span>
+      
       <span class="rel-date">October 2026</span>
     </div>
 
@@ -526,8 +564,6 @@
   <div class="rel">
     <h4><span class="tag tag-plan">Planned</span></h4>
     <ul>
-      <li><strong>Additional display languages</strong> beyond English. The string resources are in
-          place; what remains is the translations.</li>
       <li><strong>Cross-filtering beyond 10,000 entities per bar.</strong> Power BI carries a filter as
           a list of values, and past roughly that many the query becomes too large to run comfortably —
           so today the answer is a smaller bin size. A range-based filter would sidestep the list

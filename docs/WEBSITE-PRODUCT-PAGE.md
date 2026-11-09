@@ -1,130 +1,134 @@
 # Pareto Chart Pro — TCViz Web Product Page Content
 
-Content for the four tabs of the TCViz product page. Current visual version: **1.4.2.0**.
+Content for the four tabs of the TCViz product page. Current visual version: **1.7.0.0**.
+The live page is generated from `src/data.jsx` in `tcviz-web`; this file is the source text, and
+editing it does not change the site.
 
 ## TAB 1: OVERVIEW
 
-### Focus your analysis on what truly drives results
+### Who makes your 80% — by name
 
-Pareto Chart Pro brings 80/20 ABC concentration analysis to Power BI. Identify the
-customers, SKUs or defect causes that account for most of your total — and act on them.
-Built to stay responsive on large models: window data reduction streams well past 150,000
-rows, and clicking a bar filters the rest of the report through a native filter rather
-than thousands of selection objects.
+Pareto Chart Pro brings 80/20 and ABC concentration analysis to Power BI. It ranks any entity —
+customers, SKUs, defect causes, suppliers — and states the answer in one sentence: *"1,120 of 5,000
+customers (22.4%) make 80% of sales"*, counted entity by entity and recalculated with every slicer.
 
 ### Key highlights
-- **Exact cross-filtering at any bin size.** Clicking a bar filters every entity in that
-  bin, using the same mechanism native slicers use for large value lists.
-- **Conditional formatting on bar colour.** The *fx* dialog works as it does on a native
-  visual: gradient, rules or field value.
-- **Threshold colours.** Colour bins by where they fall relative to a cumulative %
-  threshold, with an optional highlight on the bin where the line crosses.
-- **Keyboard and screen-reader support.** One Tab stop with a roving focus, arrow-key
-  navigation, and bars that announce their range, share and cumulative percentage.
-- **IBCS mode.** One click for International Business Communication Standards styling.
-- **Drilldown and hierarchies.** Navigate from category to subcategory to individual SKU.
+- **The exact answer, free.** The summary sentence, the cumulative line and up to two threshold
+  lines, on the free tier.
+- **Your top 15 by name, free.** With more than 30 entities, the 15 largest get a named bar and the
+  rest is grouped by rank (*#16–62*), drawn at the average per entity so the curve keeps falling.
+- **A range bar that filters by rank.** Drag two handles under the chart, or use the keyboard, and the
+  page is filtered to exactly those entities.
+- **Report theme by default.** The chart takes your report's colours, like a native visual.
+- **Pro: who, what changed, where.** The vital few by name, period comparison with each entity's change
+  of rank, ABC zones, small multiples, range shortcuts and six collection styles.
 
 ---
 
 ## TAB 2: FEATURES
 
-Everything below is included without a licence except the six items marked **(Pro)**.
+### Free: the exact answer and a correct chart
+- Ranked bars, cumulative percentage line, summary sentence with the exact number of entities
+- Up to two reference lines (80% by default)
+- **Bars with names:** with 30 entities or fewer, one named bar each; above that, *Top 15 by name +
+  rest* (the default for new visuals) or *Bins of entities* (fixed 20% bins, the chart of earlier
+  versions)
+- **Range bar:** two handles by rank, drag or keyboard, filters the page to those entities; says
+  *Range out of date* with Reapply / Clear when other filters change the data
+- **Style templates:** Report theme (default), Clean, Minimal, Contrast, Soft, Compact, IBCS style
+- Threshold colours, conditional formatting (*fx*) on bar colour, bar border and gap
+- Cross-filtering, multi-select, partial highlighting, drilldown, bookmarks, context menu,
+  standard and report page tooltips, up to 10 extra tooltip measures
+- Setup guide, legend, format on the canvas, number and dynamic format strings from the model,
+  12 languages, keyboard navigation with ARIA, high contrast
 
-### Chart and analysis
-- Ranked bars with a cumulative percentage line and interactive dots
-- Strictly monotonic Pareto maths — guaranteed descending bars and clean interval labels
-- Up to two configurable reference lines (default 80%), plus a **third (Pro)**
-- **Custom bin size, 1–20% (Pro)** — up to 100 bars. Free renders fixed 20% bins (5 bars).
-- **Outlier exclusion (Pro)** — drop the top and/or bottom % of entities before binning
-
-### Colour and styling
-- Bar colour, opacity, axis and cumulative line styling
-- **Conditional formatting on bar colour** via the *fx* rule dialog
-- **Threshold colours** — one colour within the threshold, another beyond, and an optional
-  highlight on the crossing bin
-- **IBCS mode** — neutral charcoal palette with black axis typography
-- **Bar border colour and width, and bar gap**
-- **Value labels on bars (Pro)** — font size, colour and % formatting
-
-### Interaction
-- Exact cross-filtering with filter-in dimming
-- Multi-select, drilldown and hierarchy navigation
-- Custom tooltips field well — bind additional measures shown on hover
-- Report and canvas tooltip pages
-- Bookmarks: selection is restored when a bookmark is applied
-- Right-click context menu
-
-### Accessibility
-- Full keyboard navigation: arrow keys between bins, `Home`/`End`, `Enter`/`Space` to
-  select, `Ctrl`/`Cmd` to add, `Escape` to clear, `Shift+F10` for the context menu
-- Visible focus ring, including a high-contrast variant
-- ARIA labels announcing entity range, share and cumulative percentage
-- Tooltips open on keyboard focus, not only on hover
-- High contrast themes follow the Power BI palette
+### Pro: who exactly, what changed, where
+- **Vital few by name:** every entity up to the threshold by name, up to 50 named bars
+- **Period comparison:** comparison bars, dashed cumulative line, change in percentage points; on
+  named bars, rank moves (▲3, ▼2, new) and who is no longer among the vital few
+- **ABC zones:** classes A, B and C at the exact entity, with zone opacity and label options
+- **Small multiples:** one Pareto per region, plant or product line, with the collection's nine panel
+  options (columns, spacing, titles, panel background and border)
+- **Range shortcuts:** Vital few, A, B, C and Tail in one click, with a summary of the range
+- **Collection styles:** Boardroom, Ledger, Editorial, Signal, Aurora, Terrace
+- Bin size 1–20% (up to 100 bars), outlier exclusion, value labels, a third reference line
 
 ### Free vs Pro
 
 | Feature | Free | Pro |
 |---|---|---|
-| Pareto chart, cumulative line, reference lines 1 and 2 | ✓ | ✓ |
+| Pareto chart, cumulative line, summary sentence, reference lines 1 and 2 | ✓ | ✓ |
+| Top 15 by name + rank ranges | ✓ | ✓ |
+| Range bar (drag, keyboard, filter by rank) | ✓ | ✓ |
+| Report theme + six style templates | ✓ | ✓ |
 | Conditional formatting, threshold colours, IBCS mode | ✓ | ✓ |
 | Cross-filtering, drilldown, bookmarks, custom tooltips | ✓ | ✓ |
-| Keyboard navigation and high contrast | ✓ | ✓ |
-| Bin size | Fixed 20% (5 bars) | **1–20%, up to 100 bars** |
-| Outlier exclusion (top/bottom %) | — | **✓** |
-| Value labels on bars | — | **✓** |
-| Third reference line | — | **✓** |
-| Bar border colour and width | **✓** | **✓** |
-| Bar gap | **✓** | **✓** |
+| Keyboard navigation, high contrast, 12 languages | ✓ | ✓ |
+| Vital few by name (up to 50) | — | **✓** |
+| Period comparison with rank moves | — | **✓** |
+| ABC zones | — | **✓** |
+| Small multiples | — | **✓** |
+| Range shortcuts and summary | — | **✓** |
+| Six collection styles | — | **✓** |
+| Bin size (Bins of entities) | Fixed 20% (5 bars) | **1–20%, up to 100 bars** |
+| Outlier exclusion, value labels, third reference line | — | **✓** |
 
-Pro settings are listed in the format pane for everyone, each marked `(Pro)`. Changing one
-without a licence leaves the chart on the Free result and raises Power BI's own
-notification with a link to get a licence.
+Pro settings are listed in the format pane for everyone, each marked `(Pro)`. Without a licence, a
+Pro feature turned on while editing is drawn working under a *Pro preview* watermark, with Power BI's
+own notification; reading view shows the free chart.
 
 ---
 
 ## TAB 3: TECHNICAL
 
-- **API version**: `5.10.0`
-- **Field wells**: Entity (grouping, required) · Value (measure, required) · Tooltips
-  (measures, optional)
-- **Data reduction**: `window` of 30,000 with `fetchMoreData(true)`; tested past 150,000 rows
-- **Cross-filtering**: applies a `BasicFilter` over every entity in the bin, capped at
-  10,000 values — the point past which a live connection degrades. Beyond it the visual
-  declines and says so rather than filtering a subset and returning a silently wrong answer.
+- **Version**: 1.7.0.0 · **API version**: `5.11.1`
+- **Field wells**: Entity (grouping or hierarchy, required) · Value (measure, required) · Comparison
+  value (measure, Pro) · Small multiples (grouping, Pro) · Tooltips (up to 10 measures)
+- **Data reduction**: `window` of 30,000 with `fetchMoreData(true)`; verified at 500,000 entities in
+  Power BI Service. Power BI Desktop stops at 30,000 rows and the visual says so.
+- **Cross-filtering**: a bar click or a range applies a `BasicFilter` over every entity behind it,
+  capped at 10,000 values — the point past which a live connection degrades. Beyond it the visual
+  declines and says so rather than filtering a subset. The range bar never reapplies a filter by itself.
 - **Licensing**: native `IVisualLicenseManager` through Microsoft AppSource. Plan
-  `pareto-chart-pro-tcviz`. Resolution is asynchronous and never blocks rendering; both
-  Active and Warning licence states are honoured.
-- **Privacy and security**: all rendering is local and in memory. No external servers, no
-  network requests, nothing stored outside the report.
-- **Accessibility**: keyboard navigation, ARIA labels, visible focus ring, high contrast
-- **Localization**: `en-US`
+  `pareto-chart-pro-tcviz`. Resolution is asynchronous and never blocks rendering; Active and
+  Warning licence states are honoured.
+- **Privacy and security**: all rendering is local and in memory. No external servers, no network
+  requests, nothing stored outside the report.
+- **Accessibility**: keyboard navigation (bars and range bar handles), ARIA labels, visible focus
+  ring, high contrast
+- **Localization**: 12 languages (en, es, pt-BR, pt-PT, fr, de, it, nl, pl, ja, zh-CN, ko)
 
 ---
 
 ## TAB 4: CHANGELOG
 
+### Version 1.7.0.0 (November 2026)
+- **Added**: Bars with names — Top 15 by name + rest (free, default for new visuals) and Vital few by
+  name + rest (Pro, up to 50); reports made before 1.7 keep their bins
+- **Added**: Range bar — filter the page by a stretch of ranks (free); Vital few / A / B / C / Tail
+  shortcuts and range summary (Pro)
+- **Added**: Comparison on named bars — rank moves (▲/▼/new) and who left the vital few (Pro)
+- **Added**: ABC zone opacity and label options; small multiples with nine panel options (Pro)
+- **Added**: Six collection styles (Pro)
+- **Changed**: Report theme is the default style (before: Clean, which stays available)
+- **Changed**: Format pane in the order common to the TCViz visuals
+
+### Version 1.6.0.0 (October 2026)
+- **Added**: Setup guide with one-click Pro preview, six style templates, legend, format on the
+  canvas, 12 languages, dynamic format strings
+
+### Version 1.5.0.0 (October 2026)
+- **Added**: Period comparison, small multiples and ABC zones (Pro); summary sentence and named bars
+  for 30 entities or fewer (free); partial highlighting; number formats from the model
+
 ### Version 1.4.0.0 (September 2026)
-- **Added**: Power BI's own "feature blocked" notification when a Free user changes a Pro
-  setting, with a link to get a licence
-- **Changed**: Pro settings are now visible to everyone, each marked `(Pro)`. They were
-  hidden from Free users, so the paid features could not be discovered.
-- **Changed**: a licence in the `Warning` state (payment grace period) is honoured
-- **Changed**: environments without licence enforcement no longer prompt anyone to buy
+- **Added**: Power BI's own "feature blocked" notification when a Free user changes a Pro setting
+- **Changed**: Pro settings visible to everyone, marked `(Pro)`; `Warning` licence state honoured
 - **Removed**: the "Free: 20% bins — upgrade to Pro" caption drawn inside the chart
-- **Fixed**: the bar colour swatch showed the default after the colour had been changed
 
 ### Version 1.3.0.0 (September 2026)
-- **Added**: Conditional formatting on bar colour through the *fx* rule dialog
-- **Added**: Threshold Colors card — colour bins relative to a cumulative % threshold
-- **Added**: Full keyboard navigation and ARIA, with a visible focus ring
-- **Added**: Localizable display strings
-- **Fixed**: Cross-filtering is now exact at any bin size, and no longer filtered by a
-  single entity per bar
+- **Added**: Conditional formatting on bar colour, Threshold Colors, keyboard navigation and ARIA
+- **Fixed**: Cross-filtering exact at any bin size
 
 ### Version 1.2.0.0 (August 2026)
-- **Added**: Tooltips field well for custom measures
-- **Added**: One-click IBCS mode
-- **Added**: 150,000+ row streaming
-- **Added**: Monotonic remainder distribution (strictly descending bars)
-- **Changed**: Dynamic bin adaptation when slicers filter the row count
+- **Added**: Tooltips field well, one-click IBCS mode, 150,000+ row streaming

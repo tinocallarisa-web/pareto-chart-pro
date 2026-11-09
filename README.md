@@ -1,8 +1,8 @@
 # Pareto Chart Pro
 
-**80/20 concentration analysis for Microsoft Power BI.** Rank any entity, group it into
-percentage bins, and read the cumulative line against the thresholds your decision
-actually depends on — without the sorted-column-plus-DAX workaround.
+**80/20 concentration analysis for Microsoft Power BI.** Rank any entity, see the top ones
+by name, and read the cumulative line against the thresholds your decision actually depends
+on — without the sorted-column-plus-DAX workaround.
 
 [![AppSource](https://img.shields.io/badge/Microsoft-AppSource-0078D4)](https://appsource.microsoft.com/product/power-bi-visuals/pareto-chart-pro)
 [![Certified](https://img.shields.io/badge/Power%20BI-Certified-107C10)](https://learn.microsoft.com/power-bi/developer/visuals/power-bi-custom-visuals-certified)
@@ -17,24 +17,27 @@ actually depends on — without the sorted-column-plus-DAX workaround.
 
 ## What it does
 
-Entities are ranked from highest to lowest contribution, grouped into bins of a fixed
-percentage of the entity population, and drawn as descending bars. A cumulative
-percentage line climbs across them to 100%, and up to three reference lines mark the
-thresholds you care about — 80% by default.
-
-Because the X axis is a share of entities rather than a list of names, the chart stays
-readable whether the model has 40 SKUs or 40,000 — and with 30 entities or fewer it switches to
-one named bar per entity, the classic Pareto. A summary sentence states the answer exactly:
+Entities are ranked from highest to lowest contribution and drawn as descending bars. A
+cumulative percentage line climbs across them to 100%, and up to three reference lines mark the
+thresholds you care about — 80% by default. A summary sentence states the answer exactly:
 *"1,120 of 5,000 entities (22.4%) make 80% of the total"*.
 
-**New in 1.5.0.0:** period comparison (Pro), small multiples (Pro), ABC zones (Pro), the summary
-sentence, named bars, partial highlighting from other visuals, number formats from the model, and
-Spanish. See the [changelog](https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html).
+With 30 entities or fewer every entity has its own named bar, the classic Pareto. Above that,
+the 15 largest are drawn by name and the rest in up to four bars by rank (*#16–62*), at the
+average share per entity so the curve keeps falling — or, if you prefer, bins of a fixed share
+of entities, which keep the chart readable whether the model has 40 SKUs or 400,000. A range bar
+under the chart filters the page to any stretch of ranks.
+
+**New in 1.7.0.0:** top 15 by name (free) and the vital few by name (Pro); a range bar that
+filters the page by rank, with Vital few / A / B / C / Tail shortcuts in Pro; rank moves and who
+left the vital few in the comparison (Pro); Report theme as the default style and six collection
+styles (Pro); ABC zone opacity and labels; small-multiples panel styling. See the
+[changelog](https://tinocallarisa-web.github.io/pareto-chart-pro/changelog.html).
 
 **Power BI features supported:** conditional formatting (fx) · small multiples · cross-filtering,
 highlighting and multi-select · drilldown · standard and report page tooltips · bookmarks · context
-menu · keyboard navigation with ARIA · high contrast · model format strings · localization
-(English, Spanish).
+menu · keyboard navigation with ARIA · high contrast · report theme colours · model and dynamic
+format strings · format on the canvas · 12 languages.
 
 **Typical questions it answers**
 
@@ -53,7 +56,8 @@ menu · keyboard navigation with ARIA · high contrast · model format strings �
 5. *(Pro)* Drag last year's measure into **Comparison value**, or a field such as Region into
    **Small multiples**.
 
-That's it — ranking, binning and the cumulative line are automatic. No DAX required.
+That's it — ranking, named bars and the cumulative line are automatic. No DAX required.
+Drag the range bar under the chart to filter the page to a stretch of ranks.
 
 ## Free vs Pro
 
@@ -65,16 +69,22 @@ That's it — ranking, binning and the cumulative line are automatic. No DAX req
 | Conditional formatting (`fx`) and Threshold Colors | ✅ | ✅ |
 | IBCS Mode, high contrast, keyboard navigation | ✅ | ✅ |
 | Max entities (Power BI Service) | 500,000+ | 500,000+ |
-| Bin size | Fixed 20% (5 bars) | 1–20% (up to 100 bars) |
+| Top 15 by name + rank ranges (more than 30 entities) | ✅ | ✅ |
+| Vital few by name (up to 50 named bars) | — | ✅ |
+| Range bar: drag, keyboard, filter the page by rank | ✅ | ✅ |
+| Range bar shortcuts (Vital few, A, B, C, Tail) and summary | — | ✅ |
+| Report theme and six style templates (Clean, Minimal, Contrast, Soft, Compact, IBCS style) | ✅ | ✅ |
+| Collection styles (Boardroom, Ledger, Editorial, Signal, Aurora, Terrace) | — | ✅ |
+| Bin size (Bins of entities mode) | Fixed 20% (5 bars) | 1–20% (up to 100 bars) |
 | Outlier exclusion (top/bottom %) | — | ✅ |
 | Value labels on bars | — | ✅ |
 | Bar border & gap styling | ✅ | ✅ |
 | 3rd reference line | — | ✅ |
 | Summary sentence, named bars, partial highlighting | ✅ | ✅ |
-| Number formats from the model, English and Spanish | ✅ | ✅ |
-| Period comparison | — | ✅ |
-| Small multiples | — | ✅ |
-| ABC zones | — | ✅ |
+| Number formats from the model, 12 languages, legend, setup guide | ✅ | ✅ |
+| Period comparison, with rank moves on named bars | — | ✅ |
+| Small multiples, with panel styling | — | ✅ |
+| ABC zones, with opacity and label options | — | ✅ |
 
 Licences are purchased through AppSource and validated automatically inside Power BI.
 There is nothing to configure and no key to enter.
@@ -90,6 +100,10 @@ The chart is a single Tab stop. Once focused:
 | `Enter` / `Space` | Select the bin (`Ctrl`/`Cmd` to add to the selection) |
 | `Escape` | Clear the selection |
 | `Shift+F10` / `ContextMenu` | Open the context menu |
+
+The two handles of the range bar are separate sliders (`role="slider"`): arrows move one entity,
+`Shift`+arrow or `Page Up`/`Page Down` a tenth of them, `Home`/`End` jump to the ends and
+`Escape` clears the range.
 
 Bars expose `role="option"`, `aria-selected` and a descriptive `aria-label`. Tooltips
 open on keyboard focus as well as hover, and all colors switch to the system palette
