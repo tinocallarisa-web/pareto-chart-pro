@@ -28,6 +28,7 @@ import {
 } from "powerbi-visuals-utils-onobjectutils";
 // Solo los estilos de la 1.6 en adelante. visual.less no se ha importado nunca (la 1.5 publicada no lleva CSS) y sus
 // reglas chocarían con lo que se ve hoy (p. ej. .bar:hover con !important pisaría el atenuado de la selección).
+import { createProWatermark, renderProWatermark } from "./comun/watermark";
 import "./../style/pareto.less";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -92,6 +93,11 @@ const MARGIN            = { top: 28, right: 64, bottom: 68, left: 64 };
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 interface Settings {
+    // accessibility (1.8)
+    hcMode:       string;
+    focusColor:   string;
+    focusWidth:   number;
+    minText:      number;
     // pareto group
     namedBars:    string;
     namedMax:     number;
@@ -287,7 +293,7 @@ function readSettings(dv: DataView, efectiva?: string): Settings {
     const txt = (g: string, p: string, def: string) =>
         (o?.[g]?.[p] as string) ?? def;
 
-    return {
+    const r: Settings = {
         namedBars:    txt("pareto", "namedBars",     "bins"),
         namedMax:     num("pareto", "namedMax",      40),
         binSizePct:   num("pareto", "binSizePct",    5),
@@ -378,7 +384,17 @@ function readSettings(dv: DataView, efectiva?: string): Settings {
         rangeShow:      boo("rangeBar", "show",      true),
         rangeShortcuts: boo("rangeBar", "shortcuts", true),
         rangeColor:     col("rangeBar", "color",     ""),
+
+        hcMode:         txt("accessibility", "highContrast", "auto") === "on" ? "on" : "auto",
+        focusColor:     col("accessibility", "focusColor",   "#000000"),
+        focusWidth:     Math.min(6, Math.max(1, num("accessibility", "focusWidth", 3))),
+        minText:        Math.min(24, Math.max(6, num("accessibility", "minTextSize", 6))),
     };
+    // Tamaño mínimo de texto (Accesibilidad, 1.8): ninguna fuente que elige el usuario baja de él.
+    for (const k of ["axisFontSize", "labelFontSize", "sumFontSize", "smTitleSize", "legFontSize", "abcLabelSize"] as const) {
+        (r as any)[k] = Math.max(r.minText, (r as any)[k]);
+    }
+    return r;
 }
 
 interface TooltipSummaryItem {
@@ -549,8 +565,6 @@ export class Visual implements IVisual {
      * categorias para las que Power BI llego a entregar objects.
      */
     private uniformBarColor: string | null = null;
-    private watermarkTitle: HTMLDivElement | null = null;
-    private watermarkWhy: HTMLDivElement | null = null;
     private readonly DEV_MODE        = false;
     private renderGeneration: number = 0;   // guards stale async renders
     /** Roving tabindex: index of the bin that currently owns Tab focus. */
@@ -649,28 +663,9 @@ export class Visual implements IVisual {
         this.svg = this.container.append("svg")
             .style("width", "100%").style("height", "100%");
 
-        // Texto blanco con sombra en lugar de gris translucido: sobre barras saturadas un
-        // gris desaparece. No intercepta clics ni entra en el recorrido del lector.
-        this.watermarkEl = document.createElement("div");
-        this.watermarkEl.setAttribute("aria-hidden", "true");
-        // Dos lineas: el rotulo y, debajo, QUE funcion lo enciende. Una marca que no
-        // dice por que esta ahi se lee como que el visual se ha quedado colgado, y no
-        // hay forma de saber cual de los ajustes Pro sigue puesto.
-        this.watermarkTitle = document.createElement("div");
-        this.watermarkTitle.textContent = this.t("UI_ProPreview", "Pro preview");
-        this.watermarkWhy = document.createElement("div");
-        this.watermarkEl.appendChild(this.watermarkTitle);
-        this.watermarkEl.appendChild(this.watermarkWhy);
-        // El tamano se fija en updateWatermark(), que lo escala con el visual: 32px fijos
-        // se pierden en un grafico ancho, que es justo donde vive un Pareto.
-        this.watermarkEl.style.cssText =
-            "position:absolute;left:0;top:0;right:0;bottom:0;display:none;align-items:center;" +
-            "justify-content:center;flex-direction:column;text-align:center;" +
-            "pointer-events:none;z-index:5;" +
-            "font-family:'Segoe UI',sans-serif;font-weight:700;letter-spacing:0.06em;" +
-            "white-space:nowrap;color:#FFFFFF;opacity:0.72;transform:rotate(-20deg);" +
-            "text-shadow:0 0 3px rgba(46,52,64,0.95),0 2px 6px rgba(46,52,64,0.75);";
-        (this.container.node() as HTMLElement).appendChild(this.watermarkEl);
+        // Marca de agua de la vista previa Pro: la pieza común de la cartera (src/comun/watermark.ts, 1.8), con el
+        // rótulo y las funciones Pro que la encienden. No intercepta clics ni entra en el lector de pantalla.
+        this.watermarkEl = createProWatermark(this.container.node() as HTMLElement);
 
         this.injectStyles();
 
@@ -1103,7 +1098,7 @@ export class Visual implements IVisual {
 
     /** Background and font of a collection style, on the visual's own container. */
     private aplicarAspecto(): void {
-        const look = this.host.colorPalette?.isHighContrast ? {} : (STYLE_LOOK[this.tplEfectiva] ?? {});
+        const look = this.pal()?.isHighContrast ? {} : (STYLE_LOOK[this.tplEfectiva] ?? {});
         this.container.style("background", look.grad ?? look.bg ?? null).style("font-family", look.font ?? null);
     }
 
@@ -1122,30 +1117,16 @@ export class Visual implements IVisual {
         if (!this.watermarkEl) return;
         const { labels } = this.attemptedProFeatures();
         const activa = this.proPreview && labels.length > 0;
-        this.watermarkEl.style.display = activa ? "flex" : "none";
-        if (!activa) return;
-
-        if (this.watermarkTitle) { this.watermarkTitle.textContent = this.t("UI_ProPreview", "Pro preview"); }
-        // Dos nombres y un contador: con cuatro funciones la línea cruzaba el gráfico y se salía por la derecha.
-        if (this.watermarkWhy) {
-            const nombres = labels.map(l => this.featName(l));
-            this.watermarkWhy.textContent = (nombres.length <= 2 ? nombres : nombres.slice(0, 2).concat([`+${nombres.length - 2}`])).join(" · ");
-        }
-
-        // Escala con el visual y se limita por el alto tambien: en un Pareto muy ancho y
-        // bajo, dimensionar solo por ancho daria un texto que no cabe en vertical. El
-        // minimo evita que desaparezca en un mosaico pequeno, y el maximo que tape el
-        // grafico que precisamente queremos ensenar.
         const el = this.container.node() as HTMLElement;
-        const w = el?.clientWidth  || 0;
-        const h = el?.clientHeight || 0;
-        const size = Math.round(Math.max(30, Math.min(96, w / 7.5, h / 3.5)));
-        this.watermarkEl.style.fontSize = `${size}px`;
-        if (this.watermarkWhy) {
-            this.watermarkWhy.style.cssText =
-                `font-size:${Math.round(size * 0.32)}px;font-weight:600;letter-spacing:0.02em;`
-                + "margin-top:0.25em;opacity:0.95;";
-        }
+        const p = this.pal();
+        renderProWatermark(this.watermarkEl, activa ? {
+            width: el?.clientWidth || 0, height: el?.clientHeight || 0, title: this.t("UI_ProPreview", "Pro preview"),
+            features: labels.map(l => this.featName(l)),
+            highContrast: p?.isHighContrast ? { foreground: p.foreground?.value ?? "#FFFFFF", background: p.background?.value ?? "#000000" } : null,
+        } : null);
+        // Foco de teclado (Accesibilidad): color y grosor; en alto contraste, el color de selección del tema.
+        el?.style.setProperty("--pc-focus", p?.isHighContrast ? (p.foregroundSelected?.value ?? "#000000") : this.settings.focusColor);
+        el?.style.setProperty("--pc-focus-w", this.settings.focusWidth + "px");
     }
 
     private cancelLicenseIcon(): void {
@@ -1781,7 +1762,7 @@ export class Visual implements IVisual {
         st.id = ID;
         st.textContent = [
             ".pareto-visual .bar:focus{outline:none}",
-            ".pareto-visual .bar:focus-visible{outline:none;stroke:#000;stroke-width:3px;",
+            ".pareto-visual .bar:focus-visible{outline:none;stroke:var(--pc-focus,#000);stroke-width:var(--pc-focus-w,3px);",
             "paint-order:stroke;filter:drop-shadow(0 0 0 2px #fff)}",
             "@media (forced-colors: active){",
             ".pareto-visual .bar:focus-visible{stroke:Highlight;stroke-width:3px}}",
@@ -1797,6 +1778,23 @@ export class Visual implements IVisual {
         const h: any = this.host;
         return (h?.hostCapabilities?.allowInteractions ?? h?.allowInteractions) !== false;
     }
+
+    /**
+     * Paleta efectiva (1.8): la de Power BI, o alto contraste forzado desde Accesibilidad ("On", negro sobre blanco)
+     * cuando Windows no lo tiene puesto. Todo el visual lee los colores de alto contraste de aquí.
+     */
+    private pal(): any {
+        const p: any = this.host.colorPalette;
+        if (p?.isHighContrast || this.settings?.hcMode !== "on") return p;
+        return Object.assign(Object.create(p), {
+            isHighContrast: true, foreground: { value: "#000000" }, background: { value: "#FFFFFF" },
+            foregroundSelected: { value: "#000000" }, foregroundNeutralSecondary: { value: "#000000" },
+            backgroundLight: { value: "#FFFFFF" }, backgroundDark: { value: "#FFFFFF" }, hyperlink: { value: "#000000" },
+        });
+    }
+
+    /** Fuente fija del visual con el tamaño mínimo de Accesibilidad (1.8). */
+    private fz(px: number): number { return Math.max(this.settings?.minText ?? 6, px); }
 
     // ── Resolve color (high contrast aware) ───────────────────────────────────
     private resolveColor(userColor: string, hcColor: string, isHighContrast: boolean): string {
@@ -1815,7 +1813,7 @@ export class Visual implements IVisual {
         if (VW <= 0 || VH <= 0 || !this.panels.length || !this.bins.length) return;
 
         // ── High contrast support ──────────────────────────────────────────────
-        const palette     = this.host.colorPalette as any;
+        const palette     = this.pal();
         const isHC        = palette.isHighContrast === true;
         const hcFg        = isHC ? (palette.foreground?.value        ?? "#FFFFFF") : "";
         const hcBg        = isHC ? (palette.background?.value        ?? "#000000") : "";
@@ -1924,7 +1922,7 @@ export class Visual implements IVisual {
             this.svg.append("text")
                 .attr("x", 4).attr("y", 12)
                 .attr("text-anchor", "start")
-                .style("font-size", "10px").style("fill", isHC ? hcFgNeutral : "#E8A020")
+                .style("font-size", this.fz(10) + "px").style("fill", isHC ? hcFgNeutral : "#E8A020")
                 .text(this.isDesktop
                     ? this.tf("UI_TruncDesktop", "⚠ Partial data: {0} rows. Power BI Desktop cannot load more — publish to the Service for the full dataset.", shown)
                     : this.tf("UI_TruncService", "⚠ Partial data: {0} rows. Power BI's 100 MB data limit was reached — reduce bound tooltip measures or narrow the filter.", shown));
@@ -2457,7 +2455,7 @@ export class Visual implements IVisual {
                 .classed("ref-label", true)
                 .attr("x", W - 4).attr("y", yH - 4)
                 .attr("text-anchor", "end")
-                .style("font-size", "10px").style("font-weight", "600").style("fill", refColor)
+                .style("font-size", this.fz(10) + "px").style("font-weight", "600").style("fill", refColor)
                 .style("paint-order", "stroke").style("stroke", isHC ? hcBg : "#FFFFFF")
                 .style("stroke-width", "3px").style("stroke-linejoin", "round")
                 .text(ref.label || this.pct(ref.value, 0));
@@ -2470,7 +2468,7 @@ export class Visual implements IVisual {
                 gp.append("text")
                     .attr("x", xV).attr("y", -4)
                     .attr("text-anchor", "middle")
-                    .style("font-size", "10px").style("fill", refColor)
+                    .style("font-size", this.fz(10) + "px").style("fill", refColor)
                     .text(crossBin.label);
             }
         });
@@ -2625,7 +2623,7 @@ export class Visual implements IVisual {
     ): void {
         const tn = p.order.length;
         if (tn < 2 || !bins.length) return;
-        const pal: any = this.host.colorPalette;
+        const pal: any = this.pal();
         const isHC = ctx.isHC;
         const accent = isHC ? (pal?.foregroundSelected?.value ?? ctx.hcFg) : (this.settings.rangeColor || ctx.lineColor);
         const knob = isHC ? ctx.hcBg : "#FFFFFF";
@@ -2661,7 +2659,7 @@ export class Visual implements IVisual {
         // The stretch of the bars inside the range, at full strength over the dimmed bars: a range can end inside a bar.
         const barsSel = gp.selectAll<SVGRectElement, BinDatum>(".bar");
         // The bar's own strength (not what it shows now, which a selection may have dimmed already).
-        const opPropia = (d: BinDatum) => this.settings.barOpacity * (d && d.avgDiv > 1 && !this.host.colorPalette?.isHighContrast ? 0.55 : 1);
+        const opPropia = (d: BinDatum) => this.settings.barOpacity * (d && d.avgDiv > 1 && !this.pal()?.isHighContrast ? 0.55 : 1);
         barsSel.attr("data-op", d => String(opPropia(d)));
         const clipId = `pc-range-clip-${this.uid}`;
         const clipRect = gp.append("clipPath").attr("id", clipId).append("rect").attr("y", -2).attr("height", H + 4);
@@ -2681,7 +2679,7 @@ export class Visual implements IVisual {
         const edgeR = veil.append("line").attr("y1", 0).attr("y2", H).attr("stroke", accent).attr("stroke-width", 1.5).attr("stroke-dasharray", "4,3");
         // Inside the range the bars are drawn at their full strength, whatever the base bar has now: the clone used to
         // keep the base's opacity, already dimmed by the selection, so the chosen range read as faint as the rest.
-        const hcRange = !!this.host.colorPalette?.isHighContrast;
+        const hcRange = !!this.pal()?.isHighContrast;
         barsSel.each(function (d: BinDatum) {
             const c = this.cloneNode(false) as SVGRectElement;
             for (const a of ["class", "tabindex", "role", "aria-label", "aria-selected"]) c.removeAttribute(a);
@@ -2731,7 +2729,7 @@ export class Visual implements IVisual {
         let staleRow: d3.Selection<HTMLDivElement, unknown, null, undefined> | null = null;
         const pill = (parent: d3.Selection<HTMLDivElement, unknown, null, undefined>, text: string, on: boolean) => {
             const b = parent.append("button").attr("type", "button").text(text)
-                .style("font", "inherit").style("font-size", "10px").style("line-height", "1").style("height", "18px")
+                .style("font", "inherit").style("font-size", this.fz(10) + "px").style("line-height", "1").style("height", "18px")
                 .style("padding", "0 8px").style("border-radius", "9px").style("cursor", "pointer").style("white-space", "nowrap")
                 .style("border", `1px solid ${on ? accent : txt}`).style("background", on ? accent : "transparent")
                 .style("color", on ? Visual.onColor(accent, isHC, ctx.hcBg) : txt)
@@ -3164,7 +3162,7 @@ export class Visual implements IVisual {
         this.container.selectAll(".oversized-notice").remove();
         const n   = this.int(this.oversizedSelection);
         const cap = this.int(MAX_FILTER_VALUES);
-        const pal: any = this.host.colorPalette;
+        const pal: any = this.pal();
         const hc = !!pal?.isHighContrast;
 
         const note = this.container.append("div")
@@ -3174,7 +3172,7 @@ export class Visual implements IVisual {
             .style("bottom", "0").style("padding", "8px 12px").style("z-index", "4")
             .style("background", hc ? (pal.background?.value ?? "#000000") : "#FDF3E7")
             .style("border-top", `1px solid ${hc ? (pal.foreground?.value ?? "#FFFFFF") : "#E8A020"}`)
-            .style("font-size", "11px").style("color", hc ? (pal.foreground?.value ?? "#FFFFFF") : "#7A4E12")
+            .style("font-size", this.fz(11) + "px").style("color", hc ? (pal.foreground?.value ?? "#FFFFFF") : "#7A4E12")
             .style("line-height", "1.4");
 
         if (isRange) {
@@ -3210,7 +3208,7 @@ export class Visual implements IVisual {
             wrapper.append("div").style("font-size", "28px").style("margin-bottom", "8px").text("⏳");
             wrapper.append("div")
                 .classed("loading-text", true)
-                .style("font-size", "13px")
+                .style("font-size", this.fz(13) + "px")
                 .style("color", "#888");
         }
 
@@ -3231,7 +3229,7 @@ export class Visual implements IVisual {
         const nodo = this.container.node() as HTMLElement;
         const w = nodo.clientWidth || 0, h = nodo.clientHeight || 0;
         const size = (w >= 600 && h >= 340) ? "l" : (w >= 360 && h >= 220) ? "m" : "s";
-        const pal: any = this.host.colorPalette;
+        const pal: any = this.pal();
         const hc = !!pal?.isHighContrast;
         const fg = hc ? (pal.foreground?.value || "#FFFFFF") : "";
         const bg = hc ? (pal.background?.value || "#000000") : "";
@@ -3575,7 +3573,7 @@ export class Visual implements IVisual {
         const objs: any = this.lastDataView?.metadata?.objects ?? {};
         const on = objs?.style?.guide !== false;
         if (!this.editing || this.formatMode || !on || !this.canInteract) return;
-        const pal: any = this.host.colorPalette;
+        const pal: any = this.pal();
         const hc = !!pal?.isHighContrast;
         const azul = hc ? (pal.foregroundSelected?.value || "#FFFF00") : "#2B6CB0";
         const fg = hc ? (pal.foreground?.value || "#FFFFFF") : "#252423";

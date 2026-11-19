@@ -291,3 +291,103 @@ P = {
 "Title size": ["Tamanho do título", "Taille du titre", "Titelgröße", "Dimensione titolo", "Titelgrootte", "Rozmiar tytułu", "タイトルのサイズ", "标题大小", "제목 크기", "Tamaño del título"],
 "Zone opacity %": ["Opacidade da zona %", "Opacité de la zone %", "Deckkraft der Zone %", "Opacità zona %", "Dekking zone %", "Krycie strefy %", "ゾーンの不透明度 %", "区域不透明度 %", "영역 불투명도 %", "Opacidad de la zona %"],
 }
+
+# 1.8: tarjeta Accesibilidad e interruptor IBCS sin "Standardized".
+P.update({
+"Accessibility": [
+"Acessibilidade",
+"Accessibilité",
+"Barrierefreiheit",
+"Accessibilità",
+"Toegankelijkheid",
+"Ułatwienia dostępu",
+"アクセシビリティ",
+"辅助功能",
+"접근성",
+"Accesibilidad"
+],
+"High contrast": [
+"Alto contraste",
+"Contraste élevé",
+"Hoher Kontrast",
+"Contrasto elevato",
+"Hoog contrast",
+"Wysoki kontrast",
+"ハイ コントラスト",
+"高对比度",
+"고대비",
+"Alto contraste"
+],
+"Automatic (Windows setting)": [
+"Automático (configuração do Windows)",
+"Automatique (paramètre Windows)",
+"Automatisch (Windows-Einstellung)",
+"Automatico (impostazione di Windows)",
+"Automatisch (Windows-instelling)",
+"Automatycznie (ustawienie systemu Windows)",
+"自動 (Windows の設定)",
+"自动 (Windows 设置)",
+"자동(Windows 설정)",
+"Automático (ajuste de Windows)"
+],
+"On": [
+"Ativado",
+"Activé",
+"Ein",
+"Attivato",
+"Aan",
+"Włączone",
+"オン",
+"开",
+"켜기",
+"Activado"
+],
+"Focus color": [
+"Cor do foco",
+"Couleur du focus",
+"Fokusfarbe",
+"Colore del focus",
+"Kleur focus",
+"Kolor fokusu",
+"フォーカスの色",
+"焦点颜色",
+"포커스 색",
+"Color del foco"
+],
+"Focus width": [
+"Largura do foco",
+"Épaisseur du focus",
+"Fokusbreite",
+"Spessore del focus",
+"Breedte focus",
+"Grubość fokusu",
+"フォーカスの幅",
+"焦点宽度",
+"포커스 두께",
+"Grosor del foco"
+],
+"Minimum text size": [
+"Tamanho mínimo do texto",
+"Taille de texte minimale",
+"Minimale Textgröße",
+"Dimensione minima del testo",
+"Minimale tekstgrootte",
+"Minimalny rozmiar tekstu",
+"最小のテキスト サイズ",
+"最小文本大小",
+"최소 텍스트 크기",
+"Tamaño mínimo del texto"
+],
+"IBCS-style monochrome": [
+"Monocromático estilo IBCS",
+"Monochrome de style IBCS",
+"Monochrom im IBCS-Stil",
+"Monocromatico in stile IBCS",
+"Monochroom in IBCS-stijl",
+"Monochromatyczny w stylu IBCS",
+"IBCS スタイルのモノクロ",
+"IBCS 风格单色",
+"IBCS 스타일 단색",
+"Monocromo estilo IBCS"
+]
+})

@@ -14,7 +14,7 @@
   "Prop_pareto_borderColor": "Colore bordo",
   "Prop_pareto_borderWidth": "Spessore bordo",
   "Prop_pareto_barGap": "Spazio tra le barre px",
-  "Prop_pareto_ibcsMode": "Modalità IBCS (standardizzata)",
+  "Prop_pareto_ibcsMode": "Monocromatico in stile IBCS",
   "Obj_thresholdColors": "Colori per soglia",
   "Prop_thresholdColors_show": "Colora le barre in base alla soglia",
   "Prop_thresholdColors_thresholdValue": "Soglia (% cumulata)",
@@ -165,7 +165,7 @@
   "Guide_TryLabelsWhy": "la quota di ogni barra, scritta sopra",
   "Guide_TryRef3": "Una terza linea di riferimento",
   "Guide_TryRef3Why": "ad esempio 50%, accanto all’80%",
-  "Guide_On": "Attivo",
+  "Guide_On": "Attivato",
   "Guide_Try": "Prova",
   "Guide_TryNote": "Senza licenza compaiono con filigrana durante la modifica; la visualizzazione di lettura mostra il grafico gratuito.",
   "Guide_Back": "Indietro",
@@ -226,5 +226,12 @@
   "Prop_smallMultiples_border": "Bordo del pannello",
   "Prop_smallMultiples_borderColor": "Colore bordo pannello",
   "Enum_al_left": "Sinistra",
-  "Enum_al_center": "Centro"
+  "Enum_al_center": "Centro",
+  "Obj_accessibility": "Accessibilità",
+  "Prop_accessibility_highContrast": "Contrasto elevato",
+  "Enum_hc_auto": "Automatico (impostazione di Windows)",
+  "Enum_hc_on": "Attivato",
+  "Prop_accessibility_focusColor": "Colore del focus",
+  "Prop_accessibility_focusWidth": "Spessore del focus",
+  "Prop_accessibility_minTextSize": "Dimensione minima del testo"
 }

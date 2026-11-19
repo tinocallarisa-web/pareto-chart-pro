@@ -14,7 +14,7 @@
   "Prop_pareto_borderColor": "边框颜色",
   "Prop_pareto_borderWidth": "边框宽度",
   "Prop_pareto_barGap": "条形间距 px",
-  "Prop_pareto_ibcsMode": "IBCS 模式（标准化）",
+  "Prop_pareto_ibcsMode": "IBCS 风格单色",
   "Obj_thresholdColors": "阈值颜色",
   "Prop_thresholdColors_show": "按阈值为条形着色",
   "Prop_thresholdColors_thresholdValue": "阈值（累计 %）",
@@ -165,7 +165,7 @@
   "Guide_TryLabelsWhy": "每个条形的占比，写在条形上",
   "Guide_TryRef3": "第三条参考线",
   "Guide_TryRef3Why": "例如在 80% 旁再加 50%",
-  "Guide_On": "已开启",
+  "Guide_On": "开",
   "Guide_Try": "试用",
   "Guide_TryNote": "没有许可证时，编辑期间会带水印显示；阅读视图显示免费图表。",
   "Guide_Back": "上一步",
@@ -226,5 +226,12 @@
   "Prop_smallMultiples_border": "面板边框",
   "Prop_smallMultiples_borderColor": "面板边框颜色",
   "Enum_al_left": "左",
-  "Enum_al_center": "居中"
+  "Enum_al_center": "居中",
+  "Obj_accessibility": "辅助功能",
+  "Prop_accessibility_highContrast": "高对比度",
+  "Enum_hc_auto": "自动 (Windows 设置)",
+  "Enum_hc_on": "开",
+  "Prop_accessibility_focusColor": "焦点颜色",
+  "Prop_accessibility_focusWidth": "焦点宽度",
+  "Prop_accessibility_minTextSize": "最小文本大小"
 }

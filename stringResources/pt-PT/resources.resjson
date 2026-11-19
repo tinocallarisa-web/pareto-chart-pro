@@ -14,7 +14,7 @@
   "Prop_pareto_borderColor": "Cor da borda",
   "Prop_pareto_borderWidth": "Largura da borda",
   "Prop_pareto_barGap": "Espaço entre barras px",
-  "Prop_pareto_ibcsMode": "Modo IBCS (padronizado)",
+  "Prop_pareto_ibcsMode": "Monocromático estilo IBCS",
   "Obj_thresholdColors": "Cores por limiar",
   "Prop_thresholdColors_show": "Colorir barras pelo limiar",
   "Prop_thresholdColors_thresholdValue": "Limiar (% acumulado)",
@@ -165,7 +165,7 @@
   "Guide_TryLabelsWhy": "a participação de cada barra, escrita nela",
   "Guide_TryRef3": "Uma terceira linha de referência",
   "Guide_TryRef3Why": "por exemplo 50%, ao lado de 80%",
-  "Guide_On": "Ativo",
+  "Guide_On": "Ativado",
   "Guide_Try": "Experimentar",
   "Guide_TryNote": "Sem licença, aparecem com marca d’água enquanto você edita; o modo de leitura mostra o gráfico gratuito.",
   "Guide_Back": "Voltar",
@@ -226,5 +226,12 @@
   "Prop_smallMultiples_border": "Borda do painel",
   "Prop_smallMultiples_borderColor": "Cor da borda do painel",
   "Enum_al_left": "Esquerda",
-  "Enum_al_center": "Centro"
+  "Enum_al_center": "Centro",
+  "Obj_accessibility": "Acessibilidade",
+  "Prop_accessibility_highContrast": "Alto contraste",
+  "Enum_hc_auto": "Automático (configuração do Windows)",
+  "Enum_hc_on": "Ativado",
+  "Prop_accessibility_focusColor": "Cor do foco",
+  "Prop_accessibility_focusWidth": "Largura do foco",
+  "Prop_accessibility_minTextSize": "Tamanho mínimo do texto"
 }

@@ -14,7 +14,7 @@
   "Prop_pareto_borderColor": "Kolor obramowania",
   "Prop_pareto_borderWidth": "Grubość obramowania",
   "Prop_pareto_barGap": "Odstęp słupków px",
-  "Prop_pareto_ibcsMode": "Tryb IBCS (standaryzowany)",
+  "Prop_pareto_ibcsMode": "Monochromatyczny w stylu IBCS",
   "Obj_thresholdColors": "Kolory progów",
   "Prop_thresholdColors_show": "Koloruj słupki według progu",
   "Prop_thresholdColors_thresholdValue": "Próg (% skumulowany)",
@@ -165,7 +165,7 @@
   "Guide_TryLabelsWhy": "udział każdego słupka, wpisany na nim",
   "Guide_TryRef3": "Trzecia linia odniesienia",
   "Guide_TryRef3Why": "na przykład 50% obok 80%",
-  "Guide_On": "Wł.",
+  "Guide_On": "Włączone",
   "Guide_Try": "Wypróbuj",
   "Guide_TryNote": "Bez licencji pojawiają się ze znakiem wodnym podczas edycji; widok do czytania pokazuje darmowy wykres.",
   "Guide_Back": "Wstecz",
@@ -226,5 +226,12 @@
   "Prop_smallMultiples_border": "Obramowanie panelu",
   "Prop_smallMultiples_borderColor": "Kolor obramowania panelu",
   "Enum_al_left": "Do lewej",
-  "Enum_al_center": "Do środka"
+  "Enum_al_center": "Do środka",
+  "Obj_accessibility": "Ułatwienia dostępu",
+  "Prop_accessibility_highContrast": "Wysoki kontrast",
+  "Enum_hc_auto": "Automatycznie (ustawienie systemu Windows)",
+  "Enum_hc_on": "Włączone",
+  "Prop_accessibility_focusColor": "Kolor fokusu",
+  "Prop_accessibility_focusWidth": "Grubość fokusu",
+  "Prop_accessibility_minTextSize": "Minimalny rozmiar tekstu"
 }

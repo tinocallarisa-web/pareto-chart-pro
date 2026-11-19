@@ -317,7 +317,7 @@
           }
         },
         "ibcsMode": {
-          "displayName": "IBCS Mode (Standardized)",
+          "displayName": "IBCS-style monochrome",
           "displayNameKey": "Prop_pareto_ibcsMode",
           "description": "Apply International Business Communication Standards styling (neutral colors, clean contrast, standardized IBCS palette)",
           "type": {
@@ -1009,6 +1009,55 @@
                 "color": true
               }
             }
+          }
+        }
+      }
+    },
+    "accessibility": {
+      "displayName": "Accessibility",
+      "displayNameKey": "Obj_accessibility",
+      "properties": {
+        "highContrast": {
+          "displayName": "High contrast",
+          "displayNameKey": "Prop_accessibility_highContrast",
+          "type": {
+            "enumeration": [
+              {
+                "value": "auto",
+                "displayName": "Automatic (Windows setting)",
+                "displayNameKey": "Enum_hc_auto"
+              },
+              {
+                "value": "on",
+                "displayName": "On",
+                "displayNameKey": "Enum_hc_on"
+              }
+            ]
+          }
+        },
+        "focusColor": {
+          "displayName": "Focus color",
+          "displayNameKey": "Prop_accessibility_focusColor",
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "focusWidth": {
+          "displayName": "Focus width",
+          "displayNameKey": "Prop_accessibility_focusWidth",
+          "type": {
+            "numeric": true
+          }
+        },
+        "minTextSize": {
+          "displayName": "Minimum text size",
+          "displayNameKey": "Prop_accessibility_minTextSize",
+          "type": {
+            "numeric": true
           }
         }
       }

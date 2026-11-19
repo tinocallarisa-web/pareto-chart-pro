@@ -14,7 +14,7 @@
   "Prop_pareto_borderColor": "枠線の色",
   "Prop_pareto_borderWidth": "枠線の幅",
   "Prop_pareto_barGap": "棒の間隔 px",
-  "Prop_pareto_ibcsMode": "IBCS モード (標準化)",
+  "Prop_pareto_ibcsMode": "IBCS スタイルのモノクロ",
   "Obj_thresholdColors": "しきい値の色",
   "Prop_thresholdColors_show": "しきい値で棒を色分け",
   "Prop_thresholdColors_thresholdValue": "しきい値 (累積 %)",
@@ -226,5 +226,12 @@
   "Prop_smallMultiples_border": "パネルの枠線",
   "Prop_smallMultiples_borderColor": "パネルの枠線の色",
   "Enum_al_left": "左",
-  "Enum_al_center": "中央"
+  "Enum_al_center": "中央",
+  "Obj_accessibility": "アクセシビリティ",
+  "Prop_accessibility_highContrast": "ハイ コントラスト",
+  "Enum_hc_auto": "自動 (Windows の設定)",
+  "Enum_hc_on": "オン",
+  "Prop_accessibility_focusColor": "フォーカスの色",
+  "Prop_accessibility_focusWidth": "フォーカスの幅",
+  "Prop_accessibility_minTextSize": "最小のテキスト サイズ"
 }

@@ -1,6 +1,7 @@
 "use strict";
 
 import { formattingSettings } from "powerbi-visuals-utils-formattingmodel";
+import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 
 // ─── Aliases ──────────────────────────────────────────────────────────────────
 import SimpleCard   = formattingSettings.SimpleCard;
@@ -46,7 +47,8 @@ export class ParetoCard extends SimpleCard {
         displayName: "Bar color",
         displayNameKey: "Prop_pareto_barColor",
         value: { value: "#4472C4" },
-        selector: { data: [{ dataViewWildcard: { matchingOption: 0 } }] } as any,
+        // 1.8: el selector se crea con la función de Microsoft (OKviz solo reconoce el fx así; el resultado es el mismo).
+        selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals),
         instanceKind: 3,
         // 1.6: el color FIJO se guarda a nivel general (metadata.objects); solo las reglas se evalúan por entidad.
         // Sin esto el fijo se guardaba entidad a entidad (ver uniformBarColor en visual.ts, que se queda para los
@@ -57,7 +59,7 @@ export class ParetoCard extends SimpleCard {
     borderColor = new ColorPicker({ name: "borderColor", displayName: "Border color", displayNameKey: "Prop_pareto_borderColor", value: { value: "#2E5BA8" } });
     borderWidth = new NumUpDown({ name: "borderWidth", displayName: "Border width", displayNameKey: "Prop_pareto_borderWidth", value: 0 });
     barGap      = new NumUpDown({ name: "barGap",      displayName: "Bar gap px",   displayNameKey: "Prop_pareto_barGap", value: 2 });
-    ibcsMode    = new ToggleSwitch({ name: "ibcsMode",  displayName: "IBCS Mode (Standardized)", displayNameKey: "Prop_pareto_ibcsMode", value: false });
+    ibcsMode    = new ToggleSwitch({ name: "ibcsMode",  displayName: "IBCS-style monochrome", displayNameKey: "Prop_pareto_ibcsMode", value: false });
 
     slices = [
         this.namedBars, this.namedMax, this.binSizePct, this.trimLower, this.trimUpper,
@@ -273,6 +275,19 @@ export class LegendCard extends SimpleCard {
     slices = [this.show, this.position, this.fontSize, this.color];
 }
 
+// ─── Accessibility (1.8) ──────────────────────────────────────────────────────
+// La misma tarjeta que Box & Whisker, Radar, Bullet y Histogram. Gratis.
+export class AccessibilityCard extends SimpleCard {
+    name = "accessibility";
+    displayName = "Accessibility";
+    displayNameKey = "Obj_accessibility";
+    highContrast = new AutoDropdown({ name: "highContrast", displayName: "High contrast", displayNameKey: "Prop_accessibility_highContrast", value: "auto" });
+    focusColor   = new ColorPicker({ name: "focusColor", displayName: "Focus color", displayNameKey: "Prop_accessibility_focusColor", value: { value: "#000000" } });
+    focusWidth   = new NumUpDown({ name: "focusWidth", displayName: "Focus width", displayNameKey: "Prop_accessibility_focusWidth", value: 3 });
+    minTextSize  = new NumUpDown({ name: "minTextSize", displayName: "Minimum text size", displayNameKey: "Prop_accessibility_minTextSize", value: 6 });
+    slices = [this.highContrast, this.focusColor, this.focusWidth, this.minTextSize];
+}
+
 export class ParetoFormattingSettings extends Model {
     style           = new StyleCard();
     pareto          = new ParetoCard();
@@ -287,6 +302,7 @@ export class ParetoFormattingSettings extends Model {
     abcZones        = new AbcZonesCard();
     valueLabels     = new ValueLabelsCard();
     legend          = new LegendCard();
+    accessibility   = new AccessibilityCard();
 
     // Common order of the collection (05-11-2026): Style template, the visual's own cards from most to least used,
     // axes, legend, small multiples. Only the order shown changes: no object or property was renamed.
@@ -304,5 +320,6 @@ export class ParetoFormattingSettings extends Model {
         this.axes,
         this.legend,
         this.smallMultiples,
+        this.accessibility,
     ];
 }

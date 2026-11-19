@@ -14,7 +14,7 @@
   "Prop_pareto_borderColor": "Border color",
   "Prop_pareto_borderWidth": "Border width",
   "Prop_pareto_barGap": "Bar gap px",
-  "Prop_pareto_ibcsMode": "IBCS Mode (Standardized)",
+  "Prop_pareto_ibcsMode": "IBCS-style monochrome",
   "Obj_thresholdColors": "Threshold Colors",
   "Prop_thresholdColors_show": "Color bars by threshold",
   "Prop_thresholdColors_thresholdValue": "Threshold (cumulative %)",
@@ -226,5 +226,12 @@
   "Prop_smallMultiples_border": "Panel border",
   "Prop_smallMultiples_borderColor": "Panel border color",
   "Enum_al_left": "Left",
-  "Enum_al_center": "Center"
+  "Enum_al_center": "Center",
+  "Obj_accessibility": "Accessibility",
+  "Prop_accessibility_highContrast": "High contrast",
+  "Enum_hc_auto": "Automatic (Windows setting)",
+  "Enum_hc_on": "On",
+  "Prop_accessibility_focusColor": "Focus color",
+  "Prop_accessibility_focusWidth": "Focus width",
+  "Prop_accessibility_minTextSize": "Minimum text size"
 }

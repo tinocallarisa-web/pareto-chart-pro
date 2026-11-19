@@ -14,7 +14,7 @@
   "Prop_pareto_borderColor": "Rahmenfarbe",
   "Prop_pareto_borderWidth": "Rahmenbreite",
   "Prop_pareto_barGap": "Balkenabstand px",
-  "Prop_pareto_ibcsMode": "IBCS-Modus (standardisiert)",
+  "Prop_pareto_ibcsMode": "Monochrom im IBCS-Stil",
   "Obj_thresholdColors": "Schwellenfarben",
   "Prop_thresholdColors_show": "Balken nach Schwelle färben",
   "Prop_thresholdColors_thresholdValue": "Schwelle (kumulierte %)",
@@ -165,7 +165,7 @@
   "Guide_TryLabelsWhy": "der Anteil jedes Balkens, direkt darauf",
   "Guide_TryRef3": "Eine dritte Referenzlinie",
   "Guide_TryRef3Why": "zum Beispiel 50 % neben 80 %",
-  "Guide_On": "An",
+  "Guide_On": "Ein",
   "Guide_Try": "Testen",
   "Guide_TryNote": "Ohne Lizenz erscheinen sie beim Bearbeiten mit Wasserzeichen; die Leseansicht zeigt das kostenlose Diagramm.",
   "Guide_Back": "Zurück",
@@ -226,5 +226,12 @@
   "Prop_smallMultiples_border": "Feldrahmen",
   "Prop_smallMultiples_borderColor": "Farbe des Feldrahmens",
   "Enum_al_left": "Links",
-  "Enum_al_center": "Mitte"
+  "Enum_al_center": "Mitte",
+  "Obj_accessibility": "Barrierefreiheit",
+  "Prop_accessibility_highContrast": "Hoher Kontrast",
+  "Enum_hc_auto": "Automatisch (Windows-Einstellung)",
+  "Enum_hc_on": "Ein",
+  "Prop_accessibility_focusColor": "Fokusfarbe",
+  "Prop_accessibility_focusWidth": "Fokusbreite",
+  "Prop_accessibility_minTextSize": "Minimale Textgröße"
 }

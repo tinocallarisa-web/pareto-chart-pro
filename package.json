@@ -1,6 +1,6 @@
 {
   "name": "pareto-chart-pro",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Professional Pareto Chart with cumulative line, 80% reference, and Free/Pro tiers.",
   "keywords": [
     "powerbi",
@@ -31,6 +31,7 @@
     "@types/d3": "^7.4.3",
     "d3": "^7.9.0",
     "powerbi-visuals-api": "~5.11.1",
+    "powerbi-visuals-utils-dataviewutils": "^7.0.0",
     "powerbi-visuals-utils-formattingutils": "6.1.2",
     "powerbi-visuals-utils-onobjectutils": "^6.0.3"
   },
