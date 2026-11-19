@@ -41,18 +41,22 @@ window.powerbi = { visuals: { plugins: {} }, extensibility: {} };
 """
 
 
-def dv(objects=None, panel=False, n=400):
+def dv(objects=None, panel=False, n=400, cmp=False):
     """Begudes Nord (ficticia): ventas por referencia (SKU), cola larga; Channel para small multiples."""
     rnd = random.Random(5)
     sku, val, pan = [], [], []
     for k in range(n):
         sku.append(f"SKU-{k:04d}"); pan.append("Horeca" if k % 2 else "Retail")
-        val.append(round(9000 / (k + 1) ** 0.9 * rnd.uniform(0.7, 1.3), 1))
+        val.append(round(9000 / (k + 1) ** 1.25 * rnd.uniform(0.75, 1.25), 1))
     cats = [{"source": {"displayName": "SKU", "queryName": "S.SKU", "roles": {"category": True}}, "values": sku}]
     if panel: cats.append({"source": {"displayName": "Channel", "queryName": "S.Channel", "roles": {"panel": True}}, "values": pan})
     v = {"source": {"displayName": "Sales", "queryName": "Sum(S.Sales)", "roles": {"measure": True}, "isMeasure": True, "format": "#,0"}, "values": val}
-    return {"metadata": {"columns": [c["source"] for c in cats] + [v["source"]], "objects": objects or {}},
-            "categorical": {"categories": cats, "values": [v]}}
+    vals = [v]
+    if cmp:   # el año anterior: la cabeza algo menos concentrada
+        vals.append({"source": {"displayName": "Sales last year", "queryName": "Sum(S.SalesLY)", "roles": {"comparison": True}, "isMeasure": True, "format": "#,0"},
+                     "values": [round(x * (0.85 if k < 20 else 1.05) * rnd.uniform(0.9, 1.1), 1) for k, x in enumerate(val)]})
+    return {"metadata": {"columns": [c["source"] for c in cats] + [x["source"] for x in vals], "objects": objects or {}},
+            "categorical": {"categories": cats, "values": vals}}
 
 
 def check(name, ok, detail=""):
@@ -88,10 +92,19 @@ TICKS = "() => Array.from(document.querySelectorAll('svg text')).map(t => t.text
 
 
 async def ficha(b):
+    """Imágenes de la ficha (1.8): build de prueba con Pro forzado (sin marca de agua)."""
     async def shot(name, data, W, H):
         pg = await page(b, "sim_pro", data, W, H, name=name)
         await pg.close()
-    await shot("60_central", dv(), 852, 354)
+    free = {"rangeBar": {"show": False}, "pareto": {"namedBars": "top15"}, "valueLabels": {"show": False}}   # lo que ve el Free
+    await shot("60_central", dv(free), 852, 354)
+    await shot("60_free", dv(free), 760, 500)
+    await shot("60_pro", dv({"rangeBar": {"show": False}, "abcZones": {"show": True}, "pareto": {"namedBars": "vitalFew", "namedMax": 30}}, cmp=True), 760, 500)
+    await shot("60_hero", dv({"abcZones": {"show": True}, "pareto": {"namedBars": "vitalFew", "namedMax": 30}}, cmp=True), 900, 600)
+    for k, (w, hh) in {"l": (900, 520), "m": (520, 330), "s": (340, 190)}.items():
+        await shot("61_size_" + k, dv(free), w, hh)
+    for k in ("boardroom", "ledger", "editorial", "signal", "aurora", "terrace"):
+        await shot("62_style_" + k, dv({"style": {"template": k}, "rangeBar": {"show": False}, "pareto": {"namedBars": "top15"}}), 760, 480)
 
 
 async def main():
