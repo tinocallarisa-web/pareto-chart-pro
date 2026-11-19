@@ -14,3 +14,4 @@ __pycache__/
 # Simulador (1.8)
 tools/simulador/capturas/
 tools/simulador/__pycache__/
+!_releases/*.pbiviz
