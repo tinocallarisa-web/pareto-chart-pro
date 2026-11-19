@@ -152,6 +152,17 @@ async def main():
         check("Reset to default en todas las tarjetas", fm["revert"])
         await pg.close()
 
+        print("Estilo elegido: borra el color de barra guardado por entidad")
+        old = dv({"style": {"template": "contrast"}})
+        old["categorical"]["categories"][0]["objects"] = [{"pareto": {"barColor": {"solid": {"color": "#1F3864"}}}} for _ in old["categorical"]["categories"][0]["values"]]
+        pg = await page(b, "sim_pro", old, view=1)
+        nuevo = json.loads(json.dumps(old)); nuevo["metadata"]["objects"]["style"]["template"] = "boardroom"
+        await pg.evaluate("([dv]) => __v.update({ dataViews: [dv], viewport: {width: 900, height: 520}, type: 2, viewMode: 1 })", [nuevo])
+        await pg.wait_for_timeout(200)
+        rem = await pg.evaluate("() => JSON.stringify(window.__persist)")
+        check("al elegir Boardroom se borra pareto.barColor con selector comodín", '"barColor":null' in rem and "dataViewWildcard" in rem, rem[:300])
+        await pg.close()
+
         print("Marca de agua común")
         pg = await page(b, "sim_free", dv({"valueLabels": {"show": True}}), view=1, license=True, name="08_marca_vista_previa")
         await pg.wait_for_timeout(300)

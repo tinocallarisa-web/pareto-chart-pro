@@ -29,6 +29,7 @@ import {
 // Solo los estilos de la 1.6 en adelante. visual.less no se ha importado nunca (la 1.5 publicada no lleva CSS) y sus
 // reglas chocarían con lo que se ve hoy (p. ej. .bar:hover con !important pisaría el atenuado de la selección).
 import { createProWatermark, renderProWatermark } from "./comun/watermark";
+import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 import "./../style/pareto.less";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -3546,6 +3547,13 @@ export class Visual implements IVisual {
             objectName: obj, selector: null,
             properties: Object.keys(t[obj]).reduce((acc: any, p) => { acc[p] = null; return acc; }, {})
         }));
+        // 1.8: el color de barra también vive con selector comodín (regla fx o fijo de informes anteriores a la 1.6,
+        // repetido entidad a entidad). Ese color gana al del estilo (uniformBarColor), así que Boardroom salía con las
+        // barras del color viejo. Al ELEGIR un estilo que define el color de barra, se borra también ahí.
+        if (t.pareto?.barColor !== undefined) {
+            remove.push({ objectName: "pareto", properties: { barColor: null },
+                selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals) });
+        }
         if (remove.length) this.host.persistProperties({ remove });
     }
 

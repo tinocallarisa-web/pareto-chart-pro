@@ -14,6 +14,9 @@
 - Conditional formatting (fx) on Bar color: same behaviour; only its internal declaration changed (selector created with `createDataViewWildcardSelector`, `altConstantSelector` null, so a fixed colour is stored once).
 - New texts in the 12 languages.
 
+### Fixed
+- **Picking a style now recolours the bars in reports saved before 1.6.** Those reports stored the fixed bar colour entity by entity, and that colour won over the style: Boardroom drew its background with the old bars. Picking a style (or the Report theme) now clears that stored colour too, as it already did with the other colours the style sets.
+
 ## [1.7.0.0] — 2026-11-09
 
 ### Added
