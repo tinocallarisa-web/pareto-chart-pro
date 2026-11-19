@@ -153,6 +153,7 @@
   <a href="#quickstart" class="active">Quick Start</a>
   <a href="#reading">Reading the chart</a>
   <a href="#fields">Field Wells</a>
+  <a href="#whats-new">What's new</a>
   <a href="#format">Format Pane</a>
   <a href="#accessibility">Accessibility</a>
   <a href="#performance">Performance</a>
@@ -178,7 +179,7 @@
 
 <div class="wrap">
 
-  <div class="verpill">Visual v1.7.0.0 &nbsp;·&nbsp; docs updated 9 Nov 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
+  <div class="verpill">Visual v1.8.0.0 &nbsp;·&nbsp; docs updated 19 Nov 2026 &nbsp;·&nbsp; <a href="changelog.html">what's new</a></div>
 
   <p class="lead"><strong>Help for this visual:</strong>
   <a href="https://tcviz.com/guides/pareto-pro.html">step-by-step guide</a> ·
@@ -194,14 +195,29 @@
   <strong>small multiples</strong> · <strong>period comparison</strong> (current vs prior) · drilldown on a
   hierarchy · cross-filtering, <strong>highlighting</strong> and multi-select · standard and
   <strong>report page tooltips</strong> · bookmarks · context menu · keyboard navigation with ARIA labels ·
-  high contrast · <strong>number formats from the model</strong> and <strong>dynamic format strings</strong> ·
+  high contrast (automatic or forced on), focus colour and width, minimum text size · <strong>number formats from the model</strong> and <strong>dynamic format strings</strong> ·
   <strong>12 languages</strong> · <strong>format on the canvas</strong> (on-object) · <strong>style templates</strong>
-  (the report theme by default) and a <strong>setup guide</strong> inside the visual · a <strong>legend</strong> · IBCS mode.
+  (the report theme by default) and a <strong>setup guide</strong> inside the visual · a <strong>legend</strong> · an IBCS-style monochrome switch.
   Analysis: an exact <strong>80/20 summary sentence</strong>, <strong>named bars</strong> for the top entities, a
   <strong>range bar</strong> that filters the page by rank, <strong>ABC classification</strong> zones, threshold colours,
   outlier exclusion. Worked examples — customer
   concentration, SKU rationalisation, defect prioritisation — are in
   <a href="tips.html#scenarios">Tips &amp; scenarios</a>.</p>
+
+  <!-- What's new -->
+  <h2 id="whats-new">What's new in 1.8.0.0</h2>
+  <div class="card">
+    <ul>
+      <li><strong>Accessibility card</strong> <span class="badge badge-free">Free</span> — the last card of the format pane.
+      <strong>High contrast</strong>: Automatic (follows the Windows contrast theme) or On (black on white, also without the
+      Windows theme). <strong>Focus color</strong> and <strong>Focus width</strong> of the keyboard focus around a bar.
+      <strong>Minimum text size</strong>: no text of the chart is drawn smaller. See <a href="#accessibility">Accessibility</a>.</li>
+      <li><strong>Pro preview watermark</strong> — the common TCViz watermark: "Pro preview" and the Pro features in use,
+      centred, never covering the data. Only while editing without a licence.</li>
+      <li><strong>"IBCS Mode (Standardized)" is now "IBCS-style monochrome"</strong> — the same switch in the Pareto card,
+      with the same behaviour; existing reports are unaffected.</li>
+    </ul>
+  </div>
 
   <!-- Quick Start -->
   <h2 id="quickstart">Quick Start</h2>
@@ -415,7 +431,7 @@
   <!-- Format Pane -->
   <h2 id="format">Format Pane Reference</h2>
   <p>The cards appear in the order common to the TCViz visuals: Style template, Pareto, Summary, Cumulative Line,
-  Reference Lines, Threshold Colors, ABC zones, Value Labels, Comparison, Range bar, Axes, Legend and Small multiples.
+  Reference Lines, Threshold Colors, ABC zones, Value Labels, Comparison, Range bar, Axes, Legend, Small multiples and Accessibility.
   The colour defaults below are the visual's own; with the <strong>Report theme</strong> template (the default) the
   colours come from the report's theme.</p>
 
@@ -439,7 +455,7 @@
     <tr><td>Border color</td><td>#2E5BA8</td><td>Stroke color for bar borders.</td></tr>
     <tr><td>Border width</td><td>0</td><td>Stroke width in pixels (0 = no border).</td></tr>
     <tr><td>Bar gap px</td><td>2</td><td>Padding between bars in pixels.</td></tr>
-    <tr><td>IBCS Mode <span class="badge badge-free">Free</span></td><td>Off</td><td>One-click toggle to apply International Business Communication Standards (charcoal neutral bars #404040, black solid axis typography, standardized contrast).</td></tr>
+    <tr><td>IBCS-style monochrome <span class="badge badge-free">Free</span></td><td>Off</td><td>One-click monochrome style inspired by IBCS notation: neutral charcoal bars (#404040), a dark cumulative line, black axes and a light grid, and the comparison in outlined grey. Labelled "IBCS Mode (Standardized)" before 1.8; same switch, same behaviour.</td></tr>
   </table>
 
   <h3>Threshold Colors</h3>
@@ -561,6 +577,15 @@
     <tr><td>Font size</td><td>10</td><td>Size of the legend text.</td></tr>
     <tr><td>Text color</td><td>#605E5C</td><td>Color of the legend text.</td></tr>
   </table>
+  <h3 id="format-accessibility">Accessibility <span class="badge badge-free">Free</span></h3>
+  <table>
+    <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+    <tr><td>High contrast</td><td>Automatic (Windows setting)</td><td><strong>Automatic</strong> follows the Windows contrast theme. <strong>On</strong> draws the chart in black on white even when Windows has no contrast theme.</td></tr>
+    <tr><td>Focus color</td><td>#000000</td><td>Colour of the keyboard focus ring around a bar. In a contrast theme the ring takes the theme's selection colour.</td></tr>
+    <tr><td>Focus width</td><td>3</td><td>Thickness of that ring, 1–6 px.</td></tr>
+    <tr><td>Minimum text size</td><td>6</td><td>6–24. Axes, value labels, summary, legend, small-multiple titles, ABC zone labels, reference-line labels and the visual's own small notices are never drawn smaller, whatever the other cards or a style template say.</td></tr>
+  </table>
+
   <p>Format on the canvas: in format mode, click the bars, the cumulative line, the summary, an axis, the value labels, the ABC labels or the legend to format them where they are.</p>
 
   <!-- Accessibility -->
@@ -602,12 +627,29 @@
       readable without seeing it.</li>
       <li><strong>Tooltips open on keyboard focus</strong>, not only on hover. A tooltip that only
       appears under a mouse pointer is invisible to a keyboard user.</li>
-      <li>A visible focus ring marks the focused bar, with a dedicated high-contrast variant.</li>
+      <li>A visible focus ring marks the focused bar. Its colour and width are set in <strong>Format → Accessibility</strong>
+      (black, 3 px by default); in a contrast theme it takes the theme's selection colour.</li>
       <li>With small multiples the arrow keys walk the bars panel by panel, and each label starts with the
       panel's name. With a comparison, the label also reads the comparison share and the change.</li>
       <li>In Windows or Power BI high contrast mode, every element — bars, comparison bars and line, cumulative
       line, axes, dots, reference lines and ABC zones (outlined instead of shaded) — switches to the system
-      palette automatically.</li>
+      palette automatically. <strong>Format → Accessibility → High contrast → On</strong> gives the same treatment in
+      black on white without the Windows theme.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3>The Accessibility card <span class="badge badge-free">Free</span></h3>
+    <p>The last card of the format pane, new in 1.8.0.0, free in every version.</p>
+    <ul>
+      <li><strong>High contrast</strong> — <em>Automatic (Windows setting)</em>, the default, follows the Windows contrast
+      theme. <em>On</em> draws the chart in black on white even when Windows has no contrast theme, for everyone who opens
+      the report.</li>
+      <li><strong>Focus color</strong> and <strong>Focus width</strong> — the ring that shows which bar has the keyboard
+      focus. Black and 3 px by default; the width goes from 1 to 6 px.</li>
+      <li><strong>Minimum text size</strong> — 6 by default, up to 24. The axes, value labels, summary, legend,
+      small-multiple titles, ABC zone labels, reference-line labels and the visual's own small notices are never drawn
+      smaller than this, even if another card or a style template asks for less.</li>
     </ul>
   </div>
 
@@ -700,9 +742,9 @@
     <tr><td>Cumulative line styling</td><td>✅</td><td>✅</td></tr>
     <tr><td>Cross-filtering &amp; multi-select</td><td>✅</td><td>✅</td></tr>
     <tr><td>Drilldown / hierarchy</td><td>✅</td><td>✅</td></tr>
-    <tr><td>High contrast mode</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Accessibility card: high contrast (automatic or on), focus colour and width, minimum text size</td><td>✅</td><td>✅</td></tr>
     <tr><td>Tooltips field well (up to 10 measures)</td><td>✅</td><td>✅</td></tr>
-    <tr><td>IBCS Mode (standardized styling)</td><td>✅</td><td>✅</td></tr>
+    <tr><td>IBCS-style monochrome</td><td>✅</td><td>✅</td></tr>
     <tr><td>Exact 80/20 summary sentence</td><td>✅</td><td>✅</td></tr>
     <tr><td>One named bar per entity (30 or fewer)</td><td>✅</td><td>✅</td></tr>
     <tr><td>Top 15 by name + rank ranges (more than 30)</td><td>✅</td><td>✅</td></tr>
@@ -781,7 +823,7 @@
     <summary>Why do I see "(Pro)" settings I cannot use?</summary>
     <div class="faq-body">
       <p>Every setting in the format pane is listed for all users, and the ones included in the Pro plan carry <strong>(Pro)</strong> in their name — vital few by name, bin size, outlier exclusion, value labels, the third reference line, comparison, small multiples, ABC zones, the range bar's shortcuts and the six collection styles. They are shown rather than hidden so you can see what the plan includes before deciding.</p>
-      <p>If you turn one on without a licence while <strong>editing</strong> a report, the chart draws it working, under a <strong>Pro preview</strong> watermark that names the feature, and Power BI shows its own notification with a link to get a licence — so you see your own data with the feature before deciding. In reading view, and wherever licences cannot be read, the chart shows the Free result with no watermark: a published report never uses a feature nobody paid for. Your setting is stored and applies cleanly as soon as the licence is active.</p>
+      <p>If you turn one on without a licence while <strong>editing</strong> a report, the chart draws it working, under a <strong>Pro preview</strong> watermark that names the Pro features in use — centred, never covering the data — and Power BI shows its own notification with a link to get a licence — so you see your own data with the feature before deciding. In reading view, and wherever licences cannot be read, the chart shows the Free result with no watermark: a published report never uses a feature nobody paid for. Your setting is stored and applies cleanly as soon as the licence is active.</p>
     </div>
   </details>
 
@@ -806,7 +848,7 @@
     <div class="faq-body">
       <p><strong>Format Pane → Threshold Colors</strong> colors each bar by where it falls relative to a cumulative percentage threshold — 80% by default. Bars within the threshold take one color, bars beyond it another, and the bin where the cumulative line actually crosses can be highlighted separately.</p>
       <p>This answers the question a Pareto is usually asked: <em>which share of entities is the vital few, and where exactly does the line cross?</em> The <em>fx</em> dialog colors by a field value; Threshold Colors color by position in the distribution.</p>
-      <p>When both are on, Threshold Colors wins. The full precedence is: high contrast → IBCS Mode → Threshold Colors → <em>fx</em> rule → the constant Bar color.</p>
+      <p>When both are on, Threshold Colors wins. The full precedence is: high contrast → IBCS-style monochrome → Threshold Colors → <em>fx</em> rule → the constant Bar color.</p>
     </div>
   </details>
 
@@ -915,6 +957,27 @@
   </details>
 
   <details>
+    <summary>Can I force high contrast without changing Windows?</summary>
+    <div class="faq-body">
+      <p>Yes, from 1.8.0.0. <strong>Format → Accessibility → High contrast → On</strong> draws the chart in black on white for everyone who opens the report, whatever their Windows setting. <em>Automatic</em>, the default, follows the Windows contrast theme as before.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>Text in my chart is too small to read. Can I set a minimum size?</summary>
+    <div class="faq-body">
+      <p>Yes. <strong>Format → Accessibility → Minimum text size</strong> (6 by default, up to 24). The axes, value labels, summary, legend, small-multiple titles, ABC zone labels, reference-line labels and the visual's own small notices are never drawn smaller, even when another card or a style template sets a smaller size.</p>
+    </div>
+  </details>
+
+  <details>
+    <summary>How do I change the keyboard focus ring?</summary>
+    <div class="faq-body">
+      <p><strong>Format → Accessibility → Focus color</strong> and <strong>Focus width</strong> (1–6 px, 3 by default). Tab into the chart and use the arrow keys to see it on each bar. In a contrast theme the ring takes the theme's selection colour.</p>
+    </div>
+  </details>
+
+  <details>
     <summary>Does the visual send my data anywhere?</summary>
     <div class="faq-body">
       <p>No. All data processing happens locally inside Power BI. The only external network request is the license validation call to the Microsoft licensing API (<code>IVisualLicenseManager</code>) — this is the standard Power BI mechanism and shares no report data. See the <a href="privacy.html" style="color:var(--acc);">Privacy Policy</a> for full details.</p>
@@ -987,7 +1050,7 @@
   <details>
     <summary>Is “IBCS style” compliant with the IBCS standard?</summary>
     <div class="faq-body">
-      <p>It is a style inspired by IBCS notation: charcoal bars, a dark cumulative line and black reference lines, using the visual's IBCS mode. The visual does not claim compliance with the IBCS standard, which covers far more than one chart.</p>
+      <p>No. It is a monochrome style inspired by IBCS notation: charcoal bars, a dark cumulative line and black reference lines, using the <strong>IBCS-style monochrome</strong> switch of the Pareto card (labelled "IBCS Mode (Standardized)" before 1.8). The visual does not claim compliance with the IBCS standard, which covers far more than one chart.</p>
     </div>
   </details>
 
@@ -1038,7 +1101,7 @@
   <div class="contact-box">
     <div class="icon">✉️</div>
     <div>
-      <h3>Need help? Every message is answered by a person — the developer of the visual.</h3>
+      <h3>Need help? Every message is read and answered by a person — the developer of the visual.</h3>
       <p>For bug reports, feature requests, and licensing questions:<br>
       <a href="mailto:support@tcviz.com">support@tcviz.com</a></p>
     </div>

@@ -2143,7 +2143,7 @@ export class Visual implements IVisual {
                 .attr("stroke", isHC ? hcFg : "none")
                 .attr("stroke-dasharray", isHC ? "3,3" : null);
             if (s.abcLabels) {
-                const lfs = Math.max(7, Math.min(24, s.abcLabelSize || 10));
+                const lfs = Math.max(s.minText, 7, Math.min(24, s.abcLabelSize || 10));
                 const bgOp = isHC ? 1 : Math.max(0, Math.min(100, s.abcLabelBgOpacity)) / 100;
                 const bg = isHC ? hcBg : (s.abcLabelBg || "#FFFFFF");
                 const etiquetas = zg.selectAll("g.abc-label").data(zones.filter(z => z.x1 - z.x0 > lfs * 3.4)).enter()
@@ -2230,7 +2230,7 @@ export class Visual implements IVisual {
         // ── Bar fill resolution ────────────────────────────────────────────────
         // Precedence, highest first:
         //   1. high contrast   — meaning may not be encoded in fill
-        //   2. IBCS mode       — standardized neutral palette
+        //   2. IBCS-style monochrome — neutral palette inspired by IBCS notation
         //   3. threshold colors — explicit opt-in, applies to every bar
         //   4. a single colour across every category — a constant the user picked
         //   5. fx rule color   — resolved per bin from its top-ranked entity
@@ -2335,7 +2335,8 @@ export class Visual implements IVisual {
         // Value labels (Pro)
         let labelH = 0;
         // Solo si caben en su barra: en un mosaico estrecho se pisaban ("3.5%3.5%…"). El dato sigue en el tooltip.
-        const lfsPrev = Math.max(7, Math.min(s.labelFontSize, curW * 0.4));
+        // Accesibilidad (1.8): el tamaño mínimo manda también sobre el ajuste al ancho de la barra.
+        const lfsPrev = Math.max(s.minText, 7, Math.min(s.labelFontSize, curW * 0.4));
         const caben   = bins.every(b => (s.showPercent ? this.pct(b.pctShare, 1) : this.formatter("0.0").format(b.pctShare)).length * lfsPrev * 0.58 <= curW + 2);
         if (s.showLabels && this.previewOf("value labels") && caben) {
             const labelColor = this.resolveColor(s.labelColor, hcFg, isHC);

@@ -319,7 +319,7 @@
         "ibcsMode": {
           "displayName": "IBCS-style monochrome",
           "displayNameKey": "Prop_pareto_ibcsMode",
-          "description": "Apply International Business Communication Standards styling (neutral colors, clean contrast, standardized IBCS palette)",
+          "description": "A monochrome style inspired by IBCS notation: dark grey bars, black line, no colour accents",
           "type": {
             "bool": true
           }

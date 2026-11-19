@@ -1,7 +1,25 @@
-# Certification Notes — Pareto Chart Pro v1.7.0.0
+# Certification Notes — Pareto Chart Pro v1.8.0.0
 
-> 1.7.0.0: the text pasted into Partner Center is `CERTIFICATION-NOTES-SHORT.txt`; the full list of changes is in
-> CHANGELOG.md. The 1.7 section below is the long form; the 1.5 section and the reference sections still hold.
+> 1.8.0.0: the text pasted into Partner Center is `CERTIFICATION-NOTES-SHORT.txt`; the full list of changes is in
+> CHANGELOG.md. The 1.8 section below is the long form; the 1.7 and 1.5 sections and the reference sections still hold.
+
+## New in 1.8.0.0 (paste-ready summary: `CERTIFICATION-NOTES-SHORT.txt`)
+- **Capabilities, additions only (nothing renamed or removed):** new object `accessibility` (last card, Free):
+  `highContrast` (enum `auto` / `on`), `focusColor` (fill, `#000000`), `focusWidth` (numeric, 3, clamped 1–6 px),
+  `minTextSize` (numeric, 6, clamped 6–24). Only the display name of `pareto.ibcsMode` changed, to
+  "IBCS-style monochrome": same property, same behaviour.
+- **High contrast `on`.** Without a Windows contrast theme, the visual uses a black-on-white palette through the same
+  high-contrast code path as `host.colorPalette.isHighContrast`. With a contrast theme active, the theme wins.
+- **Focus ring.** `focusColor` and `focusWidth` drive the keyboard focus ring around a bar; in high contrast it takes
+  the theme's `foregroundSelected`.
+- **Minimum text size.** The axes, value labels, summary, legend, small-multiple titles, ABC zone labels,
+  reference-line labels and the visual's own small notices take `max(minTextSize, size)`.
+- **Conditional formatting on `pareto.barColor`:** selector created with `createDataViewWildcardSelector`;
+  `altConstantSelector` null (fixed colour stored once). Same user-facing behaviour as 1.7.
+- **Pro preview watermark:** the common TCViz component — "Pro preview" plus the Pro features in use, centred, never
+  over the data. Edit mode without a licence only, as before.
+- Free/Pro split unchanged. ESLint 0 problems (`npx eslint .`) and `npm audit` 0 vulnerabilities, both run on the 1.8
+  source.
 
 ## New in 1.7.0.0 (paste-ready summary: `CERTIFICATION-NOTES-SHORT.txt`)
 - **Capabilities, additions only (nothing renamed or removed):** `pareto.namedBars` (enum `bins` / `top15` /
@@ -51,7 +69,7 @@
 ## General Information
 - **Visual Name:** Pareto Chart Pro
 - **GUID:** ParetoChartPro1A2B3C4D5E6F7A8B9C0D
-- **Version:** 1.7.0.0
+- **Version:** 1.8.0.0
 - **Plan ID / spIdentifier:** pareto-chart-pro-tcviz
 - **Certification Branch:** https://github.com/tinocallarisa-web/pareto-chart-pro/tree/certification
 - **Support URL:** https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
@@ -120,9 +138,10 @@ Free tier:
 - Conditional formatting on bar color (`fx`) and the Threshold Colors card
 - Bar border color and width, and bar gap
 - Tooltips field well, up to 10 additional measures
-- IBCS Mode
+- IBCS-style monochrome switch (labelled "IBCS Mode (Standardized)" before 1.8)
 - Drilldown, cross-filtering, multi-select, partial highlighting
 - Keyboard navigation, screen-reader labels, high contrast mode
+- Accessibility card: high contrast `auto` / `on`, focus colour and width, minimum text size
 - Summary sentence, named bars (30 entities or fewer), 12 languages, model number formats
 
 Pro tier (plan `pareto-chart-pro-tcviz`):
@@ -145,8 +164,8 @@ Pro tier (plan `pareto-chart-pro-tcviz`):
 > Threshold Colors is computed by the visual from the aggregated bins and is unaffected; it is
 > documented as the option to use at that size.
 
-> Note for reviewers: conditional formatting, Threshold Colors, the Tooltips field well and IBCS Mode
-> are **not** licence-gated. Earlier revisions of this document listed some of them as Pro; the code
+> Note for reviewers: conditional formatting, Threshold Colors, the Tooltips field well, the IBCS-style monochrome switch and the
+> Accessibility card are **not** licence-gated. Earlier revisions of this document listed some of them as Pro; the code
 > is the authority and they are available in both tiers.
 
 ## Accessibility
@@ -158,9 +177,12 @@ Pro tier (plan `pareto-chart-pro-tcviz`):
   `aria-label` naming the bin position, entity range, share of value, cumulative percentage and
   entity count.
 - Tooltips open on focus as well as hover.
-- A visible focus ring, injected from TypeScript with a `forced-colors` variant. (`style/visual.less`
+- A visible focus ring, injected from TypeScript with a `forced-colors` variant; colour and width from the
+  Accessibility card (1.8). (`style/visual.less`
   is not emitted into the package, so runtime injection is the only way to ship CSS.)
-- High contrast: all colors switch to the system palette via `host.colorPalette.isHighContrast`.
+- High contrast: all colors switch to the system palette via `host.colorPalette.isHighContrast`, or to black on
+  white with Accessibility → High contrast → On (1.8).
+- Minimum text size (1.8): no text the visual draws goes below the Accessibility card's value.
 
 ## Data volume and cross-filtering
 - `capabilities.json` declares `"window": { "count": 30000 }`. In Power BI Service the visual

@@ -1,4 +1,4 @@
-# Tips & Hints — Pareto Chart Pro (v1.7.0.0)
+# Tips & Hints — Pareto Chart Pro (v1.8.0.0)
 
 ## Getting started
 1. Entity — a categorical dimension (Customer, Product, SKU, Supplier). A hierarchy here enables drilldown.
@@ -8,6 +8,32 @@
 5. Small multiples (Pro) — a field such as Region or Plant, for one Pareto per value.
 
 No DAX, no pre-sorting, no cumulative measure. Ranking, named bars and the cumulative line are automatic.
+
+## New in 1.8.0.0
+
+- Accessibility card (Format → Accessibility, the last card, free). High contrast: Automatic
+  follows the Windows contrast theme; On draws the chart in black on white for everyone,
+  whatever their Windows setting. Focus color and Focus width (1–6 px, 3 by default) set the
+  ring around the bar that has the keyboard focus. Minimum text size (6–24, 6 by default): the
+  axes, value labels, summary, legend, small-multiple titles, ABC zone labels, reference-line
+  labels and the visual's own small notices are never drawn smaller.
+- Pro preview watermark: the same as every TCViz visual — "Pro preview" and the Pro features in
+  use, centred, never over your data. Only while you edit without a licence.
+- "IBCS Mode (Standardized)" is now called "IBCS-style monochrome". Same switch in the Pareto
+  card, same look; reports that use it do not change.
+
+### Troubleshooting 1.8
+
+- I cannot find "IBCS Mode" any more: it is the same switch, now labelled "IBCS-style
+  monochrome", in Format → Pareto.
+- The chart turned black and white: Format → Accessibility → High contrast is set to On. Set it
+  back to Automatic to follow Windows again.
+- I lowered a font size and the text did not shrink: Minimum text size in the Accessibility card
+  wins over the other cards and the style templates. Lower it (6 is the smallest).
+- I cannot see which bar has the keyboard focus: raise Focus width or pick a Focus color that
+  contrasts with your bars. In a Windows contrast theme the ring takes the theme's selection colour.
+- The watermark appeared in the middle of the chart: you are editing without a licence and a Pro
+  setting is on; the watermark lists which. It never covers the data and is not shown in reading view.
 
 ## New in 1.7.0.0
 
@@ -157,15 +183,17 @@ semantic model you cannot add calculated columns at all.
 - Threshold Colors — colors bars by their position relative to a cumulative threshold, with an
   optional highlight on the crossing bin. For a Pareto this is usually the more useful of the two,
   and on a large model it is the only one that colors every bar.
-- IBCS Mode — neutral charcoal bars so the cumulative line and reference lines carry the message.
-- Precedence: high contrast → IBCS → Threshold Colors → a single color across every entity (a
+- IBCS-style monochrome (Format → Pareto; "IBCS Mode" before 1.8) — neutral charcoal bars so the
+  cumulative line and reference lines carry the message. A style inspired by IBCS notation.
+- Precedence: high contrast → IBCS-style monochrome → Threshold Colors → a single color across every entity (a
   constant you picked) → fx rule per bin → constant Bar color.
 
 ## Keyboard
 
 The chart is a single Tab stop. ← → ↑ ↓ move between bins, Home/End jump to the ends,
 Enter/Space select, Ctrl/Cmd+Enter adds to the selection, Escape clears, Shift+F10
-opens the context menu. Tooltips open on focus, not only on hover.
+opens the context menu. Tooltips open on focus, not only on hover. The focus ring's colour and
+width are in Format → Accessibility.
 
 The range bar's two handles are sliders of their own: arrows move one entity, Shift+arrow or
 Page Up/Page Down a tenth of them, Home/End the ends, Escape clears the range.
@@ -177,8 +205,9 @@ Page Up/Page Down a tenth of them, Home/End the ends, Escape clears the range.
    Reference lines . . . up to 2 . . . up to 3
    Conditional formatting (`fx`) & Threshold Colors . . . ✓ . . . ✓
    Tooltips field well (10 measures) . . . ✓ . . . ✓
-   IBCS Mode . . . ✓ . . . ✓
+   IBCS-style monochrome . . . ✓ . . . ✓
    Keyboard navigation, high contrast . . . ✓ . . . ✓
+   Accessibility card (forced high contrast, focus ring, minimum text size) . . . ✓ . . . ✓
    Entities . . . Verified at 500,000 entities (Power BI Service); Power BI Desktop: up to 30,000 rows . . . same
    Top 15 by name + rank ranges . . . ✓ . . . ✓
    Vital few by name (up to 50) . . . — . . . ✓
@@ -199,7 +228,7 @@ Page Up/Page Down a tenth of them, Home/End the ends, Escape clears the range.
 ## Try Pro before you buy
 
 While you are editing a report WITHOUT a licence, a Pro setting you turn on is drawn WORKING, under
-a "Pro preview" watermark that names the feature, and Power BI shows its own notice with the Upgrade
+a "Pro preview" watermark that names the Pro features in use (centred, never over the data), and Power BI shows its own notice with the Upgrade
 option. Turn the setting back off and the watermark goes with it.
 
 In READING VIEW — and anywhere Power BI cannot check licences, such as Publish to Web, embedding or

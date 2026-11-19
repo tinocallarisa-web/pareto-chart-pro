@@ -1,4 +1,4 @@
-# AppSource listing copy — Pareto Chart Pro v1.7.0.0 (DRAFT, not submitted yet)
+# AppSource listing copy — Pareto Chart Pro v1.8.0.0 (DRAFT, not submitted yet)
 
 Paste-ready text for Partner Center. **Editing this file does not change the offer**: the fields
 Microsoft reviews live only in Partner Center, and have to be pasted by hand.
@@ -18,7 +18,7 @@ What's new block goes inside it), certification notes 2,500 counting CRLF, 3 key
 ---
 
 ## Description
-*(4,336 characters measured on the HTML that is pasted, What's new included; limit 5,000)*
+*(4,627 characters measured on the HTML that is pasted, counting line breaks as CRLF, What's new included; limit 5,000)*
 
 ```
 Everyone has heard that 20% of customers make 80% of sales. The useful questions are whether that holds for your business this year, who exactly those customers are, and what changed since last year. Building it natively takes a sorted column chart, a cumulative DAX measure and a dual axis; Pareto Chart Pro does it for you and states the answer in words.
@@ -44,7 +44,11 @@ FREE AND PRO
 The free tier gives you the exact answer and a correct chart. Pro tells you exactly who the vital few are, what changed and where. The setup guide inside the visual lets you try each Pro feature with one click: without a licence it is drawn working under a "Pro preview" watermark, on your own data, while you edit. Reading view shows the free result.
 
 NATIVE INTEGRATION
-Cross-filtering and multi-select, drilldown on a hierarchy, standard and report page tooltips, bookmarks, context menu. Keyboard navigation (one Tab stop, arrow keys between bars, and the range bar's handles by keyboard) with screen-reader labels, high contrast, the measure's format string from your model (dynamic format strings included), format on the canvas, a legend, and twelve languages.
+Cross-filtering and multi-select, drilldown on a hierarchy, standard and report page tooltips, bookmarks, context menu, the measure's format string from your model (dynamic format strings included), format on the canvas, a legend, and twelve languages.
+
+ACCESSIBILITY
+• Keyboard navigation (one Tab stop, arrow keys between bars, the range bar's handles by keyboard) with screen-reader labels
+• A free Accessibility card: high contrast that follows Windows or is forced on (black on white), focus ring colour and width, and a minimum text size for every label
 
 PRIVACY
 No network requests, no telemetry: everything is calculated inside Power BI. Licences are checked through Microsoft's own licensing API.
@@ -57,8 +61,8 @@ GETTING STARTED
 Documentation, scenarios and sample data: https://tinocallarisa-web.github.io/pareto-chart-pro/support.html
 Support: support@tcviz.com
 
-WHAT'S NEW IN 1.7.0.0
-Your top 15 by name (free) and the vital few by name (Pro); a range bar that filters the page by rank; rank moves and who left the vital few in the comparison; Report theme by default and six collection styles (Pro); ABC zone opacity and labels; small-multiples panel styling.
+WHAT'S NEW IN 1.8.0.0
+A free Accessibility card (high contrast forced on, focus ring colour and width, minimum text size); the common TCViz "Pro preview" watermark, centred and never over the data; the IBCS switch is now called "IBCS-style monochrome".
 ```
 
 Paste the **HTML**, not this text: `python C:\tcviz\utillaje\ficha_html.py "C:\tcviz\dev\Pareto\pareto-chart-pro"`
@@ -115,7 +119,7 @@ The price of an existing plan cannot be changed: that is why 1.7 goes with a new
 
 ---
 
-## What to paste by hand in Partner Center (1.7.0.0)
+## What to paste by hand in Partner Center (1.8.0.0)
 
 Editing this file changes nothing in the offer. In Partner Center:
 
@@ -125,9 +129,8 @@ Editing this file changes nothing in the offer. In Partner Center:
 3. **Offer listing → Search keywords:** unchanged.
 4. **Offer listing → Videos:** unchanged, `https://www.youtube.com/watch?v=1LLgEmXuA_8` (canonical
    `watch?v=` form; never `youtu.be`).
-5. **Plans → new plan → Plan description:** the "Plan description (Pro)" text above; price 1.99 per
-   user per month · 19 per year in the plan's pricing fields.
-6. **Technical configuration:** the 1.7.0.0 `.pbiviz` and the `.pbix` sample (without `_test`).
+5. **Plans:** unchanged in 1.8 (the Free/Pro split does not change); nothing to paste.
+6. **Technical configuration:** the 1.8.0.0 `.pbiviz` and the `.pbix` sample (without `_test`).
 7. **Review and publish → Notes for certification:** `docs/CERTIFICATION-NOTES-SHORT.txt`.
-8. **Screenshots**, only if replaced: the current ones show the 1.6 look (Clean); a 1.7 visual opens in
-   Report theme with the top 15 by name.
+8. **Screenshots**, only if replaced: 1.8 adds nothing visible to a default chart; if the current ones still
+   show the 1.6 look (Clean), a 1.8 visual opens in Report theme with the top 15 by name.

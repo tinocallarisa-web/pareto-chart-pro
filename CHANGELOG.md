@@ -1,5 +1,19 @@
 # Changelog — Pareto Chart Pro
 
+## [1.8.0.0] — 2026-11
+
+### Added
+- **Accessibility card** (Format pane, last card, Free), property object `accessibility`:
+  - **High contrast** — *Automatic (Windows setting)*, the default: follows the Windows contrast theme, as before. *On*: black on white, also without the Windows theme.
+  - **Focus color** (black by default) and **Focus width** (3 by default, 1–6 px) of the keyboard focus ring around a bar. In a contrast theme the ring takes the theme's selection colour.
+  - **Minimum text size** (6 by default, 6–24): the axes, value labels, summary, legend, small-multiple titles, ABC zone labels, reference-line labels and the visual's own small notices are never drawn smaller.
+
+### Changed
+- **The Pro preview watermark is the common TCViz watermark:** "Pro preview" and the Pro features in use, centred, never covering the data. As before, only while editing without a licence.
+- **The "IBCS Mode (Standardized)" switch is now labelled "IBCS-style monochrome".** Same switch in the Pareto card, same behaviour, same property (`pareto.ibcsMode`), so existing reports are unaffected. It is a monochrome style inspired by IBCS notation, not a claim of compliance with the standard.
+- Conditional formatting (fx) on Bar color: same behaviour; only its internal declaration changed (selector created with `createDataViewWildcardSelector`, `altConstantSelector` null, so a fixed colour is stored once).
+- New texts in the 12 languages.
+
 ## [1.7.0.0] — 2026-11-09
 
 ### Added
@@ -129,7 +143,7 @@ No changes to visual behavior — this release exists only to resubmit with a co
 
 ### Added
 - **Tooltips Field Well (`tooltips` role)** — add up to 10 additional measures (Profit, Quantity, Margin %, Customer Count) to display in visual tooltips for bars and cumulative line dots
-- **IBCS Mode (`IBCS Mode (Standardized)`)** — one-click toggle in Pareto Format card to apply International Business Communication Standards styling (neutral charcoal `#404040` bars, `#000000` solid axis typography, clean grid contrast)
+- **IBCS Mode** (labelled `IBCS Mode (Standardized)` until 1.7, `IBCS-style monochrome` from 1.8) — one-click toggle in Pareto Format card for a monochrome style inspired by IBCS notation (neutral charcoal `#404040` bars, `#000000` solid axis typography, clean grid contrast)
 - **High-Performance 150,000+ Row Support** — optimized window data reduction streaming and zero-GC selection ID generation supporting datasets up to 150,000+ rows
 - **Strict Monotonic Pareto Binning Algorithm** — remainder items (`tn % nBins`) are prioritized in top bins, guaranteeing strictly descending bar heights and clean 10% interval labels (`0–10%`, `10–20%`... `90–100%`)
 
